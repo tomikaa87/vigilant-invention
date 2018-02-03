@@ -189,7 +189,7 @@ int calc_next_coord(int coord, int max, bool& inc)
 
 int main()
 {
-    std::cout << "u8g2 test is starting" << std::endl;
+    std::cout << "ESPCC playground is starting" << std::endl;
 
     if (!setup_wiringpi())
     {
@@ -219,7 +219,7 @@ int main()
         u8g2_SendBuffer(&u8g2);
     }
 
-    std::cout << "u8g2 test finished" << std::endl;
+    std::cout << "finished" << std::endl;
 
     return 0;
 }

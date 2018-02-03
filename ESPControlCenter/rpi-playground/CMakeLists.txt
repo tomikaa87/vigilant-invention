@@ -8,9 +8,9 @@ file(GLOB WIRINGPI_SOURCES "wiringpi/wiringPi/*.c")
 add_library(wiringpi ${WIRINGPI_SOURCES})
 target_include_directories(wiringpi PRIVATE "wiringpi/wiringPi")
 
-file(GLOB SOURCES *.cpp)
-add_executable(u8g2test ${SOURCES})
-target_include_directories(u8g2test PRIVATE "u8g2/csrc" "wiringpi/wiringPi")
-target_link_libraries(u8g2test u8g2 wiringpi pthread)
+file(GLOB_RECURSE SOURCES "src/*.cpp")
+add_executable(playground ${SOURCES})
+target_include_directories(playground PRIVATE "u8g2/csrc" "wiringpi/wiringPi")
+target_link_libraries(playground u8g2 wiringpi pthread)
 
 add_definitions("-O3")
