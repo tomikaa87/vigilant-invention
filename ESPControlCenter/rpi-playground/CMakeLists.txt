@@ -15,7 +15,6 @@ target_include_directories(wiringpi PRIVATE "wiringpi/wiringPi")
 
 # Main binary
 file(GLOB_RECURSE SOURCES "src/*.cpp")
-#set(SOURCES ${SOURCES} "../ui/pxplus-vga8-32.c")
 add_executable(playground ${SOURCES})
 target_include_directories(playground PRIVATE "u8g2/csrc" "wiringpi/wiringPi")
 target_link_libraries(playground u8g2 wiringpi pthread)
