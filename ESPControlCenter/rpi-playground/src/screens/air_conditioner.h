@@ -18,6 +18,10 @@ public:
     uint8_t mode = 0;
     uint8_t vertical_swing = 0;
     uint8_t fan_speed = 0;
+
+private:
+    void draw_fan_speed_indicator(u8g2_t* u8g2, const uint8_t x, const uint8_t y, const uint8_t speed);
+    void draw_vswing_indicator(u8g2_t* u8g2, const uint8_t x, const uint8_t y, const uint8_t mode);
 };
 
 }

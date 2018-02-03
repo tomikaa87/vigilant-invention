@@ -238,7 +238,9 @@ int main()
     uint8_t counter = 0;
 
     ac_bedroom.set_temp = 24;
+    ac_bedroom.fan_speed = 0;
     ac_kitchen.set_temp = 25;
+    ac_kitchen.fan_speed = 5;
 
     while (true)
     {
