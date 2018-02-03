@@ -1,9 +1,13 @@
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 
 #include <u8g2.h>
 
 #include <wiringPi.h>
 #include <wiringPiI2C.h>
+
+#include "../../ui/pxplus-vga8-32.c"
 
 static const uint8_t display_dev_id = 0x3c;
 
@@ -203,19 +207,19 @@ int main()
 
     u8g2_ClearBuffer(&u8g2);
     u8g2_SetDrawColor(&u8g2, 1);
+    u8g2_SetFont(&u8g2, pxplus_vga8_32_nums);
 
-    bool x_inc = true;
-    bool y_inc = true;
-    int x = 10;
-    int y = 10;
+    uint16_t counter = 0;
+
+    std::stringstream ss;
 
     while (true)
     {
-        x = calc_next_coord(x, 127 - 20, x_inc);
-        y = calc_next_coord(y, 63 - 20, y_inc);
+        ss.str({});
+        ss << std::setw(5) << std::setfill('*') << counter++;
 
         u8g2_ClearBuffer(&u8g2);
-        u8g2_DrawBox(&u8g2, x, y, 20, 20);
+        u8g2_DrawStr(&u8g2, 10, 30, ss.str().c_str());
         u8g2_SendBuffer(&u8g2);
     }
 
