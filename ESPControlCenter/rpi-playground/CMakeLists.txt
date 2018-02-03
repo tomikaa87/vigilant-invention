@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.7)
 
 add_definitions("-O3")
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++17")
 
 # u8g2 library
 file(GLOB U8G2_CSOURCES "u8g2/csrc/*.c")

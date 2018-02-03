@@ -9,6 +9,9 @@
 
 #include "../../ui/pxplus-vga8-32.c"
 
+#include "ui.h"
+#include "screen_nas_stats.h"
+
 static const uint8_t display_dev_id = 0x3c;
 
 int g_i2c_fd = 0;
@@ -207,20 +210,26 @@ int main()
 
     u8g2_ClearBuffer(&u8g2);
     u8g2_SetDrawColor(&u8g2, 1);
-    u8g2_SetFont(&u8g2, pxplus_vga8_32_nums);
+    u8g2_SendBuffer(&u8g2);
 
-    uint16_t counter = 0;
+    ui::oled_ui oled_ui{ &u8g2 };
 
-    std::stringstream ss;
+    ui::screens::nas_stats nas_stats_screen;
+    if (!oled_ui.add_screen(&nas_stats_screen))
+    {
+        std::cerr << "failed to add NAS stats screen";
+        return 1;
+    }
 
     while (true)
     {
-        ss.str({});
-        ss << std::setw(5) << std::setfill('*') << counter++;
+        nas_stats_screen.cpu_usage = std::rand() % 101;
+        nas_stats_screen.mem_usage = std::rand() % 101;
+        nas_stats_screen.upload_speed = std::rand() % 11000;
+        nas_stats_screen.download_speed = std::rand() % 11000;
 
-        u8g2_ClearBuffer(&u8g2);
-        u8g2_DrawStr(&u8g2, 10, 30, ss.str().c_str());
-        u8g2_SendBuffer(&u8g2);
+        oled_ui.task();
+        delay(1000);
     }
 
     std::cout << "finished" << std::endl;
