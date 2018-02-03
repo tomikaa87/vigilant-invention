@@ -1,6 +1,6 @@
 [Eagle]
 Version="08 05 01"
-Platform="Windows"
+Platform="Mac OS X"
 Globals="Globals"
 Desktop="Desktop"
 
@@ -355,22 +355,11 @@ UsedLibraryUrn="urn:adsk.eagle:library:509"
 UsedLibraryUrn="urn:adsk.eagle:library:476"
 UsedLibraryUrn="urn:adsk.eagle:library:468"
 UsedLibraryUrn="urn:adsk.eagle:library:420"
-UsedLibrary="C:/Work/EAGLE/lbr/diode-update.lbr"
-UsedLibrary="C:/Work/EAGLE/lbr/ESP8266-ESP12E.lbr"
-UsedLibrary="C:/Work/EAGLE/lbr/IRFML8244TRPBF.lbr"
-UsedLibrary="C:/Work/EAGLE/lbr/magjack.lbr"
-UsedLibrary="C:/Work/EAGLE/lbr/mcp2200.lbr"
-UsedLibrary="C:/Work/EAGLE/lbr/PMDT290UNE.lbr"
-UsedLibrary="C:/Work/EAGLE/lbr/PowerBoard.lbr"
-UsedLibrary="C:/Work/EAGLE/lbr/PowerBoard_r303.lbr"
-UsedLibrary="C:/Work/EAGLE/lbr/transistor-fet+irf7201.lbr"
-UsedLibrary="C:/Work/EAGLE/lbr/DIYMall_OLED.lbr"
-UsedLibrary="C:/Work/EAGLE/lbr/lexx.lbr"
 
 [Win_1]
 Type="Control Panel"
 Number=0
 
 [Desktop]
-Screen="1920 1080"
+Screen="1680 1050"
 Window="Win_1"

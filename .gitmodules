@@ -1,3 +1,6 @@
+[submodule "ESPControlCenter/src/crypto"]
+	path = ESPControlCenter/src/crypto
+	url = https://github.com/kakopappa/arduino-esp8266-aes-lib.git
 [submodule "ESPControlCenter/rpi-playground/u8g2"]
 	path = ESPControlCenter/rpi-playground/u8g2
 	url = https://github.com/olikraus/u8g2.git
