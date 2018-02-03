@@ -1,0 +1,8 @@
+[submodule "ESPControlCenter/rpi-playground/u8g2"]
+	path = ESPControlCenter/rpi-playground/u8g2
+	url = https://github.com/olikraus/u8g2.git
+	branch = master
+[submodule "ESPControlCenter/rpi-playground/wiringpi"]
+	path = ESPControlCenter/rpi-playground/wiringpi
+	url = https://github.com/WiringPi/WiringPi.git
+	branch = master
