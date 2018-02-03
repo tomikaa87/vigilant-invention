@@ -17,6 +17,7 @@ public:
 
     bool add_screen(screen* scr);
     void switch_screen(uint8_t screen_idx);
+    uint8_t screen_count() const;
 
     void task();
 

@@ -7,10 +7,9 @@
 #include <wiringPi.h>
 #include <wiringPiI2C.h>
 
-#include "../../ui/pxplus-vga8-32.c"
-
 #include "ui.h"
-#include "screen_nas_stats.h"
+#include "screens/nas_stats.h"
+#include "screens/air_conditioner.h"
 
 static const uint8_t display_dev_id = 0x3c;
 
@@ -217,9 +216,29 @@ int main()
     ui::screens::nas_stats nas_stats_screen;
     if (!oled_ui.add_screen(&nas_stats_screen))
     {
-        std::cerr << "failed to add NAS stats screen";
+        std::cerr << "failed to add NAS stats screen" << std::endl;
         return 1;
     }
+
+    ui::screens::air_conditioner ac_bedroom{ "BEDROOM" };
+    if (!oled_ui.add_screen(&ac_bedroom))
+    {
+        std::cerr << "failed to add ac_bedroom screen" << std::endl;
+        return 1;
+    }
+
+    ui::screens::air_conditioner ac_kitchen{ "KITCHEN" };
+    if (!oled_ui.add_screen(&ac_kitchen))
+    {
+        std::cerr << "failed to add ac_kitchen screen" << std::endl;
+        return 1;
+    }
+
+    uint8_t screen_index = 0;
+    uint8_t counter = 0;
+
+    ac_bedroom.set_temp = 24;
+    ac_kitchen.set_temp = 25;
 
     while (true)
     {
@@ -230,6 +249,18 @@ int main()
 
         oled_ui.task();
         delay(1000);
+
+        if (++counter == 3)
+        {
+            counter = 0;
+
+            if (++screen_index == oled_ui.screen_count())
+            {
+                screen_index = 0;
+            }
+
+            oled_ui.switch_screen(screen_index);
+        }
     }
 
     std::cout << "finished" << std::endl;

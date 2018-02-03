@@ -1,5 +1,7 @@
 #include "ui_utils.h"
 
+#include "../../ui/pxplus-vga8-32.c"
+
 namespace ui::utils
 {
 

@@ -1,5 +1,5 @@
-#include "screen_nas_stats.h"
-#include "ui_utils.h"
+#include "nas_stats.h"
+#include "../ui_utils.h"
 
 #include <iostream>
 #include <iomanip>
@@ -8,6 +8,11 @@
 
 namespace ui::screens
 {
+
+nas_stats::nas_stats()
+    : screen{ "NAS STATS" }
+{
+}
 
 void nas_stats::draw(u8g2_t* u8g2, const uint8_t x, const uint8_t y)
 {
@@ -35,11 +40,6 @@ void nas_stats::draw(u8g2_t* u8g2, const uint8_t x, const uint8_t y)
     ss.str({});
     ss << "DNL: " << std::setw(4) << std::setfill(' ') << static_cast<int>(download_speed) << " K/s";
     u8g2_DrawStr(u8g2, x, y + 49, ss.str().c_str());
-}
-
-const char* nas_stats::name() const
-{
-    return "NAS STATS";
 }
 
 }

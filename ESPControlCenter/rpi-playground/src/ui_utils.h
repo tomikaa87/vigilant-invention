@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <u8g2.h>
 
+extern const uint8_t pxplus_vga8_32_nums[382];
+
 namespace ui::utils
 {
 
