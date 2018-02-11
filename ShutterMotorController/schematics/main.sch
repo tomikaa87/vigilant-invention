@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.5.1">
+<eagle version="8.6.1">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -18659,6 +18659,9 @@ Each DS18B20 has a unique 64-bit serial code, which allows multiple DS18B20s to 
 <part name="GND16" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="R12" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R1206" package3d_urn="urn:adsk.eagle:package:23540/2" value="10k"/>
 <part name="C9" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="C1206" package3d_urn="urn:adsk.eagle:package:23618/2" value="100n"/>
+<part name="LED7" library="led" library_urn="urn:adsk.eagle:library:259" deviceset="LED" device="5MM" package3d_urn="urn:adsk.eagle:package:15799/2" value="Activity"/>
+<part name="R14" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R1206" package3d_urn="urn:adsk.eagle:package:23540/2" value="150"/>
+<part name="GND17" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -18703,6 +18706,11 @@ Each DS18B20 has a unique 64-bit serial code, which allows multiple DS18B20s to 
 <wire x1="264.16" y1="43.18" x2="264.16" y2="2.54" width="0.1524" layer="97"/>
 <wire x1="264.16" y1="2.54" x2="205.74" y2="2.54" width="0.1524" layer="97"/>
 <text x="208.28" y="5.08" size="2.1844" layer="97">DS18B20 temperature sensor</text>
+<wire x1="233.68" y1="91.44" x2="233.68" y2="45.72" width="0.1524" layer="97"/>
+<wire x1="233.68" y1="45.72" x2="264.16" y2="45.72" width="0.1524" layer="97"/>
+<wire x1="264.16" y1="45.72" x2="264.16" y2="91.44" width="0.1524" layer="97"/>
+<wire x1="264.16" y1="91.44" x2="233.68" y2="91.44" width="0.1524" layer="97"/>
+<text x="236.22" y="48.26" size="2.1844" layer="97">Indicator LED</text>
 </plain>
 <instances>
 <instance part="IC1" gate="G$1" x="43.18" y="38.1"/>
@@ -18795,6 +18803,9 @@ Each DS18B20 has a unique 64-bit serial code, which allows multiple DS18B20s to 
 <instance part="GND16" gate="1" x="210.82" y="99.06"/>
 <instance part="R12" gate="G$1" x="220.98" y="139.7" rot="R90"/>
 <instance part="C9" gate="G$1" x="27.94" y="86.36" rot="MR270"/>
+<instance part="LED7" gate="G$1" x="248.92" y="66.04"/>
+<instance part="R14" gate="G$1" x="248.92" y="76.2" rot="R90"/>
+<instance part="GND17" gate="1" x="248.92" y="55.88"/>
 </instances>
 <busses>
 </busses>
@@ -18937,6 +18948,11 @@ Each DS18B20 has a unique 64-bit serial code, which allows multiple DS18B20s to 
 <pinref part="R13" gate="G$1" pin="1"/>
 <pinref part="GND16" gate="1" pin="GND"/>
 <wire x1="210.82" y1="104.14" x2="210.82" y2="101.6" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="LED7" gate="G$1" pin="C"/>
+<pinref part="GND17" gate="1" pin="GND"/>
+<wire x1="248.92" y1="60.96" x2="248.92" y2="58.42" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$5" class="0">
@@ -19466,6 +19482,26 @@ Each DS18B20 has a unique 64-bit serial code, which allows multiple DS18B20s to 
 <wire x1="193.04" y1="116.84" x2="210.82" y2="116.84" width="0.1524" layer="91"/>
 <pinref part="R13" gate="G$1" pin="2"/>
 <wire x1="210.82" y1="116.84" x2="210.82" y2="114.3" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$27" class="0">
+<segment>
+<pinref part="R14" gate="G$1" pin="1"/>
+<pinref part="LED7" gate="G$1" pin="A"/>
+<wire x1="248.92" y1="71.12" x2="248.92" y2="68.58" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="ESP_IND_LED" class="0">
+<segment>
+<pinref part="R14" gate="G$1" pin="2"/>
+<wire x1="248.92" y1="81.28" x2="248.92" y2="83.82" width="0.1524" layer="91"/>
+<wire x1="248.92" y1="83.82" x2="246.38" y2="83.82" width="0.1524" layer="91"/>
+<label x="246.38" y="83.82" size="0.8128" layer="95" rot="R180" xref="yes"/>
+</segment>
+<segment>
+<pinref part="X1" gate="G$1" pin="GPIO16"/>
+<wire x1="157.48" y1="124.46" x2="149.86" y2="124.46" width="0.1524" layer="91"/>
+<label x="149.86" y="124.46" size="0.8128" layer="95" rot="R180" xref="yes"/>
 </segment>
 </net>
 </nets>
