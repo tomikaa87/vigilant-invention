@@ -1,0 +1,10 @@
+.pioenvs
+.piolibdeps
+.vs
+Debug
+Release
+*.vcxproj*
+*.sln
+.clang_complete
+.gcc-flags.json
+.vscode
