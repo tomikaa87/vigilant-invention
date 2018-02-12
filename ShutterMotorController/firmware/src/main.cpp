@@ -44,7 +44,19 @@ void setup()
     });
 
     if (!ok)
-        ERROR_ADD_EVENT_HANDLER("BlynkHandler", "temperatureChangedEvent");
+        ERROR_ADD_EVENT_HANDLER("TemperatureSensor", "temperatureChangedEvent");
+
+    ok = s_blynkHandler.blynkEvent().addHandler([](const BlynkHandler::EventType event, const int param) {
+        switch (event)
+        {
+            case BlynkHandler::EventType::RelayButtonPressed:
+                s_relayController.pulse(param);
+                break;
+        }
+    });
+
+    if (!ok)
+        ERROR_ADD_EVENT_HANDLER("BlynkHandler", "blynkEvent");
 
     auto registered = g_buttonHandler->buttonEvent().addHandler([](const ButtonHandler::ButtonEventType e, const ButtonHandler::Button b) {
         Serial.printf("Test button event handler: e = %d, b = %d\r\n", (int)e, (int)b);

@@ -1,5 +1,4 @@
 #include "BlynkHandler.h"
-#include "Config.h"
 #include "PrivateConfig.h"
 
 #include <BlynkSimpleEsp8266.h>
@@ -28,6 +27,11 @@ BLYNK_CONNECTED()
     if (g_instance)
         g_instance->onConnected();
 }
+
+HANDLE_BLYNK_BUTTON_PRESS(CONFIG_BLYNK_PIN_RELAY_1_PULSE_BUTTON)
+HANDLE_BLYNK_BUTTON_PRESS(CONFIG_BLYNK_PIN_RELAY_2_PULSE_BUTTON)
+HANDLE_BLYNK_BUTTON_PRESS(CONFIG_BLYNK_PIN_RELAY_3_PULSE_BUTTON)
+HANDLE_BLYNK_BUTTON_PRESS(CONFIG_BLYNK_PIN_RELAY_4_PULSE_BUTTON)
 
 BlynkHandler::BlynkHandler()
 {
@@ -62,7 +66,7 @@ void BlynkHandler::updateTemperature(const int16_t value)
 #endif
 
     m_lastRoomTemperature = value;
-    updateVirtualPin(Config::Blynk::RoomTemperaturePin);
+    updateVirtualPin(CONFIG_BLYNK_PIN_ROOM_TEMPERATURE);
 }
 
 void BlynkHandler::onConnected()
@@ -75,6 +79,28 @@ void BlynkHandler::onButtonPressed(const int pin)
 #ifdef DEBUG_BLYNK_HANDLER
     Serial.printf("BlynkHandler: button pressed: %d\r\n", pin);
 #endif
+
+    switch (pin)
+    {
+        case CONFIG_BLYNK_PIN_RELAY_1_PULSE_BUTTON:
+            m_event(EventType::RelayButtonPressed, 0);
+            break;
+
+        case CONFIG_BLYNK_PIN_RELAY_2_PULSE_BUTTON:
+            m_event(EventType::RelayButtonPressed, 1);
+            break;
+
+        case CONFIG_BLYNK_PIN_RELAY_3_PULSE_BUTTON:
+            m_event(EventType::RelayButtonPressed, 2);
+            break;
+
+        case CONFIG_BLYNK_PIN_RELAY_4_PULSE_BUTTON:
+            m_event(EventType::RelayButtonPressed, 3);
+            break;
+
+        default:
+            break;
+    }
 }
 
 void BlynkHandler::onVirtualPinUpdated(const int pin, const BlynkParam& param)
@@ -92,11 +118,16 @@ void BlynkHandler::updateVirtualPin(const int pin)
 
     switch (pin)
     {
-        case Config::Blynk::RoomTemperaturePin:
+        case CONFIG_BLYNK_PIN_ROOM_TEMPERATURE:
             Blynk.virtualWrite(pin, m_lastRoomTemperature / 100.f);
             break;
 
         default:
             break;
     }
+}
+
+const BlynkHandler::BlynkEvent& BlynkHandler::blynkEvent() const
+{
+    return m_event;
 }

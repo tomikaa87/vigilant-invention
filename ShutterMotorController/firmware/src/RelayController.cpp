@@ -14,7 +14,7 @@ RelayController::RelayController()
     {
         Serial.printf("RelayController: Setting up GPIO%d for relay %u\r\n", pin, i);
 
-        pinMode(pin, OUTPUT);
+        ::pinMode(pin, OUTPUT);
         setState(i, false);
 
         ++i;
@@ -45,14 +45,14 @@ void RelayController::setState(const uint8_t relay, const bool on)
 
     Serial.printf("RelayController: setting state of relay %u to %s\r\n", relay, (on ? "On" : "Off"));
 
-    digitalWrite(Config::Pins::Relay[relay], on ? 1 : 0);
+    ::digitalWrite(Config::Pins::Relay[relay], on ? 1 : 0);
 }
 
 void RelayController::toggle(const uint8_t relay)
 {
     Serial.printf("RelayController: toggling relay %u\r\n", relay);
 
-    setState(relay, digitalRead(Config::Pins::Relay[relay]) ? false : true);
+    setState(relay, ::digitalRead(Config::Pins::Relay[relay]) ? false : true);
 }
 
 void RelayController::pulse(const uint8_t relay)
@@ -71,7 +71,7 @@ void RelayController::pulse(const uint8_t relay)
         return;
     }
 
-    m_pulseStartTimes[relay] = millis();
+    m_pulseStartTimes[relay] = ::millis();
     m_pulseStates[relay] = true;
 
     switchOn(relay);

@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Config.h"
+#include "Event.h"
+
 #include <cstdint>
 
 class BlynkParam;
@@ -19,6 +22,15 @@ public:
     void onVirtualPinUpdated(const int pin, const BlynkParam& param);
     void updateVirtualPin(const int pin);
 
+    enum class EventType
+    {
+        RelayButtonPressed
+    };
+
+    using BlynkEvent = Event<Config::Limits::MaxBlynkEventHandlers, const EventType, const int>;
+    const BlynkEvent& blynkEvent() const;
+
 private:
     int16_t m_lastRoomTemperature = 0;
+    BlynkEvent m_event;
 };

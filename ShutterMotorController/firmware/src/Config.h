@@ -16,11 +16,21 @@ namespace Config
 
     namespace ButtonAnalogThresholds
     {
+
+        // ADC voltage range changes when WiFi is being used
+#ifdef NOT_USING_WIFI
         static const int None = 100;
         static const int Button1 = 250;
         static const int Button2 = 500;
         static const int Button3 = 750;
         static const int Button4 = 1024;
+#else
+        static const int None = 100;
+        static const int Button1 = 300;
+        static const int Button2 = 600;
+        static const int Button3 = 850;
+        static const int Button4 = 1024;
+#endif
     }
 
     static const uint8_t DS18B20Resolution = 12;
@@ -33,11 +43,7 @@ namespace Config
     {
         static const size_t MaxButtonEventHandlers = 5;
         static const size_t MaxTemperatureEventHandlers = 5;
-    }
-
-    namespace Blynk
-    {
-        static const int RoomTemperaturePin = 80;
+        static const size_t MaxBlynkEventHandlers = 5;
     }
 
     namespace Relays
@@ -47,6 +53,14 @@ namespace Config
 
 }
 
-//#define DEBUG_BUTTON_HANDLER
+// Due to the fancy macro magic in the Blynk API,
+// namespaces and integer constants cannot be used for pins.
+#define CONFIG_BLYNK_PIN_ROOM_TEMPERATURE               V80
+#define CONFIG_BLYNK_PIN_RELAY_1_PULSE_BUTTON           V79
+#define CONFIG_BLYNK_PIN_RELAY_2_PULSE_BUTTON           V78
+#define CONFIG_BLYNK_PIN_RELAY_3_PULSE_BUTTON           V77
+#define CONFIG_BLYNK_PIN_RELAY_4_PULSE_BUTTON           V76
+
+#define DEBUG_BUTTON_HANDLER
 //#define DEBUG_TEMPERATURE_SENSOR
 #define DEBUG_BLYNK_HANDLER
