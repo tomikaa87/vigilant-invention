@@ -10,6 +10,8 @@ namespace Config
     {
         static const int Adc = PIN_A0;
         static const int OneWire = 13;
+
+        static const uint8_t Relay[] = { 4, 5, 14, 12 };
     }
 
     namespace ButtonAnalogThresholds
@@ -33,7 +35,18 @@ namespace Config
         static const size_t MaxTemperatureEventHandlers = 5;
     }
 
+    namespace Blynk
+    {
+        static const int RoomTemperaturePin = 80;
+    }
+
+    namespace Relays
+    {
+        static const uint32_t PulseWidth = 500;
+    }
+
 }
 
 //#define DEBUG_BUTTON_HANDLER
 //#define DEBUG_TEMPERATURE_SENSOR
+#define DEBUG_BLYNK_HANDLER

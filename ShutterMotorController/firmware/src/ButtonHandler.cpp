@@ -31,15 +31,18 @@ void ButtonHandler::task()
     {
         if (pressedButton == Button::None)
         {
+
+#ifdef DEBUG_BUTTON_HANDLER
             Serial.printf("ButtonHandler: ADC value: %d, Button: none\r\n",
                           analogValue);
+#endif
 
             m_buttonEvent(ButtonEventType::Released, pressedButton);
 
             m_buttonLongPressed = false;
             m_lastPressedButton = Button::None;
         }
-        else if (!m_buttonLongPressed && millis() - m_lastPressTime >= Config::ButtonLongPressInterval)
+        else if (!m_buttonLongPressed && ::millis() - m_lastPressTime >= Config::ButtonLongPressInterval)
         {
             m_buttonLongPressed = true;
 
@@ -51,11 +54,13 @@ void ButtonHandler::task()
         if (pressedButton != Button::None)
         {
             m_lastPressedButton = pressedButton;
-            m_lastPressTime = millis();
+            m_lastPressTime = ::millis();
 
+#ifdef DEBUG_BUTTON_HANDLER
             Serial.printf("ButtonHandler: ADC value: %d, Button: %d\r\n",
                           analogValue,
                           (int)(pressedButton));
+#endif
 
             m_buttonEvent(ButtonEventType::Pressed, pressedButton);
         }

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <algorithm>
-#include <type_traits>
 
 template <size_t HandlerLimit, typename... EventArgs>
 struct Event
