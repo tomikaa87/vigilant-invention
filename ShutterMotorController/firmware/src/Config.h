@@ -16,8 +16,7 @@ namespace Config
 
     namespace ButtonAnalogThresholds
     {
-
-        // ADC voltage range changes when WiFi is being used
+        // ADC voltage range changes when the WiFi is being used
 #ifdef NOT_USING_WIFI
         static const int None = 100;
         static const int Button1 = 250;

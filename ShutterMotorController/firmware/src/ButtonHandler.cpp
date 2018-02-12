@@ -31,7 +31,6 @@ void ButtonHandler::task()
     {
         if (pressedButton == Button::None)
         {
-
 #ifdef DEBUG_BUTTON_HANDLER
             Serial.printf("ButtonHandler: ADC value: %d, Button: none\r\n",
                           analogValue);

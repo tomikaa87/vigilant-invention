@@ -6,7 +6,7 @@
 RelayController::RelayController()
 {
     static_assert(sizeof(Config::Pins::Relay) > 0, "No relay pins defined");
-    static_assert(sizeof(Config::Pins::Relay) <= 255, "Maximum 255 relays supported");
+    static_assert(sizeof(Config::Pins::Relay) < 256, "Maximum 255 relay pins supported");
 
     uint8_t i = 0;
 
