@@ -38,15 +38,12 @@ void RelayController::switchOff(const uint8_t relay) const
 
 void RelayController::setState(const uint8_t relay, const bool on) const
 {
-    if (relay >= sizeof(Config::Pins::Relay))
-    {
-        Serial.printf("RelayController: invalid relay index: %u\r\n", relay);
+    if (!isValidRelayIndex(relay))
         return;
-    }
 
-    if (on && isAnyRelayInTheSameTurnedOn(relay))
+    if (on && isAnyRelayInTheSameGroupTurnedOn(relay))
     {
-        Serial.printf("RelayController: relay %u can't be turned on, another in the same group is already turned on", relay);
+        Serial.printf("RelayController: relay %u can't be turned on, another one in the same group is already active\r\n", relay);
         return;
     }
 
@@ -66,11 +63,8 @@ void RelayController::pulse(const uint8_t relay)
 {
     Serial.printf("RelayController: pulsing relay %u\r\n", relay);
 
-    if (relay >= sizeof(Config::Pins::Relay))
-    {
-        Serial.printf("RelayController: invalid relay index: %u\r\n", relay);
+    if (!isValidRelayIndex(relay))
         return;
-    }
 
     if (m_pulseStates[relay])
     {
@@ -86,10 +80,13 @@ void RelayController::pulse(const uint8_t relay)
 
 bool RelayController::isRelayTurnedOn(const uint8_t relay) const
 {
+    if (!isValidRelayIndex(relay))
+        return false;
+
     return ::digitalRead(Config::Pins::Relay[relay]);
 }
 
-bool RelayController::isAnyRelayInTheSameTurnedOn(const uint8_t relay) const
+bool RelayController::isAnyRelayInTheSameGroupTurnedOn(const uint8_t relay) const
 {
     // This will also handle if there are no groups defined
     if (relay >= sizeof(Config::Relays::Groups))
@@ -104,6 +101,17 @@ bool RelayController::isAnyRelayInTheSameTurnedOn(const uint8_t relay) const
     }
 
     return false;
+}
+
+bool RelayController::isValidRelayIndex(const uint8_t relay) const
+{
+    if (relay >= sizeof(Config::Pins::Relay))
+    {
+        Serial.printf("RelayController: invalid relay index: %u\r\n", relay);
+        return false;
+    }
+
+    return true;
 }
 
 void RelayController::task()

@@ -10,7 +10,6 @@ namespace Config
     {
         static const int Adc = PIN_A0;
         static const int OneWire = 13;
-
         static const uint8_t Relay[] = { 4, 5, 14, 12 };
     }
 

@@ -16,7 +16,8 @@ public:
     void pulse(const uint8_t relay);
 
     bool isRelayTurnedOn(const uint8_t relay) const;
-    bool isAnyRelayInTheSameTurnedOn(const uint8_t relay) const;
+    bool isAnyRelayInTheSameGroupTurnedOn(const uint8_t relay) const;
+    bool isValidRelayIndex(const uint8_t relay) const;
 
     void task();
 
