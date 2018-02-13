@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Config.h"
+
 #include <cstdint>
 
 class RelayController
@@ -7,15 +9,18 @@ class RelayController
 public:
     RelayController();
 
-    void switchOn(const uint8_t relay);
-    void switchOff(const uint8_t relay);
-    void setState(const uint8_t relay, const bool on);
-    void toggle(const uint8_t relay);
+    void switchOn(const uint8_t relay) const;
+    void switchOff(const uint8_t relay) const;
+    void setState(const uint8_t relay, const bool on) const;
+    void toggle(const uint8_t relay) const;
     void pulse(const uint8_t relay);
+
+    bool isRelayTurnedOn(const uint8_t relay) const;
+    bool isAnyRelayInTheSameTurnedOn(const uint8_t relay) const;
 
     void task();
 
 private:
-    bool m_pulseStates[4] = { false };
-    uint32_t m_pulseStartTimes[4] = { 0 };
+    bool m_pulseStates[sizeof(Config::Pins::Relay)] = { false };
+    uint32_t m_pulseStartTimes[sizeof(Config::Pins::Relay)] = { 0 };
 };

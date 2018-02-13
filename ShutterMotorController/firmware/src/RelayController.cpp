@@ -1,5 +1,4 @@
 #include "RelayController.h"
-#include "Config.h"
 
 #include <Arduino.h>
 
@@ -7,6 +6,8 @@ RelayController::RelayController()
 {
     static_assert(sizeof(Config::Pins::Relay) > 0, "No relay pins defined");
     static_assert(sizeof(Config::Pins::Relay) < 256, "Maximum 255 relay pins supported");
+    static_assert(sizeof(Config::Relays::Groups) == sizeof(Config::Pins::Relay) || sizeof(Config::Relays::Groups) == 0,
+                  "Number of relay group definitions must match the number of relays or zero");
 
     uint8_t i = 0;
 
@@ -21,25 +22,31 @@ RelayController::RelayController()
     }
 }
 
-void RelayController::switchOn(const uint8_t relay)
+void RelayController::switchOn(const uint8_t relay) const
 {
     Serial.printf("RelayController: switching on relay %u\r\n", relay);
 
     setState(relay, true);
 }
 
-void RelayController::switchOff(const uint8_t relay)
+void RelayController::switchOff(const uint8_t relay) const
 {
     Serial.printf("RelayController: switching off relay %u\r\n", relay);
 
     setState(relay, false);
 }
 
-void RelayController::setState(const uint8_t relay, const bool on)
+void RelayController::setState(const uint8_t relay, const bool on) const
 {
     if (relay >= sizeof(Config::Pins::Relay))
     {
         Serial.printf("RelayController: invalid relay index: %u\r\n", relay);
+        return;
+    }
+
+    if (on && isAnyRelayInTheSameTurnedOn(relay))
+    {
+        Serial.printf("RelayController: relay %u can't be turned on, another in the same group is already turned on", relay);
         return;
     }
 
@@ -48,11 +55,11 @@ void RelayController::setState(const uint8_t relay, const bool on)
     ::digitalWrite(Config::Pins::Relay[relay], on ? 1 : 0);
 }
 
-void RelayController::toggle(const uint8_t relay)
+void RelayController::toggle(const uint8_t relay) const
 {
     Serial.printf("RelayController: toggling relay %u\r\n", relay);
 
-    setState(relay, ::digitalRead(Config::Pins::Relay[relay]) ? false : true);
+    setState(relay, isRelayTurnedOn(relay) ? false : true);
 }
 
 void RelayController::pulse(const uint8_t relay)
@@ -75,6 +82,28 @@ void RelayController::pulse(const uint8_t relay)
     m_pulseStates[relay] = true;
 
     switchOn(relay);
+}
+
+bool RelayController::isRelayTurnedOn(const uint8_t relay) const
+{
+    return ::digitalRead(Config::Pins::Relay[relay]);
+}
+
+bool RelayController::isAnyRelayInTheSameTurnedOn(const uint8_t relay) const
+{
+    // This will also handle if there are no groups defined
+    if (relay >= sizeof(Config::Relays::Groups))
+        return false;
+
+    auto actualGroup = Config::Relays::Groups[relay];
+
+    for (uint8_t i = 0; i < sizeof(Config::Pins::Relay); ++i)
+    {
+        if (Config::Relays::Groups[i] == actualGroup && isRelayTurnedOn(i))
+            return true;
+    }
+
+    return false;
 }
 
 void RelayController::task()

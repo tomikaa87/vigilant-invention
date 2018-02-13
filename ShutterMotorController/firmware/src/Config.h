@@ -48,8 +48,12 @@ namespace Config
     namespace Relays
     {
         static const uint32_t PulseWidth = 500;
-    }
 
+        // Relay groups ensure that all relays in a group work mutually exclusive
+        // (only one per group can be active).
+        // Relays using the same number are in the same group.
+        static const uint8_t Groups[] = { 0, 0, 1, 1 };
+    }
 }
 
 // Due to the fancy macro magic in the Blynk API,
