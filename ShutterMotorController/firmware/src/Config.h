@@ -42,6 +42,7 @@ namespace Config
         static const size_t MaxButtonEventHandlers = 5;
         static const size_t MaxTemperatureEventHandlers = 5;
         static const size_t MaxBlynkEventHandlers = 5;
+        static const size_t MaxClockEpochUpdatedEventHandlers = 5;
     }
 
     namespace Relays
@@ -52,6 +53,14 @@ namespace Config
         // (only one per group can be active).
         // Relays using the same number are in the same group.
         static const uint8_t Groups[] = { 0, 0, 1, 1 };
+    }
+
+    namespace Clock
+    {
+        static const char NtpServerAddress[] = "login-vlan194.budapest2.hpc.niif.hu";
+        static const int LocalTimeOffsetMinutes = 60;
+        static const int NtpUpdateIntervalMinutes = 30;
+        static const int NtpUpdateRetryIntervalSeconds = 15;
     }
 }
 

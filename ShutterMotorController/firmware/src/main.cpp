@@ -2,6 +2,7 @@
 
 #include "BlynkHandler.h"
 #include "ButtonHandler.h"
+#include "Clock.h"
 #include "RelayController.h"
 #include "TemperatureSensor.h"
 
@@ -9,6 +10,7 @@ BlynkHandler* g_blynkHandler = nullptr;
 ButtonHandler* g_buttonHandler = nullptr;
 TemperatureSensor* g_temperatureSensor = nullptr;
 RelayController* g_relayController = nullptr;
+Clock* g_clock = nullptr;
 
 #define ERROR_ADD_EVENT_HANDLER(__CLASS, __HANDLER_NAME) \
     Serial.println("Error: failed to add event handler of \"" __CLASS "\" to \"" __HANDLER_NAME "\"")
@@ -36,6 +38,11 @@ void setup()
 
     static RelayController s_relayController;
     g_relayController = &s_relayController;
+
+    Serial.println("Setting up Clock");
+
+    static Clock s_clock;
+    g_clock = &s_clock;
 
     Serial.println("Registering event handlers");
 
@@ -95,6 +102,10 @@ void setup()
 
     Serial.printf("Test temperature changed event handler registered: %s\r\n", (registered ? "Yes" : "No"));
 
+    s_clock.epochUpdatedEvent().addHandler([](const uint32_t epoch) {
+        Serial.printf("Test epoch updated event handler: epoch = %u\r\n", epoch);
+    });
+
     Serial.println("Setup finished");
 }
 
@@ -104,4 +115,5 @@ void loop()
     g_buttonHandler->task();
     g_temperatureSensor->task();
     g_relayController->task();
+    g_clock->task();
 }
