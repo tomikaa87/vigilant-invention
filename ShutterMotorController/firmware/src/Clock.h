@@ -14,7 +14,7 @@ public:
 
     void task();
 
-    using EpochUpdatedEvent = Event<Config::Limits::MaxClockEpochUpdatedEventHandlers, uint32_t>;
+    using EpochUpdatedEvent = Event<Config::Limits::MaxClockEpochUpdatedEventHandlers, const uint32_t>;
     const EpochUpdatedEvent& epochUpdatedEvent() const;
 
 private:

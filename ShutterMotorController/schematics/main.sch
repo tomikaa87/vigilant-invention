@@ -18568,117 +18568,6 @@ NS Package M08A</description>
 </deviceset>
 </devicesets>
 </library>
-<library name="Ava">
-<packages>
-<package name="DS1820">
-<wire x1="-0.635" y1="-0.15875" x2="1.74625" y2="-0.15875" width="0.127" layer="21"/>
-<wire x1="-0.635" y1="-0.15875" x2="1.74625" y2="-0.15875" width="0.127" layer="21" curve="-180"/>
-<pad name="DQ" x="2.54" y="-1.27" drill="0.8"/>
-<pad name="GND" x="0.635" y="-1.27" drill="0.8"/>
-<pad name="VDD" x="4.445" y="-1.27" drill="0.8"/>
-</package>
-<package name="DS18B20_SOIC">
-<wire x1="2.362" y1="-1.803" x2="2.362" y2="1.803" width="0.1524" layer="21"/>
-<wire x1="-2.362" y1="1.803" x2="-2.362" y2="-1.803" width="0.1524" layer="21"/>
-<smd name="NC" x="-1.905" y="-2.6162" dx="0.6096" dy="2.2098" layer="1"/>
-<smd name="NC2" x="-0.635" y="-2.6162" dx="0.6096" dy="2.2098" layer="1"/>
-<smd name="VCC" x="0.635" y="-2.6162" dx="0.6096" dy="2.2098" layer="1"/>
-<smd name="DQ" x="1.905" y="-2.6162" dx="0.6096" dy="2.2098" layer="1"/>
-<smd name="GND" x="1.905" y="2.6162" dx="0.6096" dy="2.2098" layer="1"/>
-<smd name="NC5" x="0.635" y="2.6162" dx="0.6096" dy="2.2098" layer="1"/>
-<smd name="NC4" x="-0.635" y="2.6162" dx="0.6096" dy="2.2098" layer="1"/>
-<smd name="NC3" x="-1.905" y="2.6162" dx="0.6096" dy="2.2098" layer="1"/>
-<text x="-1.27" y="-0.635" size="0.4064" layer="27">&gt;VALUE</text>
-<text x="-1.27" y="0" size="0.4064" layer="25">&gt;NAME</text>
-<wire x1="-2.2225" y1="-1.11125" x2="2.38125" y2="-1.11125" width="0.127" layer="21"/>
-<wire x1="-2.2225" y1="-1.11125" x2="-2.38125" y2="-1.11125" width="0.127" layer="21"/>
-</package>
-<package name="µSOP8">
-<wire x1="-1.4" y1="1.4" x2="1.4" y2="1.4" width="0.2032" layer="21"/>
-<wire x1="1.4" y1="1.4" x2="1.4" y2="-1.4" width="0.2032" layer="21"/>
-<wire x1="1.4" y1="-1.4" x2="-1.4" y2="-1.4" width="0.2032" layer="21"/>
-<wire x1="-1.4" y1="-1.4" x2="-1.4" y2="1.4" width="0.2032" layer="21"/>
-<circle x="-1" y="-1" radius="0.2" width="0" layer="21"/>
-<smd name="1" x="-0.975" y="-2.05" dx="0.45" dy="1" layer="1"/>
-<smd name="2" x="-0.325" y="-2.05" dx="0.45" dy="1" layer="1"/>
-<smd name="3" x="0.325" y="-2.05" dx="0.45" dy="1" layer="1"/>
-<smd name="4" x="0.975" y="-2.05" dx="0.45" dy="1" layer="1"/>
-<smd name="5" x="0.975" y="2.05" dx="0.45" dy="1" layer="1"/>
-<smd name="6" x="0.325" y="2.05" dx="0.45" dy="1" layer="1"/>
-<smd name="7" x="-0.325" y="2.05" dx="0.45" dy="1" layer="1"/>
-<smd name="8" x="-0.975" y="2.05" dx="0.45" dy="1" layer="1"/>
-<text x="-1.15" y="0.15" size="1.016" layer="25">&gt;NAME</text>
-<text x="-0.65" y="-1.05" size="1.016" layer="27">&gt;VALUE</text>
-<rectangle x1="-1.1254" y1="-2.45" x2="-0.8254" y2="-1.5" layer="51"/>
-<rectangle x1="-0.4751" y1="-2.45" x2="-0.1751" y2="-1.5" layer="51"/>
-<rectangle x1="0.1751" y1="-2.45" x2="0.4751" y2="-1.5" layer="51"/>
-<rectangle x1="0.8253" y1="-2.45" x2="1.1253" y2="-1.5" layer="51"/>
-<rectangle x1="0.8254" y1="1.5" x2="1.1254" y2="2.45" layer="51"/>
-<rectangle x1="0.1751" y1="1.5" x2="0.4751" y2="2.45" layer="51"/>
-<rectangle x1="-0.4751" y1="1.5" x2="-0.1751" y2="2.45" layer="51"/>
-<rectangle x1="-1.1253" y1="1.5" x2="-0.8253" y2="2.45" layer="51"/>
-</package>
-</packages>
-<symbols>
-<symbol name="DS1820">
-<wire x1="-5.08" y1="0" x2="5.08" y2="0" width="0.254" layer="94"/>
-<wire x1="5.08" y1="0" x2="5.08" y2="5.08" width="0.254" layer="94"/>
-<wire x1="-5.08" y1="5.08" x2="-5.08" y2="0" width="0.254" layer="94"/>
-<wire x1="5.08" y1="5.08" x2="-5.08" y2="5.08" width="0.254" layer="94" curve="180"/>
-<text x="-11.938" y="10.668" size="1.27" layer="95"></text>
-<text x="-3.048" y="0.508" size="1.27" layer="95">DS18B20</text>
-<pin name="GND" x="-2.54" y="-5.08" visible="pin" length="middle" direction="pwr" rot="R90"/>
-<pin name="DQ" x="0" y="-5.08" visible="pin" length="middle" rot="R90"/>
-<pin name="VCC" x="2.54" y="-5.08" visible="pin" length="middle" direction="pwr" rot="R90"/>
-</symbol>
-</symbols>
-<devicesets>
-<deviceset name="DS1820">
-<description>DS18B20
-Programmable Resolution 1-Wire Digital Thermometer
-
-Description
-The DS18B20 digital thermometer provides 9-bit to 12-bit Celsius temperature measurements and has an alarm function with nonvolatile user-programmable upper and lower trigger points. The DS18B20 communicates over a 1-Wire® bus that by definition requires only one data line (and ground) for communication with a central microprocessor. It has an operating temperature range of -55°C to +125°C and is accurate to ±0.5°C over the range of -10°C to +85°C. In addition, the DS18B20 can derive power directly from the data line ("parasite power"), eliminating the need for an external power supply.
-
-Each DS18B20 has a unique 64-bit serial code, which allows multiple DS18B20s to function on the same 1-Wire bus. Thus, it is simple to use one microprocessor to control many DS18B20s distributed over a large area. Applications that can benefit from this feature include HVAC environmental controls, temperature monitoring systems inside buildings, equipment, or machinery, and process monitoring and control systems.</description>
-<gates>
-<gate name="G$1" symbol="DS1820" x="7.62" y="15.24"/>
-</gates>
-<devices>
-<device name="TO92" package="DS1820">
-<connects>
-<connect gate="G$1" pin="DQ" pad="DQ"/>
-<connect gate="G$1" pin="GND" pad="GND"/>
-<connect gate="G$1" pin="VCC" pad="VDD"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-<device name="SOIC" package="DS18B20_SOIC">
-<connects>
-<connect gate="G$1" pin="DQ" pad="DQ"/>
-<connect gate="G$1" pin="GND" pad="GND"/>
-<connect gate="G$1" pin="VCC" pad="VCC"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-<device name="" package="µSOP8">
-<connects>
-<connect gate="G$1" pin="DQ" pad="1"/>
-<connect gate="G$1" pin="GND" pad="4"/>
-<connect gate="G$1" pin="VCC" pad="8"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-</devices>
-</deviceset>
-</devicesets>
-</library>
 </libraries>
 <attributes>
 </attributes>
@@ -18758,7 +18647,6 @@ Each DS18B20 has a unique 64-bit serial code, which allows multiple DS18B20s to 
 <part name="LED5" library="led" library_urn="urn:adsk.eagle:library:259" deviceset="LED" device="5MM" package3d_urn="urn:adsk.eagle:package:15799/2"/>
 <part name="LED6" library="led" library_urn="urn:adsk.eagle:library:259" deviceset="LED" device="5MM" package3d_urn="urn:adsk.eagle:package:15799/2"/>
 <part name="+3V4" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+3V3" device=""/>
-<part name="U$1" library="Ava" deviceset="DS1820" device="TO92"/>
 <part name="R10" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R1206" package3d_urn="urn:adsk.eagle:package:23540/2" value="4k7"/>
 <part name="+3V5" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+3V3" device=""/>
 <part name="GND15" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
@@ -18777,6 +18665,7 @@ Each DS18B20 has a unique 64-bit serial code, which allows multiple DS18B20s to 
 <part name="+3V8" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+3V3" device=""/>
 <part name="GND18" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="C10" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="C1206" package3d_urn="urn:adsk.eagle:package:23618/2" value="100n"/>
+<part name="JP3" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X3" device="" package3d_urn="urn:adsk.eagle:package:22458/2"/>
 </parts>
 <sheets>
 <sheet>
@@ -18911,7 +18800,6 @@ Each DS18B20 has a unique 64-bit serial code, which allows multiple DS18B20s to 
 <instance part="LED5" gate="G$1" x="215.9" y="66.04"/>
 <instance part="LED6" gate="G$1" x="223.52" y="66.04"/>
 <instance part="+3V4" gate="G$1" x="147.32" y="71.12"/>
-<instance part="U$1" gate="G$1" x="220.98" y="20.32" rot="R90"/>
 <instance part="R10" gate="G$1" x="233.68" y="27.94" rot="R90"/>
 <instance part="+3V5" gate="G$1" x="228.6" y="40.64"/>
 <instance part="GND15" gate="1" x="228.6" y="12.7"/>
@@ -18930,6 +18818,7 @@ Each DS18B20 has a unique 64-bit serial code, which allows multiple DS18B20s to 
 <instance part="+3V8" gate="G$1" x="238.76" y="129.54"/>
 <instance part="GND18" gate="1" x="238.76" y="106.68"/>
 <instance part="C10" gate="G$1" x="238.76" y="116.84" rot="MR180"/>
+<instance part="JP3" gate="A" x="215.9" y="20.32" rot="MR0"/>
 </instances>
 <busses>
 </busses>
@@ -19059,14 +18948,14 @@ Each DS18B20 has a unique 64-bit serial code, which allows multiple DS18B20s to 
 <wire x1="223.52" y1="60.96" x2="223.52" y2="58.42" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="U$1" gate="G$1" pin="GND"/>
-<wire x1="226.06" y1="17.78" x2="228.6" y2="17.78" width="0.1524" layer="91"/>
 <pinref part="GND15" gate="1" pin="GND"/>
 <wire x1="228.6" y1="17.78" x2="228.6" y2="15.24" width="0.1524" layer="91"/>
 <pinref part="C8" gate="G$1" pin="2"/>
 <wire x1="228.6" y1="17.78" x2="241.3" y2="17.78" width="0.1524" layer="91"/>
 <wire x1="241.3" y1="17.78" x2="241.3" y2="25.4" width="0.1524" layer="91"/>
 <junction x="228.6" y="17.78"/>
+<pinref part="JP3" gate="A" pin="3"/>
+<wire x1="228.6" y1="17.78" x2="218.44" y2="17.78" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="R13" gate="G$1" pin="1"/>
@@ -19182,9 +19071,7 @@ Each DS18B20 has a unique 64-bit serial code, which allows multiple DS18B20s to 
 <wire x1="147.32" y1="66.04" x2="147.32" y2="68.58" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="U$1" gate="G$1" pin="VCC"/>
 <pinref part="+3V5" gate="G$1" pin="+3V3"/>
-<wire x1="226.06" y1="22.86" x2="228.6" y2="22.86" width="0.1524" layer="91"/>
 <wire x1="228.6" y1="22.86" x2="228.6" y2="35.56" width="0.1524" layer="91"/>
 <pinref part="R10" gate="G$1" pin="2"/>
 <wire x1="228.6" y1="35.56" x2="228.6" y2="38.1" width="0.1524" layer="91"/>
@@ -19195,6 +19082,8 @@ Each DS18B20 has a unique 64-bit serial code, which allows multiple DS18B20s to 
 <junction x="233.68" y="35.56"/>
 <pinref part="C8" gate="G$1" pin="1"/>
 <wire x1="241.3" y1="35.56" x2="241.3" y2="33.02" width="0.1524" layer="91"/>
+<pinref part="JP3" gate="A" pin="1"/>
+<wire x1="228.6" y1="22.86" x2="218.44" y2="22.86" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="R11" gate="G$1" pin="2"/>
@@ -19600,13 +19489,13 @@ Each DS18B20 has a unique 64-bit serial code, which allows multiple DS18B20s to 
 </net>
 <net name="ESP_DS18B20_DQ" class="0">
 <segment>
-<pinref part="U$1" gate="G$1" pin="DQ"/>
 <pinref part="R10" gate="G$1" pin="1"/>
-<wire x1="226.06" y1="20.32" x2="233.68" y2="20.32" width="0.1524" layer="91"/>
 <wire x1="233.68" y1="20.32" x2="233.68" y2="22.86" width="0.1524" layer="91"/>
-<wire x1="233.68" y1="20.32" x2="246.38" y2="20.32" width="0.1524" layer="91"/>
+<wire x1="233.68" y1="20.32" x2="243.84" y2="20.32" width="0.1524" layer="91"/>
 <junction x="233.68" y="20.32"/>
-<label x="246.38" y="20.32" size="1.27" layer="95" xref="yes"/>
+<label x="243.84" y="20.32" size="1.27" layer="95" xref="yes"/>
+<pinref part="JP3" gate="A" pin="2"/>
+<wire x1="233.68" y1="20.32" x2="218.44" y2="20.32" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="X1" gate="G$1" pin="GPIO13"/>
