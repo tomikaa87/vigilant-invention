@@ -16272,8 +16272,8 @@ high speed (Philips)</description>
 <wire x1="-3.5" y1="-1.55" x2="-3.5" y2="-1.85" width="0.2032" layer="21"/>
 <wire x1="3.5" y1="-1.55" x2="3.5" y2="-1.85" width="0.2032" layer="21"/>
 <circle x="-1.75" y="0.025" radius="1.27" width="0.2032" layer="21"/>
-<pad name="1" x="-1.75" y="0.025" drill="1.3" diameter="2"/>
-<pad name="2" x="1.75" y="0.025" drill="1.3" diameter="2"/>
+<pad name="1" x="-1.75" y="0.025" drill="1.3" diameter="2.54"/>
+<pad name="2" x="1.75" y="0.025" drill="1.3" diameter="2.54"/>
 <text x="-4.7511" y="4.445" size="1.27" layer="25">&gt;NAME</text>
 <text x="6.985" y="-3.81" size="1.27" layer="27" rot="R90">&gt;VALUE</text>
 <wire x1="-1.9" y1="1.2" x2="-1.9" y2="-1.2" width="0.127" layer="21"/>
