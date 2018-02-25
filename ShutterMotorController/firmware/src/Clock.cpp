@@ -27,6 +27,7 @@ void Clock::task()
 
     if (m_ntpClient.forceUpdate())
     {
+        m_synchronized = true;
         m_updateInterval = Config::Clock::NtpUpdateIntervalMinutes * 60000;
         
         const auto epoch = m_ntpClient.getEpochTime();
@@ -45,4 +46,14 @@ void Clock::task()
 const Clock::EpochUpdatedEvent& Clock::epochUpdatedEvent() const
 {
     return m_epochUpdatedEvent;
+}
+
+std::time_t Clock::epochTime() const
+{
+    return m_ntpClient.getEpochTime();
+}
+
+bool Clock::isSynchronized() const
+{
+    return m_synchronized;
 }

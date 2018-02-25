@@ -10,7 +10,7 @@ namespace Config
     {
         static const int Adc = PIN_A0;
         static const int OneWire = 13;
-        static const uint8_t Relay[] = { 4, 5, 14, 12 };
+        static const uint8_t Relay[] = { 5, 4, 14, 12 };
     }
 
     namespace ButtonAnalogThresholds
@@ -62,6 +62,16 @@ namespace Config
         static const int NtpUpdateIntervalMinutes = 30;
         static const int NtpUpdateRetryIntervalSeconds = 15;
     }
+
+    namespace Automator
+    {
+        static const uint32_t CheckTimerInterval = 100;
+    }
+
+    namespace Persistent
+    {
+        static const int BaseAddress = 0;
+    }
 }
 
 // Due to the fancy macro magic in the Blynk API,
@@ -71,6 +81,8 @@ namespace Config
 #define CONFIG_BLYNK_PIN_RELAY_2_PULSE_BUTTON           V78
 #define CONFIG_BLYNK_PIN_RELAY_3_PULSE_BUTTON           V77
 #define CONFIG_BLYNK_PIN_RELAY_4_PULSE_BUTTON           V76
+#define CONFIG_BLYNK_PIN_OPEN_TIME_INPUT                V75
+#define CONFIG_BLYNK_PIN_SHUTTER_TIMER_ACTIVE_BUTTON    V74
 
 #define DEBUG_BUTTON_HANDLER
 //#define DEBUG_TEMPERATURE_SENSOR

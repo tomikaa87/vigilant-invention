@@ -6,11 +6,12 @@
 #include <cstdint>
 
 class BlynkParam;
+class PersistentStorage;
 
 class BlynkHandler
 {
 public:
-    BlynkHandler();
+    BlynkHandler(PersistentStorage& persistentStorage);
     ~BlynkHandler();
 
     void task();
@@ -31,6 +32,13 @@ public:
     const BlynkEvent& blynkEvent() const;
 
 private:
+    PersistentStorage& m_peristentStorage;
+
     int16_t m_lastRoomTemperature = 0;
     BlynkEvent m_event;
+
+    void handleOpenTimeInputChange(const BlynkParam& param);
+    void updateOpenTimeInput();
+
+    void handleShutterTimerActiveChange(const BlynkParam& param);
 };
