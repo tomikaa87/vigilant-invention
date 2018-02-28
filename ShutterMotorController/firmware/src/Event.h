@@ -44,7 +44,7 @@ struct Event
         return false;
     }
 
-    void operator()(EventArgs... args)
+    void operator()(EventArgs... args) const
     {
         for (auto handler : handlers)
         {

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Logger.h"
+
 #include <cstdint>
 
 class BlynkHandler;
@@ -10,15 +12,14 @@ class RelayController;
 class Automator
 {
 public:
-    Automator(const BlynkHandler& blynk,
-              const Clock& clock,
+    Automator(const Clock& clock,
               class PersistentStorage& persistentStorage,
               RelayController& relay);
 
     void task();
 
 private:
-    const BlynkHandler& m_blynk;
+    const Logger m_log;
     const Clock& m_clock;
     const PersistentStorage& m_persistentStorage;
     RelayController& m_relay;

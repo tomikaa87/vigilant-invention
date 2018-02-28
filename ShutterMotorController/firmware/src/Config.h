@@ -43,6 +43,7 @@ namespace Config
         static const size_t MaxTemperatureEventHandlers = 5;
         static const size_t MaxBlynkEventHandlers = 5;
         static const size_t MaxClockEpochUpdatedEventHandlers = 5;
+        static const size_t MaxLogEventHandlers = 5;
     }
 
     namespace Relays
@@ -72,6 +73,11 @@ namespace Config
     {
         static const int BaseAddress = 0;
     }
+
+    namespace Logger
+    {
+        static const size_t LogLineBufferSize = 128;
+    }
 }
 
 // Due to the fancy macro magic in the Blynk API,
@@ -83,6 +89,7 @@ namespace Config
 #define CONFIG_BLYNK_PIN_RELAY_4_PULSE_BUTTON           V76
 #define CONFIG_BLYNK_PIN_OPEN_TIME_INPUT                V75
 #define CONFIG_BLYNK_PIN_SHUTTER_TIMER_ACTIVE_BUTTON    V74
+#define CONFIG_BLYNK_PIN_VIRTUAL_TERMINAL               V64
 
 #define DEBUG_BUTTON_HANDLER
 //#define DEBUG_TEMPERATURE_SENSOR

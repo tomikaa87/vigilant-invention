@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Config.h"
+#include "Logger.h"
 
 #include <cstdint>
 
@@ -22,6 +23,8 @@ public:
     void task();
 
 private:
+    const Logger m_log;
+
     bool m_pulseStates[sizeof(Config::Pins::Relay)] = { false };
     uint32_t m_pulseStartTimes[sizeof(Config::Pins::Relay)] = { 0 };
 };

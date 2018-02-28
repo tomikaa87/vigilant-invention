@@ -2,6 +2,7 @@
 
 #include "Config.h"
 #include "Event.h"
+#include "Logger.h"
 
 #include <cstdint>
 
@@ -23,6 +24,8 @@ public:
     void onVirtualPinUpdated(const int pin, const BlynkParam& param);
     void updateVirtualPin(const int pin);
 
+    void addVirtualTerminalLogLine(const char* line) const;
+
     enum class EventType
     {
         RelayButtonPressed
@@ -32,6 +35,7 @@ public:
     const BlynkEvent& blynkEvent() const;
 
 private:
+    const Logger m_log;
     PersistentStorage& m_peristentStorage;
 
     int16_t m_lastRoomTemperature = 0;

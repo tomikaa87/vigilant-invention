@@ -1,20 +1,20 @@
 #include "PersistentStorage.h"
 #include "Config.h"
 
-#include <Arduino.h>
 #include <Crc16.h>
 #include <EEPROM.h>
 
 PersistentStorage::PersistentStorage()
+    : m_log{ "PersistentStorage" }
 {
-    Serial.println("PersistentStorage: setting up EEPROM");
+    m_log.debug("Setting up EEPROM");
 
     EEPROM.begin(sizeof(uint16_t) + sizeof(PersistentConfig));
 }
 
 void PersistentStorage::loadConfiguration()
 {
-    Serial.println("PersistentStorage: loading configuration");
+    m_log.info("Loading configuration");
 
     uint16_t storedChecksum;
 
@@ -23,31 +23,31 @@ void PersistentStorage::loadConfiguration()
 
     uint16_t calculatedChecksum = calculateConfigChecksum();
 
-    Serial.printf("PersistentStorage: stored checksum: 0x%04X, calculated checksum: 0x%04X\r\n",
-                  storedChecksum, calculatedChecksum);
+    m_log.debug("Stored checksum: 0x%04X, calculated checksum: 0x%04X",
+                storedChecksum, calculatedChecksum);
 
     if (storedChecksum != calculatedChecksum)
     {
-        Serial.println("PersistentStorage: checksum of loaded configuration doesn't match");
+        m_log.warning("Checksum of loaded configuration doesn't match");
         loadDefaults();
     }
 
     m_lastChecksum = calculateConfigChecksum();
 
-    Serial.printf("PersistentStorage: checksum after loading: 0x%04X\r\n", m_lastChecksum);
+    m_log.debug("Checksum after loading: 0x%04X", m_lastChecksum);
 }
 
 void PersistentStorage::saveConfiguration()
 {
-    Serial.println("PersistentStorage: saving configuration");
+    m_log.info("Saving configuration");
 
     auto checksum = calculateConfigChecksum();
 
-    Serial.printf("PersistentStorage: calculated checksum: 0x%04X\r\n", checksum);
+    m_log.debug("Calculated checksum: 0x%04X", checksum);
 
     if (checksum == m_lastChecksum)
     {
-        Serial.println("PersistentStorage: last checksum matches, no need to commit");
+        m_log.debug("Last checksum matches, no need to commit");
         return;
     }
 
@@ -61,16 +61,16 @@ void PersistentStorage::saveConfiguration()
 
 void PersistentStorage::loadDefaults()
 {
-    Serial.println("PersistentStorage: loading default configuration");
+    m_log.warning("Loading default configuration");
 
     config = PersistentConfig{};
 }
 
-uint16_t PersistentStorage::calculateConfigChecksum()
+uint16_t PersistentStorage::calculateConfigChecksum() const
 {
     Crc16 crc;
 
-    auto configData = reinterpret_cast<uint8_t*>(&config);
+    auto configData = reinterpret_cast<const uint8_t*>(&config);
     for (int i = 0; i < sizeof(config); ++i)
         crc.updateCrc(configData[i]);
 

@@ -7,14 +7,12 @@
 
 #include <Arduino.h>
 #include <ctime>
-
 #include <EEPROM.h>
 
-Automator::Automator(const BlynkHandler& blynk,
-                     const Clock& clock,
+Automator::Automator(const Clock& clock,
                      class PersistentStorage& persistentStorage,
                      RelayController& relay)
-    : m_blynk(blynk)
+    : m_log{ "Automator" }
     , m_clock(clock)
     , m_persistentStorage(persistentStorage)
     , m_relay(relay)
@@ -50,9 +48,9 @@ void Automator::checkShutterOpenSchedule()
     if (m_lastShutterEvent != LastShutterEvent::Open &&
         tm->tm_hour == cfg.ShutterCloseHour && tm->tm_min == cfg.ShutterCloseMinute)
     {
-        Serial.printf("Automator: shutter closing time point reached: %02d:%02d\r\n",
-                        tm->tm_hour, tm->tm_min);
-            
+        m_log.debug("Shutter closing time point reached: %02d:%02d",
+                    tm->tm_hour, tm->tm_min);
+
         m_lastShutterEvent = LastShutterEvent::Open;
         closeShutters();
     }
@@ -60,8 +58,8 @@ void Automator::checkShutterOpenSchedule()
     if (m_lastShutterEvent != LastShutterEvent::Close &&
         tm->tm_hour == cfg.ShutterOpenHour && tm->tm_min == cfg.ShutterOpenMinute)
     {
-        Serial.printf("Automator: shutter opening time point reached: %02d:%02d\r\n",
-                        tm->tm_hour, tm->tm_min);
+        m_log.debug("Shutter opening time point reached: %02d:%02d",
+                    tm->tm_hour, tm->tm_min);
 
         m_lastShutterEvent = LastShutterEvent::Close;
         openShutters();
@@ -70,7 +68,7 @@ void Automator::checkShutterOpenSchedule()
 
 void Automator::openShutters()
 {
-    Serial.println("Automator: opening shutters");
+    m_log.info("Opening shutters");
 
     m_relay.pulse(0);
     m_relay.pulse(2);
@@ -78,7 +76,7 @@ void Automator::openShutters()
 
 void Automator::closeShutters()
 {
-    Serial.println("Automator: closing shutters");
+    m_log.info("Closing shutters");
 
     m_relay.pulse(1);
     m_relay.pulse(3);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Logger.h"
+
 #include <cstdint>
 
 class PersistentStorage
@@ -25,7 +27,8 @@ public:
     PersistentConfig config;
 
 private:
+    const Logger m_log;
     uint16_t m_lastChecksum = 0;
 
-    uint16_t calculateConfigChecksum();
+    uint16_t calculateConfigChecksum() const;
 };

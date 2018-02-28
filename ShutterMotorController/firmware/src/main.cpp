@@ -4,6 +4,7 @@
 #include "BlynkHandler.h"
 #include "ButtonHandler.h"
 #include "Clock.h"
+#include "Logger.h"
 #include "PersistentStorage.h"
 #include "RelayController.h"
 #include "TemperatureSensor.h"
@@ -17,12 +18,32 @@ void setup()
 {
     Serial.begin(74880);
 
+    bool ok = Logger::logEvent().addHandler([](const Logger::Severity, const char* msg) {
+        Serial.println(msg);
+    });
+
+    if (!ok)
+        ERROR_ADD_EVENT_HANDLER("Logger", "logEvent (Serial)");
+
     Serial.println("Setting up PersistentStorage");
     static PersistentStorage s_persistentStorage;
     s_persistentStorage.loadConfiguration();
 
     Serial.println("Setting up BlynkHandler");
     static BlynkHandler s_blynkHandler{ s_persistentStorage };
+
+    ok = Logger::logEvent().addHandler([](const Logger::Severity severity, const char* msg) {
+        if (severity != Logger::Severity::Debug)
+            s_blynkHandler.addVirtualTerminalLogLine(msg);
+    });
+
+    if (!ok)
+        ERROR_ADD_EVENT_HANDLER("Logger", "logEvent (Blynk)");
+
+    Serial.println("Setting up Clock");
+    static Clock s_clock;
+
+    Logger::setClock(&s_clock);
 
     Serial.println("Setting up ButtonHandler");
     static ButtonHandler s_buttonHandler;
@@ -33,15 +54,12 @@ void setup()
     Serial.println("Setting up RelayController");
     static RelayController s_relayController;
 
-    Serial.println("Setting up Clock");
-    static Clock s_clock;
-
     Serial.println("Setting up Automator");
-    static Automator s_automator{ s_blynkHandler, s_clock, s_persistentStorage, s_relayController };
+    static Automator s_automator{ s_clock, s_persistentStorage, s_relayController };
 
     Serial.println("Registering event handlers");
 
-    auto ok = s_temperatureSensor.temperatureChangedEvent().addHandler([](const int16_t value) {
+    ok = s_temperatureSensor.temperatureChangedEvent().addHandler([](const int16_t value) {
         s_blynkHandler.updateTemperature(value);
     });
 

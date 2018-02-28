@@ -2,6 +2,7 @@
 
 #include "Config.h"
 #include "Event.h"
+#include "Logger.h"
 
 #include <cstdint>
 #include <ctime>
@@ -19,10 +20,12 @@ public:
     const EpochUpdatedEvent& epochUpdatedEvent() const;
 
     std::time_t epochTime() const;
+    const std::tm* const gmtime() const;
 
     bool isSynchronized() const;
 
 private:
+    const Logger m_log;
     WiFiUDP m_udpSocket;
     NTPClient m_ntpClient;
     EpochUpdatedEvent m_epochUpdatedEvent;

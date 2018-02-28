@@ -3,6 +3,7 @@
 #include <Arduino.h>
 
 RelayController::RelayController()
+    : m_log{ "RelayController" }
 {
     static_assert(sizeof(Config::Pins::Relay) > 0, "No relay pins defined");
     static_assert(sizeof(Config::Pins::Relay) < 256, "Maximum 255 relay pins supported");
@@ -13,7 +14,7 @@ RelayController::RelayController()
 
     for (const auto pin : Config::Pins::Relay)
     {
-        Serial.printf("RelayController: Setting up GPIO%d for relay %u\r\n", pin, i);
+        m_log.debug("Setting up GPIO%d for relay %u", pin, i);
 
         ::pinMode(pin, OUTPUT);
         setState(i, false);
@@ -24,14 +25,14 @@ RelayController::RelayController()
 
 void RelayController::switchOn(const uint8_t relay) const
 {
-    Serial.printf("RelayController: switching on relay %u\r\n", relay);
+    m_log.debug("Switching on relay %u", relay);
 
     setState(relay, true);
 }
 
 void RelayController::switchOff(const uint8_t relay) const
 {
-    Serial.printf("RelayController: switching off relay %u\r\n", relay);
+    m_log.debug("Switching off relay %u", relay);
 
     setState(relay, false);
 }
@@ -43,32 +44,32 @@ void RelayController::setState(const uint8_t relay, const bool on) const
 
     if (on && isAnyRelayInTheSameGroupTurnedOn(relay))
     {
-        Serial.printf("RelayController: relay %u can't be turned on, another one in the same group is already active\r\n", relay);
+        m_log.warning("Relay %u can't be turned on, another one in the same group is already active", relay);
         return;
     }
 
-    Serial.printf("RelayController: setting state of relay %u to %s\r\n", relay, (on ? "On" : "Off"));
+    m_log.debug("Setting state of relay %u to %s", relay, (on ? "On" : "Off"));
 
     ::digitalWrite(Config::Pins::Relay[relay], on ? 1 : 0);
 }
 
 void RelayController::toggle(const uint8_t relay) const
 {
-    Serial.printf("RelayController: toggling relay %u\r\n", relay);
+    m_log.debug("Toggling relay %u", relay);
 
     setState(relay, isRelayTurnedOn(relay) ? false : true);
 }
 
 void RelayController::pulse(const uint8_t relay)
 {
-    Serial.printf("RelayController: pulsing relay %u\r\n", relay);
+    m_log.debug("Pulsing relay %u", relay);
 
     if (!isValidRelayIndex(relay))
         return;
 
     if (m_pulseStates[relay])
     {
-        Serial.printf("RelayController: relay %u is already being pulsed\r\n", relay);
+        m_log.warning("Relay %u is already being pulsed", relay);
         return;
     }
 
@@ -107,7 +108,7 @@ bool RelayController::isValidRelayIndex(const uint8_t relay) const
 {
     if (relay >= sizeof(Config::Pins::Relay))
     {
-        Serial.printf("RelayController: invalid relay index: %u\r\n", relay);
+        m_log.warning("Invalid relay index: %u", relay);
         return false;
     }
 

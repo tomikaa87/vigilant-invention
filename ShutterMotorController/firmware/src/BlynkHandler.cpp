@@ -41,20 +41,21 @@ HANDLE_BLYNK_READ(CONFIG_BLYNK_PIN_SHUTTER_TIMER_ACTIVE_BUTTON)
 HANDLE_BLYNK_WRITE(CONFIG_BLYNK_PIN_SHUTTER_TIMER_ACTIVE_BUTTON)
 
 BlynkHandler::BlynkHandler(PersistentStorage& persistentStorage)
-    : m_peristentStorage(persistentStorage)
+    : m_log{ "BlynkHandler" }
+    , m_peristentStorage(persistentStorage)
 {
     g_instance = this;
 
-    Serial.println("BlynkHandler: starting Blynk");
+    m_log.debug("Starting Blynk");
 
     Blynk.begin(PrivateConfig::BlynkApiToken, PrivateConfig::WiFiSSID, PrivateConfig::WiFiPassword);
 
-    Serial.println("BlynkHandler: Blynk started");
-    Serial.println("BlynkHandler: configuring WiFi");
+    m_log.debug("Blynk started");
+    m_log.debug("Configuring WiFi");
 
     WiFi.setPhyMode(WIFI_PHY_MODE_11N);
 
-    Serial.println("BlynkHandler: WiFi configured");
+    m_log.debug("WiFi configured");
 }
 
 BlynkHandler::~BlynkHandler()
@@ -70,7 +71,7 @@ void BlynkHandler::task()
 void BlynkHandler::updateTemperature(const int16_t value)
 {
 #ifdef DEBUG_BLYNK_HANDLER
-    Serial.printf("BlynkHandler: updating temperature: %d\r\n", value);
+    m_log.debug("Updating temperature: %d", value);
 #endif
 
     m_lastRoomTemperature = value;
@@ -79,7 +80,7 @@ void BlynkHandler::updateTemperature(const int16_t value)
 
 void BlynkHandler::onConnected()
 {
-    Serial.println("BlynkHandler: connected to Blynk");
+    m_log.debug("Connected to Blynk");
 
     updateVirtualPin(CONFIG_BLYNK_PIN_OPEN_TIME_INPUT);
     updateVirtualPin(CONFIG_BLYNK_PIN_SHUTTER_TIMER_ACTIVE_BUTTON);
@@ -88,7 +89,7 @@ void BlynkHandler::onConnected()
 void BlynkHandler::onButtonPressed(const int pin)
 {
 #ifdef DEBUG_BLYNK_HANDLER
-    Serial.printf("BlynkHandler: button pressed: %d\r\n", pin);
+    m_log.debug("Button pressed: %d", pin);
 #endif
 
     switch (pin)
@@ -117,7 +118,7 @@ void BlynkHandler::onButtonPressed(const int pin)
 void BlynkHandler::onVirtualPinUpdated(const int pin, const BlynkParam& param)
 {
 #ifdef DEBUG_BLYNK_HANDLER
-    Serial.printf("BlynkHandler: virtual pin updated: %d to %s\r\n", pin, param.asString());
+    m_log.debug("Virtual pin updated: %d to %s", pin, param.asString());
 #endif
 
     switch (pin)
@@ -138,7 +139,7 @@ void BlynkHandler::onVirtualPinUpdated(const int pin, const BlynkParam& param)
 void BlynkHandler::updateVirtualPin(const int pin)
 {
 #ifdef DEBUG_BLYNK_HANDLER
-    Serial.printf("BlynkHandler: virtual pin update requested: %d\r\n", pin);
+    m_log.debug("Virtual pin update requested: %d", pin);
 #endif
 
     switch (pin)
@@ -160,6 +161,13 @@ void BlynkHandler::updateVirtualPin(const int pin)
     }
 }
 
+void BlynkHandler::addVirtualTerminalLogLine(const char* line) const
+{
+    WidgetTerminal terminal{ CONFIG_BLYNK_PIN_VIRTUAL_TERMINAL };
+    terminal.write(line);
+    terminal.flush();
+}
+
 const BlynkHandler::BlynkEvent& BlynkHandler::blynkEvent() const
 {
     return m_event;
@@ -171,13 +179,13 @@ void BlynkHandler::handleOpenTimeInputChange(const BlynkParam& param)
 
     if (!tip.hasStartTime())
     {
-        Serial.println("BlynkHandler: shutter open time input has no start time");
+        m_log.warning("Shutter open time input has no start time");
         return;
     }
 
     if (!tip.hasStopTime())
     {
-        Serial.println("BlynkHandler: shutter open time input has no stop time");
+        m_log.warning("Shutter open time input has no stop time");
         return;
     }
 
@@ -188,11 +196,11 @@ void BlynkHandler::handleOpenTimeInputChange(const BlynkParam& param)
     cfg.ShutterCloseHour = tip.getStopHour();
     cfg.ShutterCloseMinute = tip.getStopMinute();
 
-    Serial.printf("BlynkHandler: shutter open time updated. From: %02d:%02d, to: %02d:%02d\r\n",
-                  cfg.ShutterOpenHour,
-                  cfg.ShutterOpenMinute,
-                  cfg.ShutterCloseHour,
-                  cfg.ShutterCloseMinute);
+    m_log.info("Shutter open time updated. From: %02d:%02d, to: %02d:%02d",
+               cfg.ShutterOpenHour,
+               cfg.ShutterOpenMinute,
+               cfg.ShutterCloseHour,
+               cfg.ShutterCloseMinute);
 
     m_peristentStorage.saveConfiguration();
 }
@@ -209,8 +217,8 @@ void BlynkHandler::updateOpenTimeInput()
 
 void BlynkHandler::handleShutterTimerActiveChange(const BlynkParam & param)
 {
-    Serial.printf("BlynkHandler: shutter timer state changed to: %s\r\n",
-                  param.asInt() > 0 ? "active" : "inactive");
+    m_log.info("Shutter timer state changed to: %s",
+               param.asInt() > 0 ? "active" : "inactive");
 
     m_peristentStorage.config.ShutterTimerActive = param.asInt() > 0 ? true : false;
 
