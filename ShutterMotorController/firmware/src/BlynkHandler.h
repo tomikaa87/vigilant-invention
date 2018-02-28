@@ -20,6 +20,8 @@ public:
     void updateTemperature(const int16_t value);
 
     void onConnected();
+    void onDisconnected();
+
     void onButtonPressed(const int pin);
     void onVirtualPinUpdated(const int pin, const BlynkParam& param);
     void updateVirtualPin(const int pin);
@@ -37,6 +39,7 @@ public:
 private:
     const Logger m_log;
     PersistentStorage& m_peristentStorage;
+    bool m_connected = false;
 
     int16_t m_lastRoomTemperature = 0;
     BlynkEvent m_event;

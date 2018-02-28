@@ -93,5 +93,5 @@ private:
     static LogEvent sm_logEvent;
     const char* m_category = nullptr;
 
-    size_t addPrefixes(char* buf, const size_t maxLength, const Severity severity) const;
+    int addPrefixes(char* buf, const size_t maxLength, const Severity severity) const;
 };

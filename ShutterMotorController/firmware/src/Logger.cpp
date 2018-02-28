@@ -21,9 +21,9 @@ Logger::Logger(const char* category)
 {
 }
 
-size_t Logger::addPrefixes(char* buf, const size_t maxLength, const Severity severity) const
+int Logger::addPrefixes(char* buf, const size_t maxLength, const Severity severity) const
 {
-    size_t length = 0;
+    int length = 0;
 
     if (sm_clock)
     {
@@ -38,13 +38,7 @@ size_t Logger::addPrefixes(char* buf, const size_t maxLength, const Severity sev
                           time->tm_sec);
     }
 
-    if (m_category)
-    {
-        length += snprintf(buf + length, maxLength - length, "[%s] ",
-                           m_category);
-    }
-
-    const char* severityString = "";
+    const char* severityString = nullptr;
 
     switch (severity)
     {
@@ -64,8 +58,17 @@ size_t Logger::addPrefixes(char* buf, const size_t maxLength, const Severity sev
             break;
     }
 
-    length += snprintf(buf + length, sizeof(buf) - length, "%s",
-                       severityString);
+    if (severityString)
+    {
+        length += snprintf(buf + length, maxLength - length, "%s",
+                           severityString);
+    }
+
+    if (m_category)
+    {
+        length += snprintf(buf + length, maxLength - length, "[%s] ",
+                           m_category);
+    }
 
     return length;
 }

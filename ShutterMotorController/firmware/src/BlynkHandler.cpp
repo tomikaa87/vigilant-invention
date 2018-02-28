@@ -29,6 +29,12 @@ BLYNK_CONNECTED()
         g_instance->onConnected();
 }
 
+BLYNK_DISCONNECTED()
+{
+    if (g_instance)
+        g_instance->onDisconnected();
+}
+
 HANDLE_BLYNK_BUTTON_PRESS(CONFIG_BLYNK_PIN_RELAY_1_PULSE_BUTTON)
 HANDLE_BLYNK_BUTTON_PRESS(CONFIG_BLYNK_PIN_RELAY_2_PULSE_BUTTON)
 HANDLE_BLYNK_BUTTON_PRESS(CONFIG_BLYNK_PIN_RELAY_3_PULSE_BUTTON)
@@ -80,17 +86,24 @@ void BlynkHandler::updateTemperature(const int16_t value)
 
 void BlynkHandler::onConnected()
 {
+    m_connected = true;
+
     m_log.debug("Connected to Blynk");
 
     updateVirtualPin(CONFIG_BLYNK_PIN_OPEN_TIME_INPUT);
     updateVirtualPin(CONFIG_BLYNK_PIN_SHUTTER_TIMER_ACTIVE_BUTTON);
 }
 
+void BlynkHandler::onDisconnected()
+{
+    m_connected = false;
+
+    m_log.warning("disconnected from Blynk");
+}
+
 void BlynkHandler::onButtonPressed(const int pin)
 {
-#ifdef DEBUG_BLYNK_HANDLER
-    m_log.debug("Button pressed: %d", pin);
-#endif
+    m_log.info("Button pressed: %d", pin);
 
     switch (pin)
     {
@@ -163,6 +176,9 @@ void BlynkHandler::updateVirtualPin(const int pin)
 
 void BlynkHandler::addVirtualTerminalLogLine(const char* line) const
 {
+    if (!m_connected)
+        return;
+
     WidgetTerminal terminal{ CONFIG_BLYNK_PIN_VIRTUAL_TERMINAL };
     terminal.write(line);
     terminal.flush();
