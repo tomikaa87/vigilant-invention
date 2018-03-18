@@ -9,3 +9,6 @@
 	path = ESPControlCenter/rpi-playground/wiringpi
 	url = https://github.com/WiringPi/WiringPi.git
 	branch = master
+[submodule "ShutterMotorRemoteReceiver/Firmware.X/nrf24l01plus"]
+	path = ShutterMotorRemoteReceiver/Firmware.X/nrf24l01plus
+	url = https://github.com/tomikaa87/nrf24L01_plus.git

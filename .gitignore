@@ -289,3 +289,13 @@ __pycache__/
 
 # Git related files
 *.orig
+
+# MPLABX related files
+**/nbproject/private/
+**/dist/
+**/debug/
+**/build/
+
+# Eagle related files
+*.b#?
+*.s#?
