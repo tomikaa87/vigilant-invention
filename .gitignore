@@ -299,3 +299,4 @@ __pycache__/
 # Eagle related files
 *.b#?
 *.s#?
+*.l#?
