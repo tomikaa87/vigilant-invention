@@ -250,15 +250,17 @@ void Hub::progressSendCommand(Radio::TaskResult radioTaskResult)
     {
         case Radio::TaskResult::DataReceived:
         {
-            // TODO since this is a generic response handler,
-            // status message responses should be processed separately
-
             auto&& msg = mRadio.lastReceivedMessage();
 
-            INFO(Hub, "Status:");
-            INFO(Hub, "  Firmware version: %s", msg.payload.status.firmware_ver);
+            switch (msg.msg_type)
+            {
+                case PROTO_MSG_READ_STATUS_RESULT:
+                    processStatusResponse(msg);
+                    break;
 
-            mState = State::Idle;
+                default:
+                    INFO(Hub, "Unprocessed response: %d", msg.msg_type);
+            }
 
             break;
         }
@@ -294,4 +296,12 @@ void Hub::selectDevice(uint8_t index)
     mSelectedDeviceIndex = index;
 
     INFO(Hub, "Selected device: %u", mSelectedDeviceIndex);
+}
+
+void Hub::processStatusResponse(const protocol_msg_t& msg)
+{
+    INFO(Hub, "Status:");
+    INFO(Hub, "  Firmware version: %s", msg.payload.status.firmware_ver);
+
+    mState = State::Idle;
 }

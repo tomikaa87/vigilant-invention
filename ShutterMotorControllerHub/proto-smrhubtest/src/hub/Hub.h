@@ -62,6 +62,8 @@ private:
 
     void progressScanning(Radio::TaskResult radioTaskResult);
     void progressSendCommand(Radio::TaskResult radioTaskResult);
+
+    void processStatusResponse(const protocol_msg_t& msg);
 };
 
 #endif /* HUB_HUB_H_ */
