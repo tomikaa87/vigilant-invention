@@ -103,7 +103,7 @@ struct etharp_entry {
   u8_t state;
 };
 
-static struct etharp_entry arp_table[ARP_TABLE_SIZE];
+static struct etharp_entry arp_table[ARP_TABLE_SIZE] __attribute__((section(".ccmram")));
 
 #if !LWIP_NETIF_HWADDRHINT
 static u8_t etharp_cached_entry;

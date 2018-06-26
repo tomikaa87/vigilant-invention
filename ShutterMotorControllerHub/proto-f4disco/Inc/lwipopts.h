@@ -53,6 +53,7 @@
 #define __LWIPOPTS__H__
 
 #include "stm32f4xx_hal.h"
+#include "arch.h"
 
 /**
  * SYS_LIGHTWEIGHT_PROT==1: if you want inter-task protection for certain
@@ -230,11 +231,14 @@ The STM32F4x7 allows computing and verifying the IP, UDP, TCP and ICMP checksums
 */
 
 #define LWIP_IPV4 1
-#define LWIP_DEBUG 1
-#define IP_DEBUG LWIP_DBG_ON
-#define DHCP_DEBUG LWIP_DBG_ON
-#define ETHARP_DEBUG LWIP_DBG_ON
-#define NETIF_DEBUG LWIP_DBG_ON
+//#define LWIP_DEBUG 1
+//#define IP_DEBUG LWIP_DBG_ON
+//#define DHCP_DEBUG LWIP_DBG_ON
+//#define ETHARP_DEBUG LWIP_DBG_ON
+//#define NETIF_DEBUG LWIP_DBG_ON
+
+extern uint8_t lwip_ccmram_heap[];
+#define LWIP_RAM_HEAP_POINTER lwip_ccmram_heap
 /*-----------------------------------------------------------------------------*/
 /* USER CODE BEGIN 1 */
 

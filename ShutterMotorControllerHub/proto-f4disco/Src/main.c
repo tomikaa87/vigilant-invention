@@ -71,6 +71,8 @@ SPI_HandleTypeDef hspi3;
 
 UART_HandleTypeDef huart4;
 
+uint8_t lwip_ccmram_heap[LWIP_MEM_ALIGN_SIZE(MEM_SIZE) + 20] __attribute__((section(".ccmram")));
+
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
@@ -172,11 +174,13 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C1_Init();
   MX_SPI1_Init();
-  MX_USB_HOST_Init();
+//  MX_USB_HOST_Init();
   MX_SPI2_Init();
   MX_SPI3_Init();
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
+
+  printf("Initializing LWIP\r\n");
 
   MX_LWIP_Init();
 
@@ -195,7 +199,7 @@ int main(void)
 	  MX_LWIP_Process();
 
   /* USER CODE END WHILE */
-    MX_USB_HOST_Process();
+//    MX_USB_HOST_Process();
 
   /* USER CODE BEGIN 3 */
 

@@ -65,7 +65,7 @@
 #define IFNAME1 't'
 
 /* Global Ethernet handle */
-ENC_HandleTypeDef EncHandle;
+ENC_HandleTypeDef EncHandle __attribute__((section(".ccmram")));
 
 extern SPI_HandleTypeDef hspi2;
 
