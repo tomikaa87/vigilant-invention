@@ -60,13 +60,10 @@
 #include "enc28j60.h"
 #include <string.h>
 
-/* Network interface name */
 #define IFNAME0 's'
 #define IFNAME1 't'
 
-/* Global Ethernet handle */
 ENC_HandleTypeDef EncHandle __attribute__((section(".ccmram")));
-
 extern SPI_HandleTypeDef hspi2;
 
 /*******************************************************************************
@@ -80,43 +77,40 @@ extern SPI_HandleTypeDef hspi2;
  * @param netif the already initialized lwip network interface structure
  *        for this ethernetif
  */
-static void low_level_init(struct netif *netif) {
-	/* set MAC hardware address length */
-	netif->hwaddr_len = ETHARP_HWADDR_LEN;
+static void low_level_init(struct netif *netif)
+{
+    /* set MAC hardware address length */
+    netif->hwaddr_len = ETHARP_HWADDR_LEN;
 
-	/* set MAC hardware address */
-	netif->hwaddr[0] = 0x54;
-	netif->hwaddr[1] = 0x10;
-	netif->hwaddr[2] = 0xEC;
-	netif->hwaddr[3] = 0x87;
-	netif->hwaddr[4] = 0x04;
-	netif->hwaddr[5] = 0x23;
+    /* set MAC hardware address */
+    netif->hwaddr[0] = 0x54;
+    netif->hwaddr[1] = 0x10;
+    netif->hwaddr[2] = 0xEC;
+    netif->hwaddr[3] = 0x87;
+    netif->hwaddr[4] = 0x04;
+    netif->hwaddr[5] = 0x23;
 
-	EncHandle.Init.MACAddr = netif->hwaddr;
-	EncHandle.Init.DuplexMode = ETH_MODE_HALFDUPLEX;
-	EncHandle.Init.ChecksumMode = ETH_CHECKSUM_BY_HARDWARE;
-	EncHandle.Init.InterruptEnableBits = EIE_LINKIE;
+    EncHandle.Init.MACAddr = netif->hwaddr;
+    EncHandle.Init.DuplexMode = ETH_MODE_HALFDUPLEX;
+    EncHandle.Init.ChecksumMode = ETH_CHECKSUM_BY_HARDWARE;
+    EncHandle.Init.InterruptEnableBits = EIE_LINKIE;
 
-	/* configure ethernet peripheral (GPIOs, clocks, MAC, DMA) */
-//	ENC_MSPInit(&EncHandle);
-	/* Set netif link flag */
-	//  netif->flags |= NETIF_FLAG_LINK_UP;
-	/* maximum transfer unit */
-	netif->mtu = 1500;
+    /* maximum transfer unit */
+    netif->mtu = 1500;
 
-	/* device capabilities */
-	/* don't set NETIF_FLAG_ETHARP if this device is not an ethernet one */
-	netif->flags |= NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP;
+    /* device capabilities */
+    /* don't set NETIF_FLAG_ETHARP if this device is not an ethernet one */
+    netif->flags |= NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP;
 
-	/* Start the EN28J60 module */
-	if (ENC_Start(&EncHandle)) {
-		/* Set the MAC address */
-		ENC_SetMacAddr(&EncHandle);
+    /* Start the EN28J60 module */
+    if (ENC_Start(&EncHandle))
+    {
+        /* Set the MAC address */
+        ENC_SetMacAddr(&EncHandle);
 
-		/* Set netif link flag */
-		netif->flags |= NETIF_FLAG_LINK_UP;
-	}
-
+        /* Set netif link flag */
+        netif->flags |= NETIF_FLAG_LINK_UP;
+    }
 }
 
 /**
@@ -135,32 +129,36 @@ static void low_level_init(struct netif *netif) {
  *       dropped because of memory failure (except for the TCP timers).
  */
 
-static err_t low_level_output(struct netif *netif, struct pbuf *p) {
-	/* TODO use netif to check if we are the right ethernet interface */
-	err_t errval;
-	struct pbuf *q;
-	uint32_t framelength = 0;
+static err_t low_level_output(struct netif *netif, struct pbuf *p)
+{
+    /* TODO use netif to check if we are the right ethernet interface */
+    err_t errval;
+    struct pbuf *q;
+    uint32_t framelength = 0;
 
-	/* Prepare ENC28J60 Tx buffer */
-	errval = ENC_RestoreTXBuffer(&EncHandle, p->tot_len);
-	if (errval != ERR_OK) {
-		return errval;
-	}
+    /* Prepare ENC28J60 Tx buffer */
+    errval = ENC_RestoreTXBuffer(&EncHandle, p->tot_len);
+    if (errval != ERR_OK)
+    {
+        return errval;
+    }
 
-	/* copy frame from pbufs to driver buffers and send packet */
-	for (q = p; q != NULL; q = q->next) {
-		ENC_WriteBuffer(q->payload, q->len);
-		framelength += q->len;
-	}
+    /* copy frame from pbufs to driver buffers and send packet */
+    for (q = p; q != NULL; q = q->next)
+    {
+        ENC_WriteBuffer(q->payload, q->len);
+        framelength += q->len;
+    }
 
-	if (framelength != p->tot_len) {
-		return ERR_BUF;
-	}
+    if (framelength != p->tot_len)
+    {
+        return ERR_BUF;
+    }
 
-	EncHandle.transmitLength = p->tot_len;
-	/* Actual transmission is triggered in main loop */
+    EncHandle.transmitLength = p->tot_len;
+    /* Actual transmission is triggered in main loop */
 
-	return ERR_OK;
+    return ERR_OK;
 }
 
 /**
@@ -171,38 +169,43 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p) {
  * @return a pbuf filled with the received packet (including MAC header)
  *         NULL on memory error
  */
-static struct pbuf * low_level_input(struct netif *netif) {
-	struct pbuf *p = NULL;
-	struct pbuf *q;
-	uint16_t len;
-	uint8_t *buffer;
-	uint32_t bufferoffset = 0;
+static struct pbuf * low_level_input(struct netif *netif)
+{
+    struct pbuf *p = NULL;
+    struct pbuf *q;
+    uint16_t len;
+    uint8_t *buffer;
+    uint32_t bufferoffset = 0;
 
-	if (!ENC_GetReceivedFrame(&EncHandle)) {
-		return NULL;
-	}
+    if (!ENC_GetReceivedFrame(&EncHandle))
+    {
+        return NULL;
+    }
 
-	/* Obtain the size of the packet and put it into the "len" variable. */
-	len = EncHandle.RxFrameInfos.length;
-	buffer = (uint8_t *) EncHandle.RxFrameInfos.buffer;
+    /* Obtain the size of the packet and put it into the "len" variable. */
+    len = EncHandle.RxFrameInfos.length;
+    buffer = (uint8_t *) EncHandle.RxFrameInfos.buffer;
 
-	if (len > 0) {
-		/* We allocate a pbuf chain of pbufs from the Lwip buffer pool */
-		p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
-	}
+    if (len > 0)
+    {
+        /* We allocate a pbuf chain of pbufs from the Lwip buffer pool */
+        p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
+    }
 
-	if (p != NULL) {
-		bufferoffset = 0;
+    if (p != NULL)
+    {
+        bufferoffset = 0;
 
-		for (q = p; q != NULL; q = q->next) {
-			/* Copy data in pbuf */
-			memcpy((uint8_t*) ((uint8_t*) q->payload),
-					(uint8_t*) ((uint8_t*) buffer + bufferoffset), q->len);
-			bufferoffset = bufferoffset + q->len;
-		}
-	}
+        for (q = p; q != NULL; q = q->next)
+        {
+            /* Copy data in pbuf */
+            memcpy((uint8_t*) ((uint8_t*) q->payload),
+                    (uint8_t*) ((uint8_t*) buffer + bufferoffset), q->len);
+            bufferoffset = bufferoffset + q->len;
+        }
+    }
 
- 	return p;
+    return p;
 }
 
 /**
@@ -214,47 +217,28 @@ static struct pbuf * low_level_input(struct netif *netif) {
  *
  * @param netif the lwip network interface structure for this ethernetif
  */
-void ethernetif_input(struct netif *netif) {
-	err_t err;
-	struct pbuf *p;
-
-	/* move received packet into a new pbuf */
-	p = low_level_input(netif);
-
-	/* no packet could be read, silently ignore this */
-	if (p == NULL)
-		return;
-
-	/* entry point to the LwIP stack */
-	err = netif->input(p, netif);
-
-	if (err != ERR_OK) {
-		LWIP_DEBUGF(NETIF_DEBUG, ("ethernetif_input: IP input error\n"));
-		pbuf_free(p);
-		p = NULL;
-	}
-}
-
-#if !LWIP_ARP
-/**
- * This function has to be completed by user in case of ARP OFF.
- *
- * @param netif the lwip network interface structure for this ethernetif
- * @return ERR_OK if ...
- */
-static err_t low_level_output_arp_off(struct netif *netif, struct pbuf *q, const ip4_addr_t *ipaddr)
+void ethernetif_input(struct netif *netif)
 {
-	err_t errval;
-	errval = ERR_OK;
+    err_t err;
+    struct pbuf *p;
 
-	/* USER CODE BEGIN 5 */
+    /* move received packet into a new pbuf */
+    p = low_level_input(netif);
 
-	/* USER CODE END 5 */
+    /* no packet could be read, silently ignore this */
+    if (p == NULL)
+        return;
 
-	return errval;
+    /* entry point to the LwIP stack */
+    err = netif->input(p, netif);
 
+    if (err != ERR_OK)
+    {
+        LWIP_DEBUGF(NETIF_DEBUG, ("ethernetif_input: IP input error\n"));
+        pbuf_free(p);
+        p = NULL;
+    }
 }
-#endif /* LWIP_ARP */ 
 
 /**
  * Should be called at the beginning of the program to set up the
@@ -268,42 +252,33 @@ static err_t low_level_output_arp_off(struct netif *netif, struct pbuf *q, const
  *         ERR_MEM if private data couldn't be allocated
  *         any other err_t on error
  */
-err_t ethernetif_init(struct netif *netif) {
-	LWIP_ASSERT("netif != NULL", (netif != NULL));
+err_t ethernetif_init(struct netif *netif)
+{
+    LWIP_ASSERT("netif != NULL", (netif != NULL));
 
-#if LWIP_NETIF_HOSTNAME
-	/* Initialize interface hostname */
-	netif->hostname = "lwip";
-#endif /* LWIP_NETIF_HOSTNAME */
+    /* Initialize interface hostname */
+    netif->hostname = "smrhub";
 
-	netif->name[0] = IFNAME0;
-	netif->name[1] = IFNAME1;
-	/* We directly use etharp_output() here to save a function call.
-	 * You can instead declare your own function an call etharp_output()
-	 * from it if you have to do some checks before sending (e.g. if link
-	 * is available...) */
+    netif->name[0] = IFNAME0;
+    netif->name[1] = IFNAME1;
+
+    /* We directly use etharp_output() here to save a function call.
+     * You can instead declare your own function an call etharp_output()
+     * from it if you have to do some checks before sending (e.g. if link
+     * is available...) */
 
 #if LWIP_IPV4
 #if LWIP_ARP || LWIP_ETHERNET
-#if LWIP_ARP
-	netif->output = etharp_output;
-#else
-	/* The user should write ist own code in low_level_output_arp_off function */
-	netif->output = low_level_output_arp_off;
-#endif /* LWIP_ARP */
+    netif->output = etharp_output;
 #endif /* LWIP_ARP || LWIP_ETHERNET */
 #endif /* LWIP_IPV4 */
 
-#if LWIP_IPV6
-	netif->output_ip6 = ethip6_output;
-#endif /* LWIP_IPV6 */
+    netif->linkoutput = low_level_output;
 
-	netif->linkoutput = low_level_output;
+    /* initialize the hardware */
+    low_level_init(netif);
 
-	/* initialize the hardware */
-	low_level_init(netif);
-
-	return ERR_OK;
+    return ERR_OK;
 }
 
 /**
@@ -312,8 +287,9 @@ err_t ethernetif_init(struct netif *netif) {
  * @param  None
  * @retval Time
  */
-u32_t sys_jiffies(void) {
-	return HAL_GetTick();
+u32_t sys_jiffies(void)
+{
+    return HAL_GetTick();
 }
 
 /**
@@ -322,25 +298,29 @@ u32_t sys_jiffies(void) {
  * @param  None
  * @retval Time
  */
-u32_t sys_now(void) {
-	return HAL_GetTick();
+u32_t sys_now(void)
+{
+    return HAL_GetTick();
 }
 
 /**
-  * @brief  This function sets the netif link status.
-  * @param  netif: the network interface
-  * @retval None
-  */
+ * @brief  This function sets the netif link status.
+ * @param  netif: the network interface
+ * @retval None
+ */
 void ethernetif_set_link(struct netif *netif)
 {
     /* Handle ENC28J60 interrupt */
     ENC_IRQHandler(&EncHandle);
 
     /* Check whether the link is up or down*/
-    if(((EncHandle.LinkStatus) & PHSTAT2_LSTAT)!= 0) {
-      netif_set_link_up(netif);
-    } else {
-      netif_set_link_down(netif);
+    if (((EncHandle.LinkStatus) & PHSTAT2_LSTAT) != 0)
+    {
+        netif_set_link_up(netif);
+    }
+    else
+    {
+        netif_set_link_down(netif);
     }
 
     /* Reenable interrupts */
@@ -348,60 +328,48 @@ void ethernetif_set_link(struct netif *netif)
 }
 
 /**
-  * @brief  Link callback function, this function is called on change of link status
-  *         to update low level driver configuration.
-* @param  netif: The network interface
-  * @retval None
-  */
+ * @brief  Link callback function, this function is called on change of link status
+ *         to update low level driver configuration.
+ * @param  netif: The network interface
+ * @retval None
+ */
 void ethernetif_update_config(struct netif *netif)
 {
-  if(netif_is_link_up(netif)) {
-      /* Restart the EN28J60 module */
-      low_level_init(netif);
-  }
+    if (netif_is_link_up(netif))
+    {
+        /* Restart the EN28J60 module */
+        low_level_init(netif);
+    }
 
-  ethernetif_notify_conn_changed(netif);
+    ethernetif_notify_conn_changed(netif);
 }
 
 /**
-  * @brief  This function notify user about link status changement.
-  * @param  netif: the network interface
-  * @retval None
-  */
+ * @brief  This function notify user about link status changement.
+ * @param  netif: the network interface
+ * @retval None
+ */
 void ethernetif_notify_conn_changed(struct netif *netif)
 {
-  /* NOTE : This is function could be implemented in user file
-            when the callback is needed,
-  */
+    /* NOTE : This is function could be implemented in user file
+     when the callback is needed,
+     */
 
-	  if(netif_is_link_up(netif))
-	  {
-	//    IP4_ADDR(&ipaddr, IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
-	//    IP4_ADDR(&netmask, NETMASK_ADDR0, NETMASK_ADDR1 , NETMASK_ADDR2, NETMASK_ADDR3);
-	//    IP4_ADDR(&gw, GW_ADDR0, GW_ADDR1, GW_ADDR2, GW_ADDR3);
-	//
-	//    netif_set_addr(netif, &ipaddr , &netmask, &gw);
-	//
-	//    /* When the netif is fully configured this function must be called.*/
-	    netif_set_up(netif);
-	//
-	//    BSP_LED_Off(LED4);
-	//    BSP_LED_On(LED3);
-	  }
-	  else
-	  {
-	    /*  When the netif link is down this function must be called.*/
-	    netif_set_down(netif);
-
-	//    BSP_LED_Off(LED3);
-	//    BSP_LED_On(LED4);
-	  }
+    if (netif_is_link_up(netif))
+    {
+        netif_set_up(netif);
+    }
+    else
+    {
+        netif_set_down(netif);
+    }
 }
 
 /**
  * Implement actual transmission triggering
  */
-void ethernet_transmit(void) {
+void ethernet_transmit(void)
+{
     ENC_Transmit(&EncHandle);
 }
 
@@ -413,9 +381,10 @@ void ethernet_transmit(void) {
  * retval answer from ENC28J60
  */
 
-uint8_t ENC_SPI_SendWithoutSelection(uint8_t command) {
-	HAL_SPI_TransmitReceive(&hspi2, &command, &command, 1, 1000);
-	return command;
+uint8_t ENC_SPI_SendWithoutSelection(uint8_t command)
+{
+    HAL_SPI_TransmitReceive(&hspi2, &command, &command, 1, 1000);
+    return command;
 }
 
 /**
@@ -424,20 +393,21 @@ uint8_t ENC_SPI_SendWithoutSelection(uint8_t command) {
  * retval answer from ENC28J60
  */
 
-uint8_t ENC_SPI_Send(uint8_t command) {
-	/* Select ENC28J60 module */
-	HAL_NVIC_DisableIRQ(ENC_nIRQ_EXTI_IRQn);
-	HAL_GPIO_WritePin(ENC_nCS_GPIO_Port, ENC_nCS_Pin, GPIO_PIN_RESET);
-	up_udelay(1);
+uint8_t ENC_SPI_Send(uint8_t command)
+{
+    /* Select ENC28J60 module */
+    HAL_NVIC_DisableIRQ(ENC_nIRQ_EXTI_IRQn);
+    HAL_GPIO_WritePin(ENC_nCS_GPIO_Port, ENC_nCS_Pin, GPIO_PIN_RESET);
+    up_udelay(1);
 
-	HAL_SPI_TransmitReceive(&hspi2, &command, &command, 1, 1000);
+    HAL_SPI_TransmitReceive(&hspi2, &command, &command, 1, 1000);
 
-	/* De-select ENC28J60 module */
-	HAL_GPIO_WritePin(ENC_nCS_GPIO_Port, ENC_nCS_Pin, GPIO_PIN_SET);
-	up_udelay(1);
+    /* De-select ENC28J60 module */
+    HAL_GPIO_WritePin(ENC_nCS_GPIO_Port, ENC_nCS_Pin, GPIO_PIN_SET);
+    up_udelay(1);
 
-	HAL_NVIC_EnableIRQ(ENC_nIRQ_EXTI_IRQn);
-	return command;
+    HAL_NVIC_EnableIRQ(ENC_nIRQ_EXTI_IRQn);
+    return command;
 }
 
 /**
@@ -448,28 +418,34 @@ uint8_t ENC_SPI_Send(uint8_t command) {
  */
 
 void ENC_SPI_SendBuf(uint8_t *master2slave, uint8_t *slave2master,
-		uint16_t bufferSize) {
-	/* Select ENC28J60 module */
-	HAL_NVIC_DisableIRQ(ENC_nIRQ_EXTI_IRQn);
-	HAL_GPIO_WritePin(ENC_nCS_GPIO_Port, ENC_nCS_Pin, GPIO_PIN_RESET);
-	up_udelay(1);
+        uint16_t bufferSize)
+{
+    /* Select ENC28J60 module */
+    HAL_NVIC_DisableIRQ(ENC_nIRQ_EXTI_IRQn);
+    HAL_GPIO_WritePin(ENC_nCS_GPIO_Port, ENC_nCS_Pin, GPIO_PIN_RESET);
+    up_udelay(1);
 
-	/* Transmit or receuve data */
-	if (slave2master == NULL) {
-		if (master2slave != NULL) {
-			HAL_SPI_Transmit(&hspi2, master2slave, bufferSize, 1000);
-		}
-	} else if (master2slave == NULL) {
-		HAL_SPI_Receive(&hspi2, slave2master, bufferSize, 1000);
-	} else {
-		HAL_SPI_TransmitReceive(&hspi2, master2slave, slave2master, bufferSize,
-				1000);
-	}
+    /* Transmit or receuve data */
+    if (slave2master == NULL)
+    {
+        if (master2slave != NULL)
+        {
+            HAL_SPI_Transmit(&hspi2, master2slave, bufferSize, 1000);
+        }
+    }
+    else if (master2slave == NULL)
+    {
+        HAL_SPI_Receive(&hspi2, slave2master, bufferSize, 1000);
+    }
+    else
+    {
+        HAL_SPI_TransmitReceive(&hspi2, master2slave, slave2master, bufferSize, 1000);
+    }
 
-	/* De-select ENC28J60 module */
-	HAL_GPIO_WritePin(ENC_nCS_GPIO_Port, ENC_nCS_Pin, GPIO_PIN_SET);
-	up_udelay(1);
-	HAL_NVIC_EnableIRQ(ENC_nIRQ_EXTI_IRQn);
+    /* De-select ENC28J60 module */
+    HAL_GPIO_WritePin(ENC_nCS_GPIO_Port, ENC_nCS_Pin, GPIO_PIN_SET);
+    up_udelay(1);
+    HAL_NVIC_EnableIRQ(ENC_nIRQ_EXTI_IRQn);
 }
 
 /**
@@ -478,17 +454,21 @@ void ENC_SPI_SendBuf(uint8_t *master2slave, uint8_t *slave2master,
  * retval none
  */
 
-void ENC_SPI_Select(bool select) {
-	/* Select or de-select ENC28J60 module */
-	if (select) {
-		HAL_NVIC_DisableIRQ(ENC_nIRQ_EXTI_IRQn);
-		HAL_GPIO_WritePin(ENC_nCS_GPIO_Port, ENC_nCS_Pin, GPIO_PIN_RESET);
-		up_udelay(1);
-	} else {
-		HAL_GPIO_WritePin(ENC_nCS_GPIO_Port, ENC_nCS_Pin, GPIO_PIN_SET);
-		up_udelay(1);
-		HAL_NVIC_EnableIRQ(ENC_nIRQ_EXTI_IRQn);
-	}
+void ENC_SPI_Select(bool select)
+{
+    /* Select or de-select ENC28J60 module */
+    if (select)
+    {
+        HAL_NVIC_DisableIRQ(ENC_nIRQ_EXTI_IRQn);
+        HAL_GPIO_WritePin(ENC_nCS_GPIO_Port, ENC_nCS_Pin, GPIO_PIN_RESET);
+        up_udelay(1);
+    }
+    else
+    {
+        HAL_GPIO_WritePin(ENC_nCS_GPIO_Port, ENC_nCS_Pin, GPIO_PIN_SET);
+        up_udelay(1);
+        HAL_NVIC_EnableIRQ(ENC_nIRQ_EXTI_IRQn);
+    }
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

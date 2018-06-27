@@ -48,12 +48,14 @@
   ******************************************************************************
   */
  
-/* Define to prevent recursive inclusion --------------------------------------*/
 #ifndef __LWIPOPTS__H__
 #define __LWIPOPTS__H__
 
 #include "stm32f4xx_hal.h"
 #include "arch.h"
+
+extern uint8_t lwip_ccmram_heap[];
+#define LWIP_RAM_HEAP_POINTER lwip_ccmram_heap
 
 /**
  * SYS_LIGHTWEIGHT_PROT==1: if you want inter-task protection for certain
@@ -129,6 +131,9 @@ a lot of data that needs to be copied, this should be set high. */
 /* TCP receive window. */
 #define TCP_WND                 (2*TCP_MSS)
 
+
+#define LWIP_IPV4 1
+#define LWIP_NETIF_HOSTNAME 1
 
 /* ---------- ICMP options ---------- */
 #define LWIP_ICMP                       1
@@ -230,19 +235,11 @@ The STM32F4x7 allows computing and verifying the IP, UDP, TCP and ICMP checksums
    ----------------------------------------
 */
 
-#define LWIP_IPV4 1
 //#define LWIP_DEBUG 1
 //#define IP_DEBUG LWIP_DBG_ON
 //#define DHCP_DEBUG LWIP_DBG_ON
 //#define ETHARP_DEBUG LWIP_DBG_ON
 //#define NETIF_DEBUG LWIP_DBG_ON
-
-extern uint8_t lwip_ccmram_heap[];
-#define LWIP_RAM_HEAP_POINTER lwip_ccmram_heap
-/*-----------------------------------------------------------------------------*/
-/* USER CODE BEGIN 1 */
-
-/* USER CODE END 1 */
 
 #ifdef __cplusplus
 }
