@@ -60,6 +60,8 @@
 #include "lwip/ip_addr.h"
 #include "ethernetif.h"
 
+#include "hub/Hub.h"
+
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -96,37 +98,6 @@ void MX_USB_HOST_Process(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-
-void netif_config()
-{
-	struct ip4_addr ipaddr;
-	struct ip4_addr netmask;
-	struct ip4_addr gw;
-
-	IP4_ADDR(&ipaddr, 192, 168, 0, 50);
-	IP4_ADDR(&netmask, 255, 255, 255, 252);
-	IP4_ADDR(&gw, 192, 168, 1, 1);
-
-	/* add the network interface */
-	netif_add(&gnetif, &ipaddr, &netmask, &gw, NULL, &ethernetif_init, &ethernet_input);
-
-	/*  Registers the default network interface */
-	netif_set_default(&gnetif);
-
-	if (netif_is_link_up(&gnetif))
-	{
-	/* When the netif is fully configured this function must be called */
-	netif_set_up(&gnetif);
-	}
-	else
-	{
-	/* When the netif link is down this function must be called */
-	netif_set_down(&gnetif);
-	}
-
-	/* Set the link callback function, this function is called on change of link status*/
-//	netif_set_link_callback(&gnetif, ethernetif_update_config);
-}
 
 extern void ethernetif_set_link(struct netif *netif);
 
@@ -168,6 +139,8 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
 
+  HAL_NVIC_EnableIRQ(SysTick_IRQn);
+
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -184,11 +157,9 @@ int main(void)
 
   MX_LWIP_Init();
 
-//  lwip_init();
-//  netif_config();
-
-//  HAL_UART_Transmit(&huart4, (uint8_t*)"Hello, World!\r\n", 16, 1000);
   printf("Initialized\r\n");
+
+  hub_init(&gnetif);
 
   /* USER CODE END 2 */
 

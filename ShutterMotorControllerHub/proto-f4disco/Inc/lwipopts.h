@@ -51,6 +51,10 @@
 #ifndef __LWIPOPTS__H__
 #define __LWIPOPTS__H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "stm32f4xx_hal.h"
 #include "arch.h"
 
