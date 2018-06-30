@@ -11,6 +11,7 @@
 #include <cstdint>
 
 struct netif;
+struct pbuf;
 struct tcp_pcb;
 
 namespace hub
@@ -23,6 +24,9 @@ public:
     virtual ~TestSocket();
 
     int8_t onAccept(struct tcp_pcb* newPcb, int8_t err);
+    int8_t onReceive(struct tcp_pcb* pcb, struct pbuf* buf, int8_t err);
+    int8_t onSent(struct tcp_pcb* pcb, uint16_t len);
+    void onError(int8_t err);
 
 private:
     struct netif* mIface = nullptr;
