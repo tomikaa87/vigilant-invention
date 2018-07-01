@@ -128,7 +128,7 @@ int main(void)
   /* MCU Configuration----------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+ HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -168,6 +168,7 @@ int main(void)
   while (1)
   {
 	  MX_LWIP_Process();
+	  hub_task();
 
   /* USER CODE END WHILE */
 //    MX_USB_HOST_Process();

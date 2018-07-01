@@ -12,3 +12,6 @@
 [submodule "ShutterMotorRemoteReceiver/Firmware.X/nrf24l01plus"]
 	path = ShutterMotorRemoteReceiver/Firmware.X/nrf24l01plus
 	url = https://github.com/tomikaa87/nrf24L01_plus.git
+[submodule "ShutterMotorControllerHub/proto-f4disco/BlynkLib"]
+	path = ShutterMotorControllerHub/proto-f4disco/BlynkLib
+	url = https://github.com/blynkkk/blynk-library.git

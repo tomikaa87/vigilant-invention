@@ -57,6 +57,7 @@ extern "C" {
 
 #include "stm32f4xx_hal.h"
 #include "arch.h"
+#include "cc.h"
 
 extern uint8_t lwip_ccmram_heap[];
 #define LWIP_RAM_HEAP_POINTER lwip_ccmram_heap
@@ -239,11 +240,16 @@ The STM32F4x7 allows computing and verifying the IP, UDP, TCP and ICMP checksums
    ----------------------------------------
 */
 
-//#define LWIP_DEBUG 1
-//#define IP_DEBUG LWIP_DBG_ON
-//#define DHCP_DEBUG LWIP_DBG_ON
-//#define ETHARP_DEBUG LWIP_DBG_ON
-//#define NETIF_DEBUG LWIP_DBG_ON
+#define LWIP_DEBUG 1
+#define TCP_DEBUG LWIP_DBG_ON
+#define IP_DEBUG LWIP_DBG_ON
+#define DHCP_DEBUG LWIP_DBG_ON
+#define ETHARP_DEBUG LWIP_DBG_ON
+#define NETIF_DEBUG LWIP_DBG_ON
+
+#define LWIP_RANDOMIZE_INITIAL_LOCAL_PORTS 1
+
+#define SO_REUSE 1
 
 #ifdef __cplusplus
 }

@@ -748,6 +748,7 @@
 #if !defined LWIP_RANDOMIZE_INITIAL_LOCAL_PORTS || defined __DOXYGEN__
 #define LWIP_RANDOMIZE_INITIAL_LOCAL_PORTS 0
 #endif
+
 /**
  * @}
  */

@@ -15,6 +15,7 @@ extern "C" {
 #include "lwip/netif.h"
 
 void hub_init(struct netif* iface);
+void hub_task();
 
 #ifdef __cplusplus
 } // extern "C"
