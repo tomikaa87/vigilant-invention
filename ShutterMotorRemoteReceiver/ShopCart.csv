@@ -1,0 +1,20 @@
+﻿Termékvonal száma,Rendelési kód,RoHS-kompatibilis?,Megjegyzések,Mennyiség,Gyártói cikkszám,Gyártó neve,Gyártó / leírás,Elérhetőség,Egységár,Tételsor ára,Kedvezményes ár
+1,2432085,YES,,5.0,"STM32F030K6T6",STMICROELECTRONICS,"STMICROELECTRONICS  ARM Microcontroller, Value Line, STM32 Family STM32F0 Series Microcontrollers, ARM Cortex-M0, 32bit",15181,337.0200,1685.10,,
+2,2251534,YES,,20.0,"VO610A-2",VISHAY,"VISHAY  Optocoupler, Transistor Output, 1 Channel, DIP, 4 Pins, 60 mA, 5 kV, 63 %",595,71.4240,1428.48,,
+3,1467767,YES,,5.0,"L78L33ACUTR",STMICROELECTRONICS,"STMICROELECTRONICS  Linear Voltage Regulators, Fixed, 8.3V To 30V In, 3.3V And 0.1A Out, SOT-89-3",13718,87.1920,435.96,,
+4,2306021,YES,,50.0,"BAV170-7-F",MULTICOMP,"MULTICOMP  DIODE, ULTRAFAST RECOVERY, 125mA, 85V, SOT-23-3",948,3.3080,165.40,,
+5,2447587,Y-EX,,100.0,"MCWR08X1001FTL",MULTICOMP,"MULTICOMP  SMD Chip Resistor, 1 kohm, MCWR Series, 150 V, Thick Film, 0805 [2012 Metric], 125 mW",119223,1.1750,117.50,,
+6,3536440,YES,,5.0,"1551GGY",HAMMOND,"HAMMOND  Plastic Enclosure, Handheld, ABS, 50 mm, 35 mm, 20 mm, IP54",Out of Stock,581.2830,2906.42,,
+7,2857302,TBA,,50.0,"C0805C104K5RAC7210",KEMET,"KEMET  CAP, MLCC, X7R, 0.1UF, 50V, 0805",Directly Shipped,1.8550,92.75,,
+8,9334351,Y-EX,,50.0,"MC01W08055330R",MULTICOMP,"MULTICOMP  SMD Chip Resistor, 330 ohm, MC Series, 150 V, Thick Film, 0805 [2012 Metric], 100 mW",Out of Stock,1.5460,77.30,,
+9,2447553,Y-EX,,100.0,"MCWR08X1002FTL",MULTICOMP,"MULTICOMP  SMD Chip Resistor, 10 kohm, MCWR Series, 150 V, Thick Film, 0805 [2012 Metric], 125 mW",417939,1.1750,117.50,,
+10,2497002,YES,,10.0,"0805F334Z160CT",WALSIN,"WALSIN  SMD Multilayer Ceramic Capacitor, 0805 [2012 Metric], 0.33 µF, 16 V, +80%, -20%, Y5V",Out of Stock,12.4910,124.91,,
+11,2611414,YES,,5.0,"MCVVT6R3M101DA1L",MULTICOMP,"MULTICOMP  SMD Aluminium Electrolytic Capacitor, Radial Can - SMD, 100 µF, 6.3 V, VT, V-Chip Series",1005,29.2500,146.25,,
+12,2494548,YES,,20.0,"01.26.121",ETTINGER,"ETTINGER  Screw, M2.9, 6.5 mm, Zinc, Steel, Pan Head Torx",3025,7.8540,157.08,,
+
+,,,,,,,Részösszeg,7454.65
+,,,,,,,Tételek összesen,7454.65
+,,,,,,,Kiszállítás,0.00
+,,,,,,,Közvetlen szállítás díja,7000.00
+,,,,,,,ÁFA,1890.00
+,,,,,,,Végösszeg,16344.65

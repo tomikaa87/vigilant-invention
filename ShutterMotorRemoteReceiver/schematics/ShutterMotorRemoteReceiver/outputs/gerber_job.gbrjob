@@ -1,0 +1,13 @@
+G04 Gerber job file.*
+%TF.FileFunction,JobInfo*%
+%TF.GenerationSoftware,Autodesk,EAGLE,9.0.0*%
+%TF.CreationDate,2018-05-04T17:12:11Z*%
+%TF.Part,Single*%
+%MOMM*%
+%TJ.B_Owner,Tamas Karpati <tomikaa87@gmail.com>*%
+%TJ.B_ID,main-stm32-pdipopto-small*%
+%TJ.B_LayerNum,2*%
+%TJ.B_Thickness,1.570000*%
+%TJ.B_Size_X,44.000000*%
+%TJ.B_Size_Y,29.000000*%
+M02*
