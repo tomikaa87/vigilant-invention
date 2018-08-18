@@ -32,4 +32,6 @@ private:
     uint32_t m_lastUpdateTime = 0;
     uint32_t m_updateInterval = 0;
     bool m_synchronized = false;
+
+    bool isDst(const std::tm* const t) const;
 };
