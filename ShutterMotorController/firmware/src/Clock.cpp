@@ -58,10 +58,38 @@ std::time_t Clock::epochTime() const
 const std::tm* const Clock::gmtime() const
 {
     const auto epoch = epochTime();
-    return std::gmtime(&epoch);
+
+    auto t = std::gmtime(&epoch);
+
+    if (isDst(t))
+    {
+        const std::time_t localEpoch = epoch + 3600;
+        t = std::gmtime(&localEpoch);
+    }
+
+    return t;
 }
 
 bool Clock::isSynchronized() const
 {
     return m_synchronized;
+}
+
+bool Clock::isDst(const std::tm* const t) const
+{
+    if (t->tm_mon < 2 || t->tm_mon > 9)
+        return false;
+
+    if (t->tm_mon > 2 && t->tm_mon < 9)
+        return true;
+
+    int previousSunday = t->tm_mday - t->tm_wday;
+
+    if (t->tm_mon == 2)
+        return previousSunday >= 25;
+
+    if (t->tm_mon == 9)
+        return previousSunday < 25;
+
+    return false;
 }
