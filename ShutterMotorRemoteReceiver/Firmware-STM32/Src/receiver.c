@@ -41,7 +41,7 @@ static void store_cmd(protocol_cmd_t cmd);
 
 static uint8_t ReceiveAddress[] = { 'S', 'M', 'R', 'R', 0 };
 static const uint8_t TransmitAddress[] = { 'S', 'M', 'R', 'H', '1' };
-static const char FirmwareVersion[] = "1.0.1";
+static const char FirmwareVersion[] = "1.0.2";
 
 static struct
 {
@@ -321,6 +321,23 @@ static void process_read_temperature_request(const protocol_msg_t* msg)
 
 static void packet_lost()
 {
+    nrf24_observe_tx_t otx = nrf24_get_observe_tx(&recv.radio);
+
+#ifdef RECEIVER_ENABLE_DEBUG_LOG
+    printf("Packet lost. Count: %u\r\n", otx.PLOS_CNT);
+#endif
+
+    // PLOS_CNT must be reset to be able to transmit again
+    if (otx.PLOS_CNT >= 15)
+    {
+#ifdef RECEIVER_ENABLE_DEBUG_LOG
+        printf("Max packet loss count reached, resetting\r\n");
+#endif
+
+        // According to the documentation, setting RF_CH resets PLOS_CNT
+        nrf24_set_rf_channel(&recv.radio, recv.channel);
+    }
+
     switch_to_prx();
 }
 
