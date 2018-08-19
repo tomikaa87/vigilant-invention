@@ -39,6 +39,8 @@ static void data_sent();
 
 static void store_cmd(protocol_cmd_t cmd);
 
+static void reset_plos_cnt();
+
 static uint8_t ReceiveAddress[] = { 'S', 'M', 'R', 'R', 0 };
 static const uint8_t TransmitAddress[] = { 'S', 'M', 'R', 'H', '1' };
 static const char FirmwareVersion[] = "1.0.2";
@@ -190,6 +192,8 @@ static void switch_to_prx()
     nrf24_set_rx_address(&recv.radio, 0, ReceiveAddress,
             sizeof(ReceiveAddress));
 
+    reset_plos_cnt();
+
     nrf24_config_t config = { 0 };
     config.EN_CRC = 1;
     config.PRIM_RX = 1;
@@ -209,6 +213,8 @@ static void switch_to_ptx()
 
     nrf24_set_rx_address(&recv.radio, 0, TransmitAddress,
             sizeof(TransmitAddress));
+
+    reset_plos_cnt();
 
     nrf24_config_t config = { 0 };
     config.EN_CRC = 1;
@@ -333,9 +339,6 @@ static void packet_lost()
 #ifdef RECEIVER_ENABLE_DEBUG_LOG
         printf("Max packet loss count reached, resetting\r\n");
 #endif
-
-        // According to the documentation, setting RF_CH resets PLOS_CNT
-        nrf24_set_rf_channel(&recv.radio, recv.channel);
     }
 
     switch_to_prx();
@@ -395,4 +398,14 @@ static void store_cmd(protocol_cmd_t cmd)
 
         recv.last_cmds[sizeof(recv.last_cmds) - 1] = cmd;
     }
+}
+
+static void reset_plos_cnt()
+{
+#ifdef RECEIVER_ENABLE_DEBUG_LOG
+    printf("Resetting packet loss counter\r\n");
+#endif
+
+    // According to the documentation, setting RF_CH resets PLOS_CNT
+    nrf24_set_rf_channel(&recv.radio, recv.channel);
 }
