@@ -81,6 +81,7 @@ void Radio::initTransceiver(uint8_t channel)
     nrf24_set_rf_setup(mNrf24, rf_setup);
 
     nrf24_set_rf_channel(mNrf24, channel);
+    mChannel = channel;
 
     nrf24_setup_retr_t setup_retr;
     setup_retr.ARC = 15;
@@ -170,6 +171,17 @@ void Radio::packetLost()
 {
 //    DEBUG(Radio, "packet lost");
     ++mStats.lostPackets;
+
+    auto otx = nrf24_get_observe_tx(mNrf24);
+    qCDebug(RadioLog) << "current packet loss count:" << otx.PLOS_CNT;
+
+    if (otx.PLOS_CNT == 15)
+    {
+        qCWarning(RadioLog) << "max packet loss count reached, resetting";
+
+        // According to the documentation, setting RF_CH resets PLOS_CNT
+        nrf24_set_rf_channel(mNrf24, mChannel);
+    }
 
     setRadioMode(RadioMode::PrimaryReceiver);
 }

@@ -47,6 +47,7 @@ public:
 
 private:
     nrf24_t* mNrf24 = nullptr;
+    uint8_t mChannel = 0;
     Stats mStats = {};
     bool mBusy = false;
     protocol_msg_t mLastReceivedMessage;
