@@ -72,6 +72,8 @@ private:
     void processIncomingMessage(protocol_msg_t* msg);
 
     void printStats();
+
+    void resetPacketLossCounter();
 };
 
 #endif /* HUB_RADIO_H_ */

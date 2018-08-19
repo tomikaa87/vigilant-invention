@@ -59,22 +59,17 @@ void Radio::initTransceiver(uint8_t channel)
     nrf24_init(mNrf24,
         [](nrf24_state_t state) {
             digitalWrite(NRF_CE, state == NRF24_HIGH ? HIGH : LOW);
-
-//            for (int i = 0; i < 5000; ++i)
-//                asm("NOP");
         },
         [](nrf24_state_t state) {
             digitalWrite(NRF_CSN, state == NRF24_HIGH ? HIGH : LOW);
-
-//            for (int i = 0; i < 5000; ++i)
-//                asm("NOP");
         },
         [](uint8_t data) -> uint8_t {
             wiringPiSPIDataRW(0, &data, 1);
             return data;
         });
 
-    nrf24_rf_setup_t rf_setup = { 0 };
+    nrf24_rf_setup_t rf_setup;
+    memset(&rf_setup, 0, sizeof (nrf24_rf_setup_t));
     rf_setup.P_RF_DR_HIGH = 0;
     rf_setup.P_RF_DR_LOW = 1;
     rf_setup.P_RF_PWR = NRF24_RF_OUT_PWR_0DBM;
@@ -90,15 +85,13 @@ void Radio::initTransceiver(uint8_t channel)
 
     nrf24_set_rx_payload_len(mNrf24, 0, NRF24_DEFAULT_PAYLOAD_LEN);
 
-#ifdef ENABLE_DEBUG_LOG
+#if defined ENABLE_DEBUG_LOG && defined NRF24_NRF24_ENABLE_DUMP_REGISTERS
     nrf24_dump_registers(mNrf24);
 #endif
 }
 
 Radio::TaskResult Radio::task()
 {
-//    static const int NRF_IRQ = GPIO_Pin_1;
-
     auto result = TaskResult::None;
 
     if (digitalRead(NRF_IRQ) == 0)
@@ -144,11 +137,14 @@ void Radio::setRadioMode(
         const uint8_t* txAddress,
         const uint8_t txAddressLen)
 {
-//    DEBUG(Radio, "setting mode to %s", mode == RadioMode::PrimaryReceiver ? "PRX" : "PTX");
+    qCDebug(RadioLog) << "setting mode to" << (mode == RadioMode::PrimaryReceiver ? "PRX" : "PTX");
 
     nrf24_power_down(mNrf24);
 
-    nrf24_config_t config = { 0 };
+    resetPacketLossCounter();
+
+    nrf24_config_t config;
+    memset(&config, 0, sizeof (nrf24_config_t));
     config.EN_CRC = 1;
     config.PWR_UP = 1;
 
@@ -159,6 +155,7 @@ void Radio::setRadioMode(
     }
     else if (txAddress)
     {
+        resetPacketLossCounter();
         nrf24_set_tx_address(mNrf24, txAddress, txAddressLen);
         nrf24_set_rx_address(mNrf24, 0, txAddress, txAddressLen);
     }
@@ -170,36 +167,32 @@ void Radio::setRadioMode(
 void Radio::packetLost()
 {
 //    DEBUG(Radio, "packet lost");
+    qCWarning(RadioLog) << "packet lost";
     ++mStats.lostPackets;
 
     auto otx = nrf24_get_observe_tx(mNrf24);
     qCDebug(RadioLog) << "current packet loss count:" << otx.PLOS_CNT;
 
     if (otx.PLOS_CNT == 15)
-    {
-        qCWarning(RadioLog) << "max packet loss count reached, resetting";
-
-        // According to the documentation, setting RF_CH resets PLOS_CNT
-        nrf24_set_rf_channel(mNrf24, mChannel);
-    }
+        qCWarning(RadioLog) << "max packet loss count reached";
 
     setRadioMode(RadioMode::PrimaryReceiver);
 }
 
 void Radio::dataReceived()
 {
-//    DEBUG(Radio, "data received");
+    qCDebug(RadioLog) << "data received";
     ++mStats.receivedPackets;
 
     while (1)
     {
-//        DEBUG(Radio, "reading incoming payload");
+        qCDebug(RadioLog) << "reading incoming payload";
 
         auto fifo_status = nrf24_get_fifo_status(mNrf24);
 
         if (fifo_status.RX_EMPTY)
         {
-//            DEBUG(Radio, "RX FIFO empty");
+            qCDebug(RadioLog) << "RX FIFO empty";
             break;
         }
 
@@ -209,7 +202,7 @@ void Radio::dataReceived()
 
         if (msg.msg_magic != PROTO_MSG_MAGIC)
         {
-//            DEBUG(Radio, "incoming protocol message is invalid");
+            qCWarning(RadioLog) << "incoming protocol message is invalid";
             return;
         }
 
@@ -220,7 +213,7 @@ void Radio::dataReceived()
 
 void Radio::dataSent()
 {
-//    DEBUG(Radio, "data sent");
+    qCDebug(RadioLog) << "data sent";
     ++mStats.sentPackets;
 
     setRadioMode(RadioMode::PrimaryReceiver);
@@ -228,8 +221,6 @@ void Radio::dataSent()
 
 void Radio::processIncomingMessage(protocol_msg_t* msg)
 {
-//    DEBUG(Radio, "processing incoming message");
-
     // TODO maybe more than one message sould be stored
     mLastReceivedMessage = *msg;
 
@@ -240,10 +231,18 @@ void Radio::processIncomingMessage(protocol_msg_t* msg)
 
 void Radio::printStats()
 {
-//    DEBUG(Radio, "sent: %u, recvd: %u, lost: %u\r\n",
-//            mStats.sentPackets,
-//            mStats.receivedPackets,
-//            mStats.lostPackets);
+    qCDebug(RadioLog, "sent: %u, recvd: %u, lost: %u",
+            mStats.sentPackets,
+            mStats.receivedPackets,
+            mStats.lostPackets);
+}
+
+void Radio::resetPacketLossCounter()
+{
+    qCDebug(RadioLog) << "resetting packet loss counter";
+
+    // According to the documentation, setting RF_CH resets PLOS_CNT
+    nrf24_set_rf_channel(mNrf24, mChannel);
 }
 
 const protocol_msg_t& Radio::lastReceivedMessage() const
