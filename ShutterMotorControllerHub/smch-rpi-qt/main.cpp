@@ -36,52 +36,52 @@ int main(int argc, char *argv[])
 
     qCDebug(MainLog) << "SPI file descriptor:" << spiFd;
 
-    DiagTerminal diagTerminal;
-    Hub hub;
+    auto hub = std::make_shared<Hub>();
+    DiagTerminal diagTerminal{ hub };
 
     QTimer taskTimer;
 
     QObject::connect(&taskTimer, &QTimer::timeout, [&hub] {
-        hub.task();
+        hub->task();
     });
 
     taskTimer.start(10);
 
-    QObject::connect(&diagTerminal, &DiagTerminal::actionTriggered, [&diagTerminal, &hub](DiagTerminal::Action action) {
-        switch (action)
-        {
-            case DiagTerminal::Action::ReadStatus:
-                hub.readStatus();
-                break;
+//    QObject::connect(&diagTerminal, &DiagTerminal::actionTriggered, [&diagTerminal, &hub](DiagTerminal::Action action) {
+//        switch (action)
+//        {
+//            case DiagTerminal::Action::ReadStatus:
+//                hub.readStatus();
+//                break;
 
-            case DiagTerminal::Action::Shutter1Up:
-                hub.shutter1Up();
-                break;
+//            case DiagTerminal::Action::Shutter1Up:
+//                hub.shutter1Up();
+//                break;
 
-            case DiagTerminal::Action::Shutter1Down:
-                hub.shutter1Down();
-                break;
+//            case DiagTerminal::Action::Shutter1Down:
+//                hub.shutter1Down();
+//                break;
 
-            case DiagTerminal::Action::Shutter2Up:
-                hub.shutter2Up();
-                break;
+//            case DiagTerminal::Action::Shutter2Up:
+//                hub.shutter2Up();
+//                break;
 
-            case DiagTerminal::Action::Shutter2Down:
-                hub.shutter2Down();
-                break;
+//            case DiagTerminal::Action::Shutter2Down:
+//                hub.shutter2Down();
+//                break;
 
-            case DiagTerminal::Action::ScanUnits:
-                hub.scanUnits();
-                break;
+//            case DiagTerminal::Action::ScanUnits:
+//                hub.scanUnits();
+//                break;
 
-            case DiagTerminal::Action::SelectDevice:
-                hub.selectDevice(diagTerminal.selectedDeviceIndex());
-                break;
+//            case DiagTerminal::Action::SelectDevice:
+//                hub.selectDevice(diagTerminal.selectedDeviceIndex());
+//                break;
 
-            default:
-                break;
-        }
-    });
+//            default:
+//                break;
+//        }
+//    });
 
     return a.exec();
 }

@@ -33,7 +33,7 @@ void Hub::task()
     switch (result)
     {
         case Radio::TaskResult::Busy:
-            qCDebug(HubLog) << "Radio is busy";
+//            qCDebug(HubLog) << "Radio is busy";
             break;
 
         case Radio::TaskResult::PacketLost:
@@ -80,17 +80,19 @@ void Hub::sendMessage(protocol_msg_t* msg)
     char address[] = "SMRR0";
     address[4] = '0' + mSelectedDeviceIndex;
 
-    mRadio.sendMessage((const uint8_t*)address, msg);
+    mRadio.sendMessage(reinterpret_cast<const uint8_t*>(address), msg);
 
     mState = State::SendingMessage;
     mTimer.start();
 }
 
-void Hub::readStatus()
+void Hub::readStatus(std::function<void (RemoteDeviceStatus&& status)>&& callback)
 {
     protocol_msg_t msg;
     protocol_msg_init(&msg);
     msg.msg_type = PROTO_MSG_READ_STATUS;
+
+    mReadStatusCallback = std::move(callback);
 
     sendMessage(&msg);
 }
@@ -135,7 +137,7 @@ void Hub::shutter2Down()
     sendMessage(&msg);
 }
 
-void Hub::scanUnits()
+void Hub::scanUnits(std::function<void()>&& callback)
 {
     if (mState != State::Idle)
     {
@@ -147,6 +149,12 @@ void Hub::scanUnits()
 
     mState = State::Scanning;
     mScanState = ScanState::Starting;
+    mScanCallback = std::move(callback);
+}
+
+const std::unordered_map<uint8_t, IHub::RemoteDevice>& Hub::devices() const
+{
+    return mDevices;
 }
 
 void Hub::progressScanning(Radio::TaskResult radioTaskResult)
@@ -161,6 +169,8 @@ void Hub::progressScanning(Radio::TaskResult radioTaskResult)
             qCDebug(HubLog) << "Starting scan";
             mScanDeviceIndex = 0;
             mScanState = ScanState::SendStatusRequest;
+            mDevices.clear();
+//            mScannedDevice = {};
             break;
         }
 
@@ -169,7 +179,7 @@ void Hub::progressScanning(Radio::TaskResult radioTaskResult)
             if (mScanRetryCount >= 3)
             {
                 qCDebug(HubLog) << "Max retry count reached";
-                mActiveDevices[mScanDeviceIndex] = false;
+//                mActiveDevices[mScanDeviceIndex] = false;
                 ++mScanDeviceIndex;
                 mScanRetryCount = 0;
             }
@@ -182,12 +192,27 @@ void Hub::progressScanning(Radio::TaskResult radioTaskResult)
 
                 qCInfo(HubLog) << "Scan finished";
                 qCInfo(HubLog) << "Active devices:";
-                for (uint8_t i = 0; i < sizeof(mActiveDevices); ++i)
+                for (const auto& d : mDevices)
                 {
-                    if (!mActiveDevices[i])
-                        continue;
+                    qCInfo(HubLog).nospace()
+                            << "  "
+                            << d.first << ": "
+                            << d.second.name.c_str()
+                            << " (Firmware: " << d.second.firmwareVersion.c_str()
+                            << ")";
+                }
+//                for (uint8_t i = 0; i < sizeof(mActiveDevices); ++i)
+//                {
+//                    if (!mActiveDevices[i])
+//                        continue;
 
-                    qCInfo(HubLog, "  SMRR%c", '0' + i);
+//                    qCInfo(HubLog, "  SMRR%c", '0' + i);
+//                }
+
+                if (mScanCallback)
+                {
+                    mScanCallback();
+                    mScanCallback = {};
                 }
 
                 break;
@@ -202,7 +227,7 @@ void Hub::progressScanning(Radio::TaskResult radioTaskResult)
 
             qCDebug(HubLog, "Requesting status from %s", address);
 
-            mRadio.sendMessage((const uint8_t*)address, &msg);
+            mRadio.sendMessage(reinterpret_cast<const uint8_t*>(address), &msg);
 
             mScanState = ScanState::WaitingForStatusPacket;
             mTimer.start();
@@ -248,7 +273,25 @@ void Hub::progressScanning(Radio::TaskResult radioTaskResult)
         case ScanState::ProcessStatusPacket:
         {
             qCDebug(HubLog) << "Device found";
-            mActiveDevices[mScanDeviceIndex] = true;
+//            mActiveDevices[mScanDeviceIndex] = true;
+//            mScannedDevice.active = true;
+
+            RemoteDevice device;
+            device.name = std::string{ "SMRR" } + char(mScanDeviceIndex + '0');
+
+            auto&& msg = mRadio.lastReceivedMessage();
+
+            if (msg.msg_type == PROTO_MSG_READ_STATUS_RESULT)
+            {
+                device.firmwareVersion = std::string{ msg.payload.status.firmware_ver };
+            }
+            else
+            {
+                qCWarning(HubLog) << "scan: last message is not status result";
+            }
+
+            mDevices.emplace(mScanDeviceIndex, std::move(device));
+
             ++mScanDeviceIndex;
             mScanRetryCount = 0;
             mScanState = ScanState::SendStatusRequest;
@@ -283,7 +326,7 @@ void Hub::progressSendCommand(Radio::TaskResult radioTaskResult)
             qCInfo(HubLog) << "Status request packet lost";
             mState = State::Idle;
         }
-        [[fallthrough]]
+        [[clang::fallthrough]];
 
         default:
         {
@@ -315,6 +358,21 @@ void Hub::processStatusResponse(const protocol_msg_t& msg)
 {
     qCInfo(HubLog) << "Status:";
     qCInfo(HubLog) << "  Firmware version:" << msg.payload.status.firmware_ver;
+
+    if (mReadStatusCallback)
+    {
+        RemoteDeviceStatus status;
+        status.firmwareVersion = std::string{ msg.payload.status.firmware_ver };
+
+        status.lastCommands.reserve(10);
+        for (auto it = std::begin(msg.payload.status.last_commands); it != std::end(msg.payload.status.last_commands); ++it)
+        {
+            status.lastCommands.push_back(*it);
+        }
+
+        mReadStatusCallback(std::move(status));
+        mReadStatusCallback = {};
+    }
 
     mState = State::Idle;
 }

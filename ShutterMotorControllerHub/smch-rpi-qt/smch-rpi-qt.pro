@@ -70,7 +70,8 @@ HEADERS += \
     PrivateConfig.h \
     blynk-library/src/utility/BlynkDateTime.h \
     blynk-library/src/utility/BlynkFifo.h \
-    blynk-library/src/utility/BlynkUtility.h
+    blynk-library/src/utility/BlynkUtility.h \
+    IHub.h
 
 INCLUDEPATH += \
     wiring-pi/wiringPi \

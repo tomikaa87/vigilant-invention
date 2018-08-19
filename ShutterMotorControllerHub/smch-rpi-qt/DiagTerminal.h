@@ -10,6 +10,9 @@
 
 #include <QObject>
 #include <cstdint>
+#include <memory>
+
+#include "IHub.h"
 
 class QTcpServer;
 class QTcpSocket;
@@ -19,7 +22,8 @@ class DiagTerminal: public QObject
     Q_OBJECT
 
 public:
-    DiagTerminal(QObject* parent = nullptr);
+    DiagTerminal(std::shared_ptr<IHub> hub,
+                 QObject* parent = nullptr);
 
     enum class Action
     {
@@ -36,11 +40,6 @@ public:
         SelectDevice
     };
 
-    uint8_t selectedDeviceIndex();
-
-signals:
-    void actionTriggered(Action action);
-
 private:
     enum class State
     {
@@ -49,9 +48,10 @@ private:
         InSelectDeviceMenu
     };
 
+    const std::shared_ptr<IHub> mHub;
     Action mAction = Action::Nothing;
     State mState = State::InMainMenu;
-    bool mMenuUpdateNeeded = true;
+    bool mMenuUpdateNeeded = false;
     bool mUSARTInterruptRequest = false;
     const char* mValidOptions = nullptr;
     uint8_t mSelectedDeviceIndex = 0;

@@ -10,15 +10,19 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <sstream>
 
 #include <QLoggingCategory>
 #include <QTcpServer>
 #include <QTcpSocket>
 
+std::ostream& operator<<(std::ostream& str, protocol_cmd_t cmd);
+
 Q_LOGGING_CATEGORY(DiagTerminalLog, "DiagTerminal")
 
-DiagTerminal::DiagTerminal(QObject *parent)
+DiagTerminal::DiagTerminal(std::shared_ptr<IHub> hub, QObject *parent)
     : QObject(parent)
+    , mHub(hub)
 {
     initServer();
 }
@@ -56,9 +60,6 @@ void DiagTerminal::printMenu()
 
         case State::InSelectDeviceMenu:
             printSelectDeviceMenu();
-            break;
-
-        default:
             break;
     }
 }
@@ -115,11 +116,6 @@ void DiagTerminal::printSelectDeviceMenu()
     sendDataOnSocket(s.toUtf8());
 
     printPrompt("0123456789b");
-}
-
-uint8_t DiagTerminal::selectedDeviceIndex()
-{
-    return mSelectedDeviceIndex;
 }
 
 void DiagTerminal::initServer()
@@ -192,7 +188,7 @@ void DiagTerminal::onDataReceived(const QByteArray &data)
     if (isalnum(c))
     {
         // Process incoming character as a choice
-        sendDataOnSocket(QByteArray::fromRawData(&c, 1));
+//        sendDataOnSocket(QByteArray::fromRawData(&c, 1));
 
         if (mValidOptions && strchr(mValidOptions, c))
         {
@@ -225,7 +221,7 @@ void DiagTerminal::sendDataOnSocket(const QByteArray &data)
 
 void DiagTerminal::selectOption(char option)
 {
-    Action action = Action::Nothing;
+//    Action action = Action::Nothing;
 
     switch (mState)
     {
@@ -234,7 +230,31 @@ void DiagTerminal::selectOption(char option)
             switch (option)
             {
                 case '1':
-                    action = Action::ScanUnits;
+//                    action = Action::ScanUnits;
+                    sendDataOnSocket("Scanning devices...\r\n");
+
+                    mHub->scanUnits([this] {
+                        auto&& devices = mHub->devices();
+
+                        sendDataOnSocket("Found devices:\r\n");
+
+                        for (const auto& d : devices)
+                        {
+                            std::stringstream ss;
+
+                            ss << "  "
+                               << int(d.first) << ": "
+                               << d.second.name.c_str()
+                               << " (Firmware: " << d.second.firmwareVersion.c_str()
+                               << ")"
+                               << "\r\n";
+
+                            sendDataOnSocket(ss.str().c_str());
+                        }
+
+                        sendDataOnSocket("\r\n");
+                        printMenu();
+                    });
                     break;
 
                 case '2':
@@ -244,7 +264,23 @@ void DiagTerminal::selectOption(char option)
 
                 case '3':
                     sendDataOnSocket("Reading status\r\n");
-                    action = Action::ReadStatus;
+//                    action = Action::ReadStatus;
+                    mHub->readStatus([this](IHub::RemoteDeviceStatus&& status) {
+                        std::stringstream ss;
+
+                        ss << "Device status:\r\n"
+                           << "  Firmware version: " << status.firmwareVersion << "\r\n"
+                           << "  Last commands:\r\n";
+
+                        for (auto cmd : status.lastCommands)
+                        {
+                            ss << "    " << cmd << "\r\n";
+                        }
+
+                        ss << "\r\n";
+
+                        sendDataOnSocket(ss.str().c_str());
+                    });
                     break;
 
                 case '4':
@@ -273,19 +309,23 @@ void DiagTerminal::selectOption(char option)
             switch (option)
             {
                 case '1':
-                    action = Action::Shutter1Up;
+//                    action = Action::Shutter1Up;
+                    mHub->shutter1Up();
                     break;
 
                 case '2':
-                    action = Action::Shutter1Down;
+//                    action = Action::Shutter1Down;
+                    mHub->shutter1Down();
                     break;
 
                 case '3':
-                    action = Action::Shutter2Up;
+//                    action = Action::Shutter2Up;
+                    mHub->shutter2Up();
                     break;
 
                 case '4':
-                    action = Action::Shutter2Down;
+//                    action = Action::Shutter2Down;
+                    mHub->shutter2Down();
                     break;
 
                 case '5':
@@ -301,8 +341,10 @@ void DiagTerminal::selectOption(char option)
         {
             if (option >= '0' && option <= '9')
             {
-                action = Action::SelectDevice;
-                mSelectedDeviceIndex = option - '0';
+                uint8_t index = option - '0';
+                mHub->selectDevice(index);
+//                action = Action::SelectDevice;
+//                mSelectedDeviceIndex = option - '0';
                 mState = State::InMainMenu;
                 mMenuUpdateNeeded = true;
             }
@@ -314,19 +356,44 @@ void DiagTerminal::selectOption(char option)
 
             break;
         }
-
-        default:
-            break;
     }
 
-    if (action != Action::Nothing)
-    {
-        emit actionTriggered(action);
-    }
+//    if (action != Action::Nothing)
+//    {
+//        emit actionTriggered(action);
+//    }
 
     if (mMenuUpdateNeeded)
     {
         mMenuUpdateNeeded = false;
         printMenu();
     }
+}
+
+std::ostream& operator<<(std::ostream& str, protocol_cmd_t cmd)
+{
+    switch (cmd)
+    {
+        case PROTO_CMD_NOP:
+            str << "NOP";
+            break;
+
+        case PROTO_CMD_SHUTTER_1_DOWN:
+            str << "PROTO_CMD_SHUTTER_1_DOWN";
+            break;
+
+        case PROTO_CMD_SHUTTER_1_UP:
+            str << "PROTO_CMD_SHUTTER_1_UP";
+            break;
+
+        case PROTO_CMD_SHUTTER_2_DOWN:
+            str << "PROTO_CMD_SHUTTER_2_DOWN";
+            break;
+
+        case PROTO_CMD_SHUTTER_2_UP:
+            str << "PROTO_CMD_SHUTTER_2_UP";
+            break;
+    }
+
+    return str;
 }

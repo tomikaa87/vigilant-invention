@@ -16,7 +16,7 @@ Q_LOGGING_CATEGORY(RadioLog, "Radio")
 
 #include <cstdio>
 
-#define ENABLE_DEBUG_LOG
+//#define ENABLE_DEBUG_LOG
 
 static const uint8_t ReceiveAddress[] = { 'S', 'M', 'R', 'H', '1' };
 

@@ -10,13 +10,15 @@
 
 #include "Radio.h"
 #include "BlynkSocket.h"
+#include "IHub.h"
 
 #include <QObject>
 #include <QElapsedTimer>
 
-#include <stdint.h>
+#include <cstdint>
+#include <unordered_map>
 
-class Hub: public QObject
+class Hub: public QObject, public IHub
 {
     Q_OBJECT
 
@@ -25,15 +27,17 @@ public:
 
     void task();
 
-    void readStatus();
-    void shutter1Up();
-    void shutter1Down();
-    void shutter2Up();
-    void shutter2Down();
+    void readStatus(std::function<void(RemoteDeviceStatus&& status)>&& callback = {}) override;
+    void shutter1Up() override;
+    void shutter1Down() override;
+    void shutter2Up() override;
+    void shutter2Down() override;
 
-    void scanUnits();
+    void scanUnits(std::function<void()>&& callback = {}) override;
 
-    void selectDevice(uint8_t index);
+    const std::unordered_map<uint8_t, RemoteDevice>& devices() const override;
+
+    void selectDevice(uint8_t index) override;
 
 private:
     Radio mRadio;
@@ -57,12 +61,24 @@ private:
         ProcessStatusPacket
     };
 
+    struct ScannedDevice
+    {
+        RemoteDevice remoteDevice;
+        bool active = false;
+    };
+
+    std::unordered_map<uint8_t, RemoteDevice> mDevices;
+
     ScanState mScanState = ScanState::Idle;
     uint8_t mScanDeviceIndex = 0;
     uint8_t mScanRetryCount = 0;
     QElapsedTimer mTimer;
-    bool mActiveDevices[10] = { 0 };
+    ScannedDevice mScannedDevice;
+//    bool mActiveDevices[10] = { 0 };
     uint8_t mSelectedDeviceIndex = 0;
+
+    std::function<void()> mScanCallback;
+    std::function<void(RemoteDeviceStatus&& status)> mReadStatusCallback;
 
     hub::BlynkTransportSocket mBlynkTransport;
     hub::BlynkSocket mBlynk;
