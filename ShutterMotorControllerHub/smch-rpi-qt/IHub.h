@@ -27,6 +27,8 @@ public:
 
     virtual ~IHub() = default;
 
+
+
     virtual void readStatus(std::function<void(RemoteDeviceStatus&& status)>&& callback = {}) = 0;
     virtual void shutter1Up() = 0;
     virtual void shutter1Down() = 0;

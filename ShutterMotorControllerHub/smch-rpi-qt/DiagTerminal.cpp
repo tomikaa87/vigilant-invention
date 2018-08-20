@@ -280,6 +280,8 @@ void DiagTerminal::selectOption(char option)
                         ss << "\r\n";
 
                         sendDataOnSocket(ss.str().c_str());
+
+                        printMenu();
                     });
                     break;
 
