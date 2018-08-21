@@ -6,7 +6,9 @@
 #include <unordered_map>
 #include <vector>
 
+#ifdef LINUX
 #include "radio_protocol.h"
+#endif
 
 class IHub
 {
@@ -14,7 +16,11 @@ public:
     struct RemoteDeviceStatus
     {
         std::string firmwareVersion;
+#ifdef LINUX
         std::vector<protocol_cmd_t> lastCommands;
+#else
+        std::vector<uint8_t> lastCommands;
+#endif
     };
 
     struct RemoteDevice
