@@ -68,6 +68,8 @@ void Radio::initTransceiver(uint8_t channel)
             return data;
         });
 
+    nrf24_power_down(mNrf24);
+
     nrf24_rf_setup_t rf_setup;
     memset(&rf_setup, 0, sizeof (nrf24_rf_setup_t));
     rf_setup.P_RF_DR_HIGH = 0;
@@ -85,7 +87,7 @@ void Radio::initTransceiver(uint8_t channel)
 
     nrf24_set_rx_payload_len(mNrf24, 0, NRF24_DEFAULT_PAYLOAD_LEN);
 
-#if defined ENABLE_DEBUG_LOG && defined NRF24_NRF24_ENABLE_DUMP_REGISTERS
+#if /*defined ENABLE_DEBUG_LOG &&*/ defined NRF24_ENABLE_DUMP_REGISTERS
     nrf24_dump_registers(mNrf24);
 #endif
 }
@@ -106,6 +108,11 @@ Radio::TaskResult Radio::task()
         {
             packetLost();
             result = TaskResult::PacketLost;
+
+            qCDebug(RadioLog) << "packet lost, dumping registers:";
+            nrf24_dump_registers(mNrf24);
+            qCDebug(RadioLog) << "\n*** end of register dump";
+
             mBusy = false;
         }
 
@@ -140,6 +147,9 @@ void Radio::setRadioMode(
     qCDebug(RadioLog) << "setting mode to" << (mode == RadioMode::PrimaryReceiver ? "PRX" : "PTX");
 
     nrf24_power_down(mNrf24);
+
+    nrf24_flush_rx(mNrf24);
+    nrf24_flush_tx(mNrf24);
 
     resetPacketLossCounter();
 

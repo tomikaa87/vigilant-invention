@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 
     qCDebug(MainLog) << "initializing WiringPi SPI";
 
-    int spiFd = wiringPiSPISetup(0, 4000000);
+    int spiFd = wiringPiSPISetup(0, 2000000);
 
     if (spiFd < 0)
     {
