@@ -43,7 +43,7 @@ static void reset_plos_cnt();
 
 static uint8_t ReceiveAddress[] = { 'S', 'M', 'R', 'R', 0 };
 static const uint8_t TransmitAddress[] = { 'S', 'M', 'R', 'H', '1' };
-static const char FirmwareVersion[] = "1.0.2";
+static const char FirmwareVersion[] = "1.0.3";
 
 static struct
 {
@@ -164,6 +164,7 @@ static void configure()
     nrf24_rf_setup_t rf_setup = { 0 };
     rf_setup.P_RF_DR_HIGH = 0;
     rf_setup.P_RF_DR_LOW = 1;
+	rf_setup.P_RF_PWR = NRF24_RF_OUT_PWR_0DBM;
     nrf24_set_rf_setup(&recv.radio, rf_setup);
 
     nrf24_set_rf_channel(&recv.radio, recv.channel);
