@@ -2,6 +2,7 @@ QT -= gui
 QT += network
 
 CONFIG += console
+CONFIG += c++14
 CONFIG -= app_bundle
 
 # The following define makes your compiler emit warnings if you use
@@ -23,6 +24,8 @@ INSTALLS += target
 QMAKE_CFLAGS += -std=gnu11 # gnu11 is used instead of c11 to support POSIX P1003.1b-1993
 
 linux-g++ {
+    message("Compiling for Raspberry Pi")
+
     CONFIG += gnu++14
     DEFINES += LINUX
 
@@ -72,15 +75,14 @@ linux-g++ {
         PrivateConfig.h \
         blynk-library/src/utility/BlynkDateTime.h \
         blynk-library/src/utility/BlynkFifo.h \
-        blynk-library/src/utility/BlynkUtility.h \
-        IHub.h \
-        IRemoteControl.h \
-        IRadio.h
+        blynk-library/src/utility/BlynkUtility.h
 
     INCLUDEPATH += \
         wiring-pi/wiringPi \
         blynk-library/src
 } else {
+    message("Compiling for Desktop")
+
     HEADERS += \
         mock/MockHub.h
 
@@ -91,7 +93,10 @@ linux-g++ {
 
 HEADERS += \
     mock/MockRadio.h \
-    Hub2.h
+    Hub2.h \
+    IHub.h \
+    IRemoteControl.h \
+    IRadio.h
 
 SOURCES += \
     mock/MockRadio.cpp \
