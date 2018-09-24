@@ -16,7 +16,7 @@ Q_LOGGING_CATEGORY(RadioLog, "Radio")
 
 #include <cstdio>
 
-//#define ENABLE_DEBUG_LOG
+#define ENABLE_DEBUG_LOG
 
 static const uint8_t ReceiveAddress[] = { 'S', 'M', 'R', 'H', '1' };
 
@@ -86,6 +86,16 @@ void Radio::initTransceiver(uint8_t channel)
     nrf24_set_setup_retr(mNrf24, setup_retr);
 
     nrf24_set_rx_payload_len(mNrf24, 0, NRF24_DEFAULT_PAYLOAD_LEN);
+
+    // Restore default RX addresses on startup
+    uint8_t addr = 0xc3;
+    nrf24_set_rx_address(mNrf24, 2, &addr, 1);
+    addr = 0xc4;
+    nrf24_set_rx_address(mNrf24, 3, &addr, 1);
+    addr = 0xc5;
+    nrf24_set_rx_address(mNrf24, 4, &addr, 1);
+    addr = 0xc6;
+    nrf24_set_rx_address(mNrf24, 5, &addr, 1);
 
 #if /*defined ENABLE_DEBUG_LOG &&*/ defined NRF24_ENABLE_DUMP_REGISTERS
     nrf24_dump_registers(mNrf24);

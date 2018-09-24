@@ -277,8 +277,19 @@ void nrf24_write_tx_payload(nrf24_t* radio, const uint8_t* buf, uint8_t len)
 
     radio->spi_exchange(NRF24_CMD_W_TX_PAYLOAD);
 
+#ifdef NRF24_ENABLE_DEBUG_LOG
+    printf("nrf24_write_tx_payload:");
+#endif
     for (uint8_t i = 0; i < len; ++i)
+    {
+#ifdef NRF24_ENABLE_DEBUG_LOG
+        printf(" %02x", buf[i]);
+#endif
         radio->spi_exchange(buf[i]);
+    }
+#ifdef NRF24_ENABLE_DEBUG_LOG
+    printf("\r\n");
+#endif
 
     radio->set_csn(NRF24_HIGH);
 }
@@ -538,7 +549,7 @@ void nrf24_dump_registers(nrf24_t* radio)
 
     // RX_ADDR_P2 - Receive Address Data Pipe 2
     nrf24_get_rx_address(radio, 2, buf, 5);
-    printf("  0x0C - RX_ADDR_P3\r\n");
+    printf("  0x0C - RX_ADDR_P2\r\n");
     printf("    Address         : %x\r\n", buf[0]);
 
     // RX_ADDR_P3 - Receive Address Data Pipe 3

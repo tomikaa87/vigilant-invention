@@ -9,7 +9,7 @@ extern "C"
 #include <stdint.h>
 
 #define NRF24_ENABLE_DUMP_REGISTERS
-//#define NRF24_ENABLE_DEBUG_LOG
+#define NRF24_ENABLE_DEBUG_LOG
 
 //
 // Registers and masks
