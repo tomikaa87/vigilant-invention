@@ -99,6 +99,8 @@ void Hub::readStatus(std::function<void (RemoteDeviceStatus&& status)>&& callbac
 
 void Hub::shutter1Up()
 {
+    qCInfo(HubLog) << "Shutter 1 Up";
+
     protocol_msg_t msg;
     protocol_msg_init(&msg);
     msg.msg_type = PROTO_MSG_COMMAND;
@@ -109,6 +111,8 @@ void Hub::shutter1Up()
 
 void Hub::shutter1Down()
 {
+    qCInfo(HubLog) << "Shutter 1 Down";
+
     protocol_msg_t msg;
     protocol_msg_init(&msg);
     msg.msg_type = PROTO_MSG_COMMAND;
@@ -119,6 +123,8 @@ void Hub::shutter1Down()
 
 void Hub::shutter2Up()
 {
+    qCInfo(HubLog) << "Shutter 2 Up";
+
     protocol_msg_t msg;
     protocol_msg_init(&msg);
     msg.msg_type = PROTO_MSG_COMMAND;
@@ -129,6 +135,8 @@ void Hub::shutter2Up()
 
 void Hub::shutter2Down()
 {
+    qCInfo(HubLog) << "Shutter 2 Down";
+
     protocol_msg_t msg;
     protocol_msg_init(&msg);
     msg.msg_type = PROTO_MSG_COMMAND;
@@ -508,42 +516,75 @@ void BlynkApi<Proto>::processCmd(const void* buff, size_t len)
 
 // FIXME
 
-BLYNK_INPUT(V73) {
+BLYNK_INPUT(V73)
+{
     s_hub->selectDevice(0);
-    s_hub->shutter1Up();
+
+    if (getValue.asInt() > 0)
+        s_hub->shutter1Up();
+    else
+        s_hub->shutter1Down();
 }
 
-BLYNK_INPUT(V72) {
-    s_hub->selectDevice(0);
-    s_hub->shutter1Down();
-}
-
-BLYNK_INPUT(V71) {
+BLYNK_INPUT(V72)
+{
     s_hub->selectDevice(1);
-    s_hub->shutter2Up();
+
+    if (getValue.asInt() > 0)
+        s_hub->shutter2Up();
+    else
+        s_hub->shutter2Down();
 }
 
-BLYNK_INPUT(V70) {
+BLYNK_INPUT(V71)
+{
     s_hub->selectDevice(1);
-    s_hub->shutter2Down();
+
+    if (getValue.asInt() > 0)
+        s_hub->shutter1Up();
+    else
+        s_hub->shutter1Down();
 }
 
-BLYNK_INPUT(V69) {
-    s_hub->selectDevice(1);
-    s_hub->shutter1Up();
-}
-
-BLYNK_INPUT(V68) {
-    s_hub->selectDevice(1);
-    s_hub->shutter1Down();
-}
-
-BLYNK_INPUT(V67) {
+BLYNK_INPUT(V70)
+{
     s_hub->selectDevice(2);
-    s_hub->shutter1Up();
+
+    if (getValue.asInt() > 0)
+        s_hub->shutter1Up();
+    else
+        s_hub->shutter1Down();
 }
 
-BLYNK_INPUT(V66) {
-    s_hub->selectDevice(2);
-    s_hub->shutter1Down();
+// Kitchen left
+BLYNK_INPUT(V69)
+{
+    s_hub->selectDevice(4);
+
+    if (getValue.asInt() > 0)
+        s_hub->shutter1Up();
+    else
+        s_hub->shutter1Down();
+}
+
+// Kitchen middle
+BLYNK_INPUT(V68)
+{
+    s_hub->selectDevice(4);
+
+    if (getValue.asInt() > 0)
+        s_hub->shutter2Up();
+    else
+        s_hub->shutter2Down();
+}
+
+// Kitchen right
+BLYNK_INPUT(V67)
+{
+    s_hub->selectDevice(3);
+
+    if (getValue.asInt() > 0)
+        s_hub->shutter1Up();
+    else
+        s_hub->shutter1Down();
 }
