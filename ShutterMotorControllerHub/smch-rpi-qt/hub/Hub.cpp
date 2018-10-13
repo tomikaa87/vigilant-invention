@@ -1,6 +1,7 @@
-#include "Hub2.h"
+#include "Hub.h"
 
 #include <algorithm>
+#include <iterator>
 
 #include <QLoggingCategory>
 Q_DECLARE_LOGGING_CATEGORY(HubLog)
@@ -33,7 +34,7 @@ QDebug operator<<(QDebug dbg, const std::vector<IRemoteControl::DeviceIndex, All
 
 QDebug& operator<<(QDebug& dbg, IRadio::Command command);
 
-QDebug& operator<<(QDebug& dbg, const Hub2::Task& task)
+QDebug& operator<<(QDebug& dbg, const hub::Task& task)
 {
     dbg.nospace()
             << "Task{ command: " << task.command
@@ -65,8 +66,10 @@ QDebug& operator<<(QDebug& dbg, IRadio::Result result)
 
 // Debug helpers
 
+namespace hub
+{
 
-Hub2::Hub2(const std::shared_ptr<IRadio>& radio, QObject* parent)
+Hub::Hub(const std::shared_ptr<IRadio>& radio, QObject* parent)
     : QObject{ parent }
     , m_radio{ radio }
 {
@@ -75,7 +78,7 @@ Hub2::Hub2(const std::shared_ptr<IRadio>& radio, QObject* parent)
     m_devices.emplace(DeviceIndex::D0_1, Device{ "SMRR0" });
 }
 
-void Hub2::execute(IRemoteControl::Command command,
+void Hub::execute(IRemoteControl::Command command,
                    IRemoteControl::DeviceIndex device)
 {
     qCInfo(HubLog) << "executing" << command << "on" << device;
@@ -83,7 +86,7 @@ void Hub2::execute(IRemoteControl::Command command,
     createRadioTasks(command, std::vector<DeviceIndex>{ device });
 }
 
-void Hub2::execute(IRemoteControl::Command command,
+void Hub::execute(IRemoteControl::Command command,
                    std::vector<IRemoteControl::DeviceIndex>&& devices)
 {
     qCInfo(HubLog) << "executing" << command << "on" << devices;
@@ -91,17 +94,17 @@ void Hub2::execute(IRemoteControl::Command command,
     createRadioTasks(command, std::move(devices));
 }
 
-void Hub2::executeOnAll(IRemoteControl::Command command)
+void Hub::executeOnAll(IRemoteControl::Command command)
 {
     qCInfo(HubLog) << "executing" << command << "on all devices";
 
     std::vector<DeviceIndex> indices;
     indices.reserve(m_devices.size());
 
-    std::transform(std::cbegin(m_devices),
-                   std::cend(m_devices),
+    std::transform(std::begin(m_devices),
+                   std::end(m_devices),
                    std::back_inserter(indices),
-                   [](const auto& p) { return p.first; });
+                   [](const std::pair<const IRemoteControl::DeviceIndex, Hub::Device>& p) { return p.first; });
 
     createRadioTasks(command, std::move(indices));
 }
@@ -120,9 +123,11 @@ IRadio::Command mapToRadioCommand(IRemoteControl::DeviceIndex index,
         case IRemoteControl::Command::ShutterUp:
             return primaryControl ? IRadio::Command::Shutter1Up : IRadio::Command::Shutter2Up;
     }
+
+    // TODO return
 }
 
-void Hub2::createRadioTasks(Command command, const std::vector<DeviceIndex>& devices)
+void Hub::createRadioTasks(Command command, const std::vector<DeviceIndex>& devices)
 {
     if (m_devices.empty())
     {
@@ -134,7 +139,7 @@ void Hub2::createRadioTasks(Command command, const std::vector<DeviceIndex>& dev
             << "Creating tasks for { command: " << command
             << ", devices: { " << devices << " }";
 
-    std::unordered_map<std::string, IRadio::Command> radioCommands;
+    std::map<std::string, IRadio::Command> radioCommands;
 
     // Map device indices and commands to addresses and low level radio commands
     for (const auto& d : devices)
@@ -178,7 +183,7 @@ void Hub2::createRadioTasks(Command command, const std::vector<DeviceIndex>& dev
         executeNextRadioTask();
 }
 
-void Hub2::executeNextRadioTask()
+void Hub::executeNextRadioTask()
 {
     if (m_radioTaskQueue.empty())
     {
@@ -202,12 +207,12 @@ void Hub2::executeNextRadioTask()
 
     m_executingTask = std::move(task);
 
-    m_radio->send(m_executingTask.command, m_executingTask.address, [this](auto command, auto result) {
+    m_radio->send(m_executingTask.command, m_executingTask.address, [this](IRadio::Command command, IRadio::Result result) {
         handleRadioSendCallback(command, result);
     });
 }
 
-void Hub2::handleRadioSendCallback(IRadio::Command command, IRadio::Result result)
+void Hub::handleRadioSendCallback(IRadio::Command command, IRadio::Result result)
 {
     if (command != m_executingTask.command)
     {
@@ -219,7 +224,7 @@ void Hub2::handleRadioSendCallback(IRadio::Command command, IRadio::Result resul
     {
         qCWarning(HubLog) << "radio task failed with result:" << result;
 
-        if (m_executingTask.retryCount < m_executingTask.maxRetryCount)
+        if (m_executingTask.retryCount < m_executingTask.MaxRetryCount)
         {
             qCWarning(HubLog) << "retrying" << m_executingTask;
             ++m_executingTask.retryCount;
@@ -238,4 +243,6 @@ void Hub2::handleRadioSendCallback(IRadio::Command command, IRadio::Result resul
     m_radioTaskExecuting = false;
 
     executeNextRadioTask();
+}
+
 }

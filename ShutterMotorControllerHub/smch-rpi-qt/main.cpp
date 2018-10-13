@@ -4,21 +4,22 @@
 
 Q_LOGGING_CATEGORY(MainLog, "Main")
 
-#ifdef LINUX
+#ifdef RASPBERRY_PI
 #include "wiringPi.h"
 #include "wiringPiSPI.h"
 #include "DiagTerminal.h"
-#include "Hub.h"
+#include "Radio.h"
 #else
-#include "Hub2.h"
 #include "mock/MockRadio.h"
 #include <QDateTime>
 #endif
 
+#include "hub/Hub.h"
+
 #include <cstdio>
 #include <memory>
 
-void setupHardware()
+int setupHardware()
 {
 #ifdef LINUX
     qCDebug(MainLog) << "initializing WiringPi";
@@ -44,6 +45,8 @@ void setupHardware()
     qCDebug(MainLog) << "Setting up the hardware";
 
     qsrand(QDateTime::currentMSecsSinceEpoch() & 0xffffffff);
+
+    return EXIT_SUCCESS;
 #endif
 }
 
@@ -51,37 +54,39 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    setupHardware();
+    if (setupHardware() != EXIT_SUCCESS)
+        return EXIT_FAILURE;
 
-#ifdef LINUX
-    auto hub = std::make_shared<Hub>();
-    DiagTerminal diagTerminal{ hub };
+#ifdef RASPBERRY_PI
+    auto radio = std::make_shared<Radio>();
+    auto hub = std::make_shared<Hub2>(radio);
+//    DiagTerminal diagTerminal{ hub };
 
-    QTimer taskTimer;
+//    QTimer taskTimer;
 
-    QObject::connect(&taskTimer, &QTimer::timeout, [&hub] {
-        hub->task();
-    });
+//    QObject::connect(&taskTimer, &QTimer::timeout, [&hub] {
+//        hub->task();
+//    });
 
-    taskTimer.start(10);
+//    taskTimer.start(10);
 #else
     auto mockRadio = std::make_shared<MockRadio>();
-    auto hub = std::make_shared<Hub2>(mockRadio);
+    auto hub = std::make_shared<hub::Hub>(mockRadio);
 #endif
 
-    hub->execute(IRemoteControl::Command::ShutterDown, {
-                     IRemoteControl::DeviceIndex::D0_0,
-                     IRemoteControl::DeviceIndex::D0_1,
-                     IRemoteControl::DeviceIndex::D1_0,
-                     IRemoteControl::DeviceIndex::D2_1,
-                 });
+//    hub->execute(IRemoteControl::Command::ShutterDown, {
+//                     IRemoteControl::DeviceIndex::D0_0,
+//                     IRemoteControl::DeviceIndex::D0_1,
+//                     IRemoteControl::DeviceIndex::D1_0,
+//                     IRemoteControl::DeviceIndex::D2_1,
+//                 });
 
-    hub->execute(IRemoteControl::Command::ShutterDown, {
-                     IRemoteControl::DeviceIndex::D4_0,
-                     IRemoteControl::DeviceIndex::D4_1,
-                     IRemoteControl::DeviceIndex::D5_0,
-                     IRemoteControl::DeviceIndex::D6_1,
-                 });
+//    hub->execute(IRemoteControl::Command::ShutterDown, {
+//                     IRemoteControl::DeviceIndex::D4_0,
+//                     IRemoteControl::DeviceIndex::D4_1,
+//                     IRemoteControl::DeviceIndex::D5_0,
+//                     IRemoteControl::DeviceIndex::D6_1,
+//                 });
 
 //    QObject::connect(&diagTerminal, &DiagTerminal::actionTriggered, [&diagTerminal, &hub](DiagTerminal::Action action) {
 //        switch (action)

@@ -23,7 +23,7 @@ INSTALLS += target
 
 QMAKE_CFLAGS += -std=gnu11 # gnu11 is used instead of c11 to support POSIX P1003.1b-1993
 
-linux-g++ {
+contains(DEFINES, RASPBERRY_PI) {
     message("Compiling for Raspberry Pi")
 
     CONFIG += gnu++14
@@ -41,7 +41,6 @@ linux-g++ {
         wiring-pi/wiringPi/softTone.c \
         wiring-pi/wiringPi/wiringPiI2C.c \
         wiring-pi/wiringPi/piHiPri.c \
-        Hub.cpp \
         blynk-library/src/utility/BlynkDebug.cpp \
         blynk-library/src/utility/BlynkHandlers.cpp \
         blynk-library/src/utility/BlynkTimer.cpp \
@@ -58,7 +57,6 @@ linux-g++ {
         wiring-pi/wiringPi/softPwm.h \
         wiring-pi/wiringPi/softTone.h \
         wiring-pi/wiringPi/wiringPiI2C.h \
-        Hub.h \
         blynk-library/src/Blynk/BlynkApi.h \
         blynk-library/src/Blynk/BlynkConfig.h \
         blynk-library/src/Blynk/BlynkDebug.h \
@@ -93,11 +91,12 @@ linux-g++ {
 
 HEADERS += \
     mock/MockRadio.h \
-    Hub2.h \
-    IHub.h \
     IRemoteControl.h \
-    IRadio.h
+    IRadio.h \
+    hub/Hub.h \
+    hub/IHub.h \
+    hub/Task.h
 
 SOURCES += \
     mock/MockRadio.cpp \
-    Hub2.cpp
+    hub/Hub.cpp
