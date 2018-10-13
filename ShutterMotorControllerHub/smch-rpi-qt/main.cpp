@@ -74,12 +74,46 @@ int main(int argc, char *argv[])
     auto hub = std::make_shared<hub::Hub>(mockRadio);
 #endif
 
-//    hub->execute(IRemoteControl::Command::ShutterDown, {
-//                     IRemoteControl::DeviceIndex::D0_0,
-//                     IRemoteControl::DeviceIndex::D0_1,
-//                     IRemoteControl::DeviceIndex::D1_0,
-//                     IRemoteControl::DeviceIndex::D2_1,
-//                 });
+//    std::thread t1{ [hub] {
+//        for (int i = 0; i < 500; ++i)
+//        {
+//            std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 100));
+//            hub->scanDevices().wait();
+//        }
+
+//        qCDebug(MainLog) << "scan 1 finished";
+//    }};
+
+//    std::thread t2{ [hub] {
+//        for (int i = 0; i < 500; ++i)
+//        {
+//            std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 100));
+//            hub->scanDevices().wait();
+//        }
+
+//        qCDebug(MainLog) << "scan 2 finished";
+//    }};
+
+//    std::thread t3{ [hub] {
+//        for (int i = 0; i < 500; ++i)
+//        {
+//            std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 100));
+//            hub->scanDevices().wait();
+//        }
+
+//        qCDebug(MainLog) << "scan 3 finished";
+//    }};
+
+    hub->execute(hub::Command::ShutterDown, {
+                 hub::DeviceIndex::D0_0,
+                 hub::DeviceIndex::D0_1,
+                 hub::DeviceIndex::D1_0,
+                 hub::DeviceIndex::D2_1,
+    }).wait();
+
+    qCDebug(MainLog) << "hub command executed";
+
+//    f.wait();
 
 //    hub->execute(IRemoteControl::Command::ShutterDown, {
 //                     IRemoteControl::DeviceIndex::D4_0,

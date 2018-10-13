@@ -1,7 +1,8 @@
-#ifndef TASK_H
-#define TASK_H
+#pragma once
 
-#include "radio/IRadio.h"
+#include "radio/Command.h"
+#include "SubDevice.h"
+
 #include <string>
 
 namespace hub
@@ -9,15 +10,16 @@ namespace hub
 
 struct Task
 {
-    radio::IRadio::Command command;
+    radio::Command command;
     std::string address;
 
     static const int MaxRetryCount = 10;
     int retryCount = 0;
 
-    Task(radio::IRadio::Command command, std::string address)
+    Task(radio::Command command, std::string address)
         : command(command)
         , address(std::move(address))
+        , m_valid(true)
     {}
 
     Task() = default;
@@ -30,10 +32,11 @@ struct Task
 
     bool valid() const
     {
-        return !address.empty();
+        return m_valid;
     }
+
+private:
+    bool m_valid = false;
 };
 
 }
-
-#endif // TASK_H

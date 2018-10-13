@@ -1,5 +1,4 @@
-#ifndef MOCKRADIO_H
-#define MOCKRADIO_H
+#pragma once
 
 #include "radio/IRadio.h"
 
@@ -10,7 +9,5 @@ public:
 
     // IRadio interface
 public:
-    void send(Command command, const std::string& address, SendCallback&& callback) override;
+    std::future<radio::Result> send(radio::Command command, const std::string &address) override;
 };
-
-#endif // MOCKRADIO_H

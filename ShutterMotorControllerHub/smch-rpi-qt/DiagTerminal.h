@@ -5,8 +5,7 @@
  *      Author: tkarpati
  */
 
-#ifndef HUB_DIAGTERMINAL_H_
-#define HUB_DIAGTERMINAL_H_
+#pragma once
 
 #include <QObject>
 #include <cstdint>
@@ -72,5 +71,3 @@ private:
 
     void selectOption(char option);
 };
-
-#endif /* HUB_DIAGTERMINAL_H_ */

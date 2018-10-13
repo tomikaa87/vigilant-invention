@@ -91,11 +91,19 @@ contains(DEFINES, RASPBERRY_PI) {
 
 HEADERS += \
     mock/MockRadio.h \
-    IRemoteControl.h \
     radio/IRadio.h \
+    hub/IRemoteControl.h \
     hub/Hub.h \
     hub/IHub.h \
-    hub/Task.h
+    hub/Task.h \
+    hub/RemoteDevice.h \
+    hub/RemoteDeviceStatus.h \
+    radio/Command.h \
+    radio/Result.h \
+    hub/Command.h \
+    hub/DeviceIndex.h \
+    hub/Device.h \
+    hub/SubDevice.h
 
 SOURCES += \
     mock/MockRadio.cpp \
