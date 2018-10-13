@@ -15,9 +15,9 @@
 [submodule "ShutterMotorControllerHub/proto-f4disco/BlynkLib"]
 	path = ShutterMotorControllerHub/proto-f4disco/BlynkLib
 	url = https://github.com/blynkkk/blynk-library.git
-[submodule "ShutterMotorControllerHub/smch-rpi-qt/wiring-pi"]
-	path = ShutterMotorControllerHub/smch-rpi-qt/wiring-pi
+[submodule "ShutterMotorControllerHub/smch-rpi-qt/3rdparty/wiring-pi"]
+	path = ShutterMotorControllerHub/smch-rpi-qt/3rdparty/wiring-pi
 	url = https://github.com/WiringPi/WiringPi.git
-[submodule "ShutterMotorControllerHub/smch-rpi-qt/blynk-library"]
-	path = ShutterMotorControllerHub/smch-rpi-qt/blynk-library
+[submodule "ShutterMotorControllerHub/smch-rpi-qt/3rdparty/blynk-library"]
+	path = ShutterMotorControllerHub/smch-rpi-qt/3rdparty/blynk-library
 	url = https://github.com/blynkkk/blynk-library.git
