@@ -35,49 +35,49 @@ contains(DEFINES, RASPBERRY_PI) {
         radio/nrf24.c \
         radio/Radio.cpp \
         radio/radio_protocol.c \
-        wiring-pi/wiringPi/wiringPi.c \
-        wiring-pi/wiringPi/wiringPiSPI.c \
-        wiring-pi/wiringPi/softPwm.c \
-        wiring-pi/wiringPi/softTone.c \
-        wiring-pi/wiringPi/wiringPiI2C.c \
-        wiring-pi/wiringPi/piHiPri.c \
-        blynk-library/src/utility/BlynkDebug.cpp \
-        blynk-library/src/utility/BlynkHandlers.cpp \
-        blynk-library/src/utility/BlynkTimer.cpp \
-        blynk-library/src/utility/utility.cpp
+        3rdparty/wiring-pi/wiringPi/wiringPi.c \
+        3rdparty/wiring-pi/wiringPi/wiringPiSPI.c \
+        3rdparty/wiring-pi/wiringPi/softPwm.c \
+        3rdparty/wiring-pi/wiringPi/softTone.c \
+        3rdparty/wiring-pi/wiringPi/wiringPiI2C.c \
+        3rdparty/wiring-pi/wiringPi/piHiPri.c \
+        3rdparty/blynk-library/src/utility/BlynkDebug.cpp \
+        3rdparty/blynk-library/src/utility/BlynkHandlers.cpp \
+        3rdparty/blynk-library/src/utility/BlynkTimer.cpp \
+        3rdparty/blynk-library/src/utility/utility.cpp
 
     HEADERS += \
         DiagTerminal.h \
         radio/nrf24.h \
         radio/Radio.h \
         radio/radio_protocol.h \
-        wiring-pi/wiringPi/wiringPi.h \
-        wiring-pi/wiringPi/wiringPiSPI.h \
-        wiring-pi/version.h \
-        wiring-pi/wiringPi/softPwm.h \
-        wiring-pi/wiringPi/softTone.h \
-        wiring-pi/wiringPi/wiringPiI2C.h \
-        blynk-library/src/Blynk/BlynkApi.h \
-        blynk-library/src/Blynk/BlynkConfig.h \
-        blynk-library/src/Blynk/BlynkDebug.h \
-        blynk-library/src/Blynk/BlynkDetectDevice.h \
-        blynk-library/src/Blynk/BlynkEveryN.h \
-        blynk-library/src/Blynk/BlynkHandlers.h \
-        blynk-library/src/Blynk/BlynkParam.h \
-        blynk-library/src/Blynk/BlynkProtocol.h \
-        blynk-library/src/Blynk/BlynkProtocolDefs.h \
-        blynk-library/src/Blynk/BlynkTemplates.h \
-        blynk-library/src/Blynk/BlynkTimer.h \
-        blynk-library/src/Blynk/BlynkWidgetBase.h \
+        3rdparty/wiring-pi/wiringPi/wiringPi.h \
+        3rdparty/wiring-pi/wiringPi/wiringPiSPI.h \
+        3rdparty/wiring-pi/version.h \
+        3rdparty/wiring-pi/wiringPi/softPwm.h \
+        3rdparty/wiring-pi/wiringPi/softTone.h \
+        3rdparty/wiring-pi/wiringPi/wiringPiI2C.h \
+        3rdparty/blynk-library/src/Blynk/BlynkApi.h \
+        3rdparty/blynk-library/src/Blynk/BlynkConfig.h \
+        3rdparty/blynk-library/src/Blynk/BlynkDebug.h \
+        3rdparty/blynk-library/src/Blynk/BlynkDetectDevice.h \
+        3rdparty/blynk-library/src/Blynk/BlynkEveryN.h \
+        3rdparty/blynk-library/src/Blynk/BlynkHandlers.h \
+        3rdparty/blynk-library/src/Blynk/BlynkParam.h \
+        3rdparty/blynk-library/src/Blynk/BlynkProtocol.h \
+        3rdparty/blynk-library/src/Blynk/BlynkProtocolDefs.h \
+        3rdparty/blynk-library/src/Blynk/BlynkTemplates.h \
+        3rdparty/blynk-library/src/Blynk/BlynkTimer.h \
+        3rdparty/blynk-library/src/Blynk/BlynkWidgetBase.h \
+        3rdparty/blynk-library/src/utility/BlynkDateTime.h \
+        3rdparty/blynk-library/src/utility/BlynkFifo.h \
+        3rdparty/blynk-library/src/utility/BlynkUtility.h \
         blynk/BlynkSocket.h \
-        PrivateConfig.h \
-        blynk-library/src/utility/BlynkDateTime.h \
-        blynk-library/src/utility/BlynkFifo.h \
-        blynk-library/src/utility/BlynkUtility.h
+        PrivateConfig.h
 
     INCLUDEPATH += \
-        wiring-pi/wiringPi \
-        blynk-library/src
+        3rdparty/wiring-pi/wiringPi \
+        3rdparty/blynk-library/src
 } else {
     message("Compiling for Desktop")
 
