@@ -45,7 +45,7 @@ QDebug& operator<<(QDebug& dbg, const std::vector<IRemoteControl::DeviceIndex>& 
     return dbg;
 }
 
-MockHub::MockHub(const std::shared_ptr<IRadio>& radio)
+MockHub::MockHub(const std::shared_ptr<radio::IRadio>& radio)
     : m_radio(radio)
 {
     qCInfo(MockHubLog) << "created";

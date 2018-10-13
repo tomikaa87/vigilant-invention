@@ -13,6 +13,9 @@
 #include "nrf24.h"
 #include "radio_protocol.h"
 
+namespace radio
+{
+
 class Radio: public QObject
 {
     Q_OBJECT
@@ -75,5 +78,7 @@ private:
 
     void resetPacketLossCounter();
 };
+
+}
 
 #endif /* HUB_RADIO_H_ */

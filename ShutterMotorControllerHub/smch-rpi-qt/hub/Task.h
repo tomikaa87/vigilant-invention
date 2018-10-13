@@ -1,7 +1,7 @@
 #ifndef TASK_H
 #define TASK_H
 
-#include "IRadio.h"
+#include "radio/IRadio.h"
 #include <string>
 
 namespace hub
@@ -9,13 +9,13 @@ namespace hub
 
 struct Task
 {
-    IRadio::Command command;
+    radio::IRadio::Command command;
     std::string address;
 
     static const int MaxRetryCount = 10;
     int retryCount = 0;
 
-    Task(IRadio::Command command, std::string address)
+    Task(radio::IRadio::Command command, std::string address)
         : command(command)
         , address(std::move(address))
     {}

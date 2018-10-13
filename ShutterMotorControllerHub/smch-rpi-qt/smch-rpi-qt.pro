@@ -33,7 +33,7 @@ contains(DEFINES, RASPBERRY_PI) {
         main.cpp \
         nrf24.c \
         DiagTerminal.cpp \
-        Radio.cpp \
+        radio/Radio.cpp \
         radio_protocol.c \
         wiring-pi/wiringPi/wiringPi.c \
         wiring-pi/wiringPi/wiringPiSPI.c \
@@ -49,7 +49,7 @@ contains(DEFINES, RASPBERRY_PI) {
     HEADERS += \
         nrf24.h \
         DiagTerminal.h \
-        Radio.h \
+        radio/Radio.h \
         radio_protocol.h \
         wiring-pi/wiringPi/wiringPi.h \
         wiring-pi/wiringPi/wiringPiSPI.h \
@@ -92,7 +92,7 @@ contains(DEFINES, RASPBERRY_PI) {
 HEADERS += \
     mock/MockRadio.h \
     IRemoteControl.h \
-    IRadio.h \
+    radio/IRadio.h \
     hub/Hub.h \
     hub/IHub.h \
     hub/Task.h

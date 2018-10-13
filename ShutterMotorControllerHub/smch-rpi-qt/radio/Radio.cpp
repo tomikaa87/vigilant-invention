@@ -16,6 +16,9 @@ Q_LOGGING_CATEGORY(RadioLog, "Radio")
 
 #include <cstdio>
 
+namespace radio
+{
+
 //#define ENABLE_DEBUG_LOG
 
 static const uint8_t ReceiveAddress[] = { 'S', 'M', 'R', 'H', '1' };
@@ -248,4 +251,6 @@ void Radio::resetPacketLossCounter()
 const protocol_msg_t& Radio::lastReceivedMessage() const
 {
     return mLastReceivedMessage;
+}
+
 }

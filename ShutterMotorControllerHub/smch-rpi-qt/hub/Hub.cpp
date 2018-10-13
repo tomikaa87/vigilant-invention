@@ -32,7 +32,7 @@ QDebug operator<<(QDebug dbg, const std::vector<IRemoteControl::DeviceIndex, All
     return dbg;
 }
 
-QDebug& operator<<(QDebug& dbg, IRadio::Command command);
+QDebug& operator<<(QDebug& dbg, radio::IRadio::Command command);
 
 QDebug& operator<<(QDebug& dbg, const hub::Task& task)
 {
@@ -44,19 +44,19 @@ QDebug& operator<<(QDebug& dbg, const hub::Task& task)
     return dbg.space();
 }
 
-QDebug& operator<<(QDebug& dbg, IRadio::Result result)
+QDebug& operator<<(QDebug& dbg, radio::IRadio::Result result)
 {
     switch (result)
     {
-        case IRadio::Result::Busy:
+        case radio::IRadio::Result::Busy:
             dbg << "Busy";
             break;
 
-        case IRadio::Result::PacketLost:
+        case radio::IRadio::Result::PacketLost:
             dbg << "PacketLost";
             break;
 
-        case IRadio::Result::Succeeded:
+        case radio::IRadio::Result::Succeeded:
             dbg << "Succeeded";
             break;
     }
@@ -69,7 +69,7 @@ QDebug& operator<<(QDebug& dbg, IRadio::Result result)
 namespace hub
 {
 
-Hub::Hub(const std::shared_ptr<IRadio>& radio, QObject* parent)
+Hub::Hub(const std::shared_ptr<radio::IRadio>& radio, QObject* parent)
     : QObject{ parent }
     , m_radio{ radio }
 {
@@ -109,8 +109,8 @@ void Hub::executeOnAll(IRemoteControl::Command command)
     createRadioTasks(command, std::move(indices));
 }
 
-IRadio::Command mapToRadioCommand(IRemoteControl::DeviceIndex index,
-                                  IRemoteControl::Command command)
+radio::IRadio::Command mapToRadioCommand(IRemoteControl::DeviceIndex index,
+                                         IRemoteControl::Command command)
 {
     int indexValue = static_cast<int>(index);
     bool primaryControl = indexValue % 2 == 0;
@@ -118,10 +118,10 @@ IRadio::Command mapToRadioCommand(IRemoteControl::DeviceIndex index,
     switch (command)
     {
         case IRemoteControl::Command::ShutterDown:
-            return primaryControl ? IRadio::Command::Shutter1Down : IRadio::Command::Shutter2Down;
+            return primaryControl ? radio::IRadio::Command::Shutter1Down : radio::IRadio::Command::Shutter2Down;
 
         case IRemoteControl::Command::ShutterUp:
-            return primaryControl ? IRadio::Command::Shutter1Up : IRadio::Command::Shutter2Up;
+            return primaryControl ? radio::IRadio::Command::Shutter1Up : radio::IRadio::Command::Shutter2Up;
     }
 
     // TODO return
@@ -139,7 +139,7 @@ void Hub::createRadioTasks(Command command, const std::vector<DeviceIndex>& devi
             << "Creating tasks for { command: " << command
             << ", devices: { " << devices << " }";
 
-    std::map<std::string, IRadio::Command> radioCommands;
+    std::map<std::string, radio::IRadio::Command> radioCommands;
 
     // Map device indices and commands to addresses and low level radio commands
     for (const auto& d : devices)
@@ -153,19 +153,19 @@ void Hub::createRadioTasks(Command command, const std::vector<DeviceIndex>& devi
         auto& taskRadioCommand = radioCommands[deviceAddress];
         auto radioCommand = mapToRadioCommand(d, command);
 
-        if (taskRadioCommand == IRadio::Command::AllDown || taskRadioCommand == IRadio::Command::AllUp)
+        if (taskRadioCommand == radio::IRadio::Command::AllDown || taskRadioCommand == radio::IRadio::Command::AllUp)
         {
             continue;
         }
-        else if ((taskRadioCommand == IRadio::Command::Shutter1Down && radioCommand == IRadio::Command::Shutter2Down) ||
-                 (taskRadioCommand == IRadio::Command::Shutter2Down && radioCommand == IRadio::Command::Shutter1Down))
+        else if ((taskRadioCommand == radio::IRadio::Command::Shutter1Down && radioCommand == radio::IRadio::Command::Shutter2Down) ||
+                 (taskRadioCommand == radio::IRadio::Command::Shutter2Down && radioCommand == radio::IRadio::Command::Shutter1Down))
         {
-            taskRadioCommand = IRadio::Command::AllDown;
+            taskRadioCommand = radio::IRadio::Command::AllDown;
         }
-        else if ((taskRadioCommand == IRadio::Command::Shutter1Up && radioCommand == IRadio::Command::Shutter2Up) ||
-                 (taskRadioCommand == IRadio::Command::Shutter2Up && radioCommand == IRadio::Command::Shutter1Up))
+        else if ((taskRadioCommand == radio::IRadio::Command::Shutter1Up && radioCommand == radio::IRadio::Command::Shutter2Up) ||
+                 (taskRadioCommand == radio::IRadio::Command::Shutter2Up && radioCommand == radio::IRadio::Command::Shutter1Up))
         {
-            taskRadioCommand = IRadio::Command::AllUp;
+            taskRadioCommand = radio::IRadio::Command::AllUp;
         }
         else
         {
@@ -207,12 +207,12 @@ void Hub::executeNextRadioTask()
 
     m_executingTask = std::move(task);
 
-    m_radio->send(m_executingTask.command, m_executingTask.address, [this](IRadio::Command command, IRadio::Result result) {
+    m_radio->send(m_executingTask.command, m_executingTask.address, [this](radio::IRadio::Command command, radio::IRadio::Result result) {
         handleRadioSendCallback(command, result);
     });
 }
 
-void Hub::handleRadioSendCallback(IRadio::Command command, IRadio::Result result)
+void Hub::handleRadioSendCallback(radio::IRadio::Command command, radio::IRadio::Result result)
 {
     if (command != m_executingTask.command)
     {
@@ -220,7 +220,7 @@ void Hub::handleRadioSendCallback(IRadio::Command command, IRadio::Result result
         return;
     }
 
-    if (result != IRadio::Result::Succeeded)
+    if (result != radio::IRadio::Result::Succeeded)
     {
         qCWarning(HubLog) << "radio task failed with result:" << result;
 

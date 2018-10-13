@@ -7,7 +7,7 @@
 #include <QObject>
 
 #include "IRemoteControl.h"
-#include "IRadio.h"
+#include "radio/IRadio.h"
 #include "hub/Task.h"
 
 namespace hub
@@ -18,7 +18,7 @@ class Hub : public QObject, public IRemoteControl, public std::enable_shared_fro
     Q_OBJECT
 
 public:
-    Hub(const std::shared_ptr<IRadio>& radio,
+    Hub(const std::shared_ptr<radio::IRadio>& radio,
          QObject *parent = nullptr);
 
     // IRemoteControl interface
@@ -28,7 +28,7 @@ public:
     void executeOnAll(Command command) override;
 
 private:
-    const std::shared_ptr<IRadio> m_radio;
+    const std::shared_ptr<radio::IRadio> m_radio;
 
 public:
     struct Device
@@ -54,7 +54,7 @@ private:
 
     void createRadioTasks(Command command, const std::vector<DeviceIndex>& devices);
     void executeNextRadioTask();
-    void handleRadioSendCallback(IRadio::Command command, IRadio::Result result);
+    void handleRadioSendCallback(radio::IRadio::Command command, radio::IRadio::Result result);
 };
 
 }

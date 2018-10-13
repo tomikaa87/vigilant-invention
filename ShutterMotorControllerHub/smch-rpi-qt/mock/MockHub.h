@@ -3,17 +3,17 @@
 
 #include <memory>
 
-#include "IHub.h"
+#include "hub/IHub.h"
 #include "IRemoteControl.h"
-#include "IRadio.h"
+#include "radio/IRadio.h"
 
 class MockHub : public IRemoteControl
 {
 public:
-    MockHub(const std::shared_ptr<IRadio>& radio);
+    MockHub(const std::shared_ptr<radio::IRadio>& radio);
 
 private:
-    const std::shared_ptr<IRadio> m_radio;
+    const std::shared_ptr<radio::IRadio> m_radio;
     std::unordered_map<uint8_t, IHub::RemoteDevice> m_devices;
 
     // IRemoteControl interface

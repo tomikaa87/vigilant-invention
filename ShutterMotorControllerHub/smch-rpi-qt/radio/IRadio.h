@@ -4,6 +4,9 @@
 #include <functional>
 #include <string>
 
+namespace radio
+{
+
 class IRadio
 {
 public:
@@ -32,5 +35,7 @@ public:
                       const std::string& address,
                       SendCallback&& callback) = 0;
 };
+
+}
 
 #endif // IRADIO_H

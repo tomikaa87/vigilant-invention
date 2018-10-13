@@ -1,9 +1,9 @@
 #ifndef MOCKRADIO_H
 #define MOCKRADIO_H
 
-#include "IRadio.h"
+#include "radio/IRadio.h"
 
-class MockRadio : public IRadio
+class MockRadio : public radio::IRadio
 {
 public:
     MockRadio();
