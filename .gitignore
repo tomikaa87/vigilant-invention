@@ -300,3 +300,6 @@ __pycache__/
 *.b#?
 *.s#?
 *.l#?
+
+# Qt build directories
+build-*/
