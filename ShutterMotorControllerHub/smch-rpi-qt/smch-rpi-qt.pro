@@ -31,10 +31,10 @@ contains(DEFINES, RASPBERRY_PI) {
 
     SOURCES += \
         main.cpp \
-        nrf24.c \
         DiagTerminal.cpp \
+        radio/nrf24.c \
         radio/Radio.cpp \
-        radio_protocol.c \
+        radio/radio_protocol.c \
         wiring-pi/wiringPi/wiringPi.c \
         wiring-pi/wiringPi/wiringPiSPI.c \
         wiring-pi/wiringPi/softPwm.c \
@@ -47,10 +47,10 @@ contains(DEFINES, RASPBERRY_PI) {
         blynk-library/src/utility/utility.cpp
 
     HEADERS += \
-        nrf24.h \
         DiagTerminal.h \
+        radio/nrf24.h \
         radio/Radio.h \
-        radio_protocol.h \
+        radio/radio_protocol.h \
         wiring-pi/wiringPi/wiringPi.h \
         wiring-pi/wiringPi/wiringPiSPI.h \
         wiring-pi/version.h \
@@ -69,7 +69,7 @@ contains(DEFINES, RASPBERRY_PI) {
         blynk-library/src/Blynk/BlynkTemplates.h \
         blynk-library/src/Blynk/BlynkTimer.h \
         blynk-library/src/Blynk/BlynkWidgetBase.h \
-        BlynkSocket.h \
+        blynk/BlynkSocket.h \
         PrivateConfig.h \
         blynk-library/src/utility/BlynkDateTime.h \
         blynk-library/src/utility/BlynkFifo.h \
