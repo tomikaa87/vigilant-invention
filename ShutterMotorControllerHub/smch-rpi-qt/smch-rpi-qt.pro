@@ -71,7 +71,9 @@ HEADERS += \
     blynk-library/src/utility/BlynkDateTime.h \
     blynk-library/src/utility/BlynkFifo.h \
     blynk-library/src/utility/BlynkUtility.h \
-    IHub.h
+    IHub.h \
+    ScheduleDetails.h \
+    Utils.h
 
 INCLUDEPATH += \
     wiring-pi/wiringPi \

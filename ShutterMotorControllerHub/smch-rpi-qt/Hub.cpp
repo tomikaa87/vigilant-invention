@@ -7,10 +7,15 @@
 
 #include "Hub.h"
 
+#include "WidgetTimeInput.h"
 #include "BlynkSocket.h"
+#include "Utils.h"
+
 #include "PrivateConfig.h"
 
+#include <QTime>
 #include <QLoggingCategory>
+
 Q_LOGGING_CATEGORY(HubLog, "Hub")
 
 // FIXME
@@ -64,6 +69,16 @@ void Hub::task()
 
         case State::Idle:
             break;
+    }
+
+    if (mSchedule.enabled && mSchedule.timer.restart() > 1000)
+    {
+        bool result = mSchedule.check();
+        if (result != mSchedule.lastCheckResult)
+        {
+            mSchedule.lastCheckResult = result;
+            onScheduleStateChanged(result);
+        }
     }
 }
 
@@ -362,6 +377,16 @@ void Hub::selectDevice(uint8_t index)
     qCInfo(HubLog) << "Selected device:" << mSelectedDeviceIndex;
 }
 
+void Hub::setSchedulerEnabled(bool enabled)
+{
+    mSchedule.enabled = enabled;
+}
+
+void Hub::setSchedule(ScheduleDetails&& sch)
+{
+    mSchedule.details = std::move(sch);
+}
+
 void Hub::processStatusResponse(const protocol_msg_t& msg)
 {
     qCInfo(HubLog) << "Status:";
@@ -383,6 +408,30 @@ void Hub::processStatusResponse(const protocol_msg_t& msg)
     }
 
     mState = State::Idle;
+}
+
+void Hub::onScheduleStateChanged(bool on)
+{
+    qCInfo(HubLog) << "Scheduler state chaged to:" << on;
+
+
+}
+
+bool Hub::Schedule::check() const
+{
+    auto&& dt = QTime::currentTime();
+
+    uint16_t now = utils::composeTime(dt.hour(), dt.minute());
+    uint16_t start = utils::composeTime(details.startHour(), details.startMinute());
+    uint16_t stop = utils::composeTime(details.stopHour(), details.stopMinute());
+
+    if (stop > start)
+        return now >= start && now < stop;
+
+    if (start > stop)
+        return now >= start || now < stop;
+
+    return false;
 }
 
 void BlynkOnDisconnected()
@@ -587,4 +636,14 @@ BLYNK_INPUT(V67)
         s_hub->shutter1Up();
     else
         s_hub->shutter1Down();
+}
+
+BLYNK_INPUT(V66)
+{
+    s_hub->setSchedule(ScheduleDetails{ TimeInputParam{ getValue } });
+}
+
+BLYNK_INPUT(V65)
+{
+    s_hub->setSchedulerEnabled(getValue.asInt() > 0);
 }

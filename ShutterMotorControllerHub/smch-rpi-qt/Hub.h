@@ -11,12 +11,15 @@
 #include "Radio.h"
 #include "BlynkSocket.h"
 #include "IHub.h"
+#include "ScheduleDetails.h"
 
 #include <QObject>
 #include <QElapsedTimer>
 
 #include <cstdint>
 #include <unordered_map>
+
+class TimeInputParam;
 
 class Hub: public QObject, public IHub
 {
@@ -38,6 +41,9 @@ public:
     const std::unordered_map<uint8_t, RemoteDevice>& devices() const override;
 
     void selectDevice(uint8_t index) override;
+
+    void setSchedulerEnabled(bool enabled);
+    void setSchedule(ScheduleDetails&& sch);
 
 private:
     Radio mRadio;
@@ -69,6 +75,16 @@ private:
 
     std::unordered_map<uint8_t, RemoteDevice> mDevices;
 
+    struct Schedule
+    {
+        ScheduleDetails details;
+        bool enabled = false;
+        bool lastCheckResult = false;
+        QElapsedTimer timer;
+
+        bool check() const;
+    } mSchedule;
+
     ScanState mScanState = ScanState::Idle;
     uint8_t mScanDeviceIndex = 0;
     uint8_t mScanRetryCount = 0;
@@ -89,6 +105,8 @@ private:
     void progressSendCommand(Radio::TaskResult radioTaskResult);
 
     void processStatusResponse(const protocol_msg_t& msg);
+
+    void onScheduleStateChanged(bool on);
 };
 
 #endif /* HUB_HUB_H_ */
