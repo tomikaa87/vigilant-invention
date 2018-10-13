@@ -103,8 +103,10 @@ HEADERS += \
     hub/Command.h \
     hub/DeviceIndex.h \
     hub/Device.h \
-    hub/SubDevice.h
+    hub/SubDevice.h \
+    logging/LoggingHelpers.h
 
 SOURCES += \
     mock/MockRadio.cpp \
-    hub/Hub.cpp
+    hub/Hub.cpp \
+    logging/LoggingHelpers.cpp
