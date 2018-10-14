@@ -52,6 +52,8 @@ int setupHardware()
 
 int main(int argc, char *argv[])
 {
+    qsrand(time(nullptr));
+
     QCoreApplication a(argc, argv);
 
     if (setupHardware() != EXIT_SUCCESS)
@@ -104,14 +106,16 @@ int main(int argc, char *argv[])
 //        qCDebug(MainLog) << "scan 3 finished";
 //    }};
 
+    hub->scanDevices();
+
     hub->execute(hub::Command::ShutterDown, {
                  hub::DeviceIndex::D0_0,
                  hub::DeviceIndex::D0_1,
                  hub::DeviceIndex::D1_0,
                  hub::DeviceIndex::D2_1,
-    }).wait();
+    });
 
-    qCDebug(MainLog) << "hub command executed";
+//    qCDebug(MainLog) << "hub command executed";
 
 //    f.wait();
 

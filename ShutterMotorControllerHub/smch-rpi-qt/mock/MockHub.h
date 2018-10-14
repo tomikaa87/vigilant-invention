@@ -13,7 +13,7 @@ public:
 
     // IHub interface
 public:
-    std::shared_future<void> scanDevices() override;
+    void scanDevices() override;
 
 private:
     const std::shared_ptr<radio::IRadio> m_radio;

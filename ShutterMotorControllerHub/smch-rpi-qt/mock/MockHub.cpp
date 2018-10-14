@@ -51,9 +51,8 @@ MockHub::MockHub(const std::shared_ptr<radio::IRadio>& radio)
     qCInfo(MockHubLog) << "created";
 }
 
-std::shared_future<void> MockHub::scanDevices()
+void MockHub::scanDevices()
 {
-    return{};
 }
 
 //void MockHub::execute(IRemoteControl::Command command, IRemoteControl::DeviceIndex device)

@@ -3,8 +3,6 @@
 #include <functional>
 #include <map>
 #include <memory>
-#include <mutex>
-#include <queue>
 
 #include <QObject>
 
@@ -12,6 +10,7 @@
 #include "DeviceIndex.h"
 #include "IHub.h"
 #include "IRemoteControl.h"
+#include "OperationQueue.h"
 #include "Task.h"
 
 #include "radio/IRadio.h"
@@ -27,28 +26,21 @@ public:
 
     // IHub interface
 public:
-    std::shared_future<void> scanDevices() override;
+    void scanDevices() override;
 
     // IRemoteControl interface
 public:
-    std::shared_future<void> execute(hub::Command command, DeviceIndex device) override;
-    std::shared_future<void> execute(hub::Command command, std::vector<DeviceIndex>&& devices) override;
-    std::shared_future<void> executeOnAll(hub::Command command) override;
+    void execute(hub::Command command, DeviceIndex device) override;
+    void execute(hub::Command command, std::vector<DeviceIndex>&& devices) override;
+    void executeOnAll(hub::Command command) override;
 
 private:
-    using QueueElement = std::pair<std::promise<void>, std::function<void()>>;
-
+    OperationQueue m_queue;
     std::shared_ptr<radio::IRadio> m_radio;
-    std::unique_ptr<std::thread> m_workerThread;
-    std::mutex m_workQueueMutex;
-    std::condition_variable m_workQueueCV;
-    std::atomic_bool m_shutdownWorkerThread = { false };
-    std::queue<QueueElement> m_workQueue;
     std::map<DeviceIndex, Device> m_devices;
+    int m_transmitRetryCount = 3;
 
-    void threadProc();
-    std::shared_future<void> enqueueElement(QueueElement&& e);
-    std::shared_future<void> createRadioTasks(Command command, const std::vector<DeviceIndex>& devices);
+    void executeCommandAsync(Command command, const std::vector<DeviceIndex>& devices);
 };
 
 }

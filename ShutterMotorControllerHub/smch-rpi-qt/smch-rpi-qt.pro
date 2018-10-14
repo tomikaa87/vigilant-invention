@@ -104,9 +104,16 @@ HEADERS += \
     hub/DeviceIndex.h \
     hub/Device.h \
     hub/SubDevice.h \
-    logging/LoggingHelpers.h
+    logging/LoggingHelpers.h \
+    radio/Response.h \
+    radio/Task.h \
+    OperationQueue.h \
+    radio/Request.h \
+    radio/Utils.h
 
 SOURCES += \
     mock/MockRadio.cpp \
     hub/Hub.cpp \
-    logging/LoggingHelpers.cpp
+    logging/LoggingHelpers.cpp \
+    radio/radio_protocol.c \
+    radio/RadioUtils.cpp

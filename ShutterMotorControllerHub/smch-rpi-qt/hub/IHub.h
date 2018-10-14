@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <future>
 #include <string>
 #include <vector>
 
@@ -13,7 +12,7 @@ class IHub
 public:
     virtual ~IHub() = default;
 
-    virtual std::shared_future<void> scanDevices() = 0;
+    virtual void scanDevices() = 0;
 };
 
 }

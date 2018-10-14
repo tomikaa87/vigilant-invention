@@ -16,45 +16,73 @@ namespace hub
 Hub::Hub(const std::shared_ptr<radio::IRadio>& radio, QObject* parent)
     : QObject{ parent }
     , m_radio{ radio }
-    , m_workerThread{ std::make_unique<std::thread>([this] { threadProc(); }) }
-{
-    // TODO remove test data
-    m_devices.emplace(DeviceIndex::D0_0, Device{ "SMRR0" });
-    m_devices.emplace(DeviceIndex::D0_1, Device{ "SMRR0" });
-}
+{}
 
 Hub::~Hub()
 {
-    m_shutdownWorkerThread = true;
-    m_workerThread->join();
+    m_queue.flushAndStopSync();
 }
 
-std::shared_future<void> hub::Hub::scanDevices()
+void hub::Hub::scanDevices()
 {
-    QueueElement e;
+    m_queue.enqueue([this] {
+        std::string address{ "SMRR0" };
 
-    e.second = [] {
-        qCDebug(HubLog) << "scan executed";
-    };
+        for (char i = 0; i < 10; ++i)
+        {
+            address[4] = '0' + i;
+            qCDebug(HubLog) << "looking for" << address.c_str();
 
-    return enqueueElement(std::move(e));
+            for (int j = 0; j < m_transmitRetryCount; ++j)
+            {
+                qCDebug(HubLog) << "  trying to read status...";
+
+                auto f = m_radio->readStatus(address);
+                f.wait();
+                auto response = f.get();
+
+                if (response.result == radio::Result::Succeeded)
+                {
+                    qCDebug(HubLog) << "  receiver found";
+
+                    // TODO This redundancy should be fixed
+                    auto primary = static_cast<DeviceIndex>(static_cast<int>(DeviceIndex::D0_0) + i);
+                    auto secondary = static_cast<DeviceIndex>(static_cast<int>(primary) + 1);
+
+                    Device dev{ address };
+                    dev.firmwareVersion = std::string{ response.message->payload.status.firmware_ver };
+
+                    qCDebug(HubLog) << "  firmware version:" << dev.firmwareVersion.c_str();
+
+                    m_devices.emplace(primary, dev);
+                    m_devices.emplace(secondary, dev);
+
+                    break;
+                }
+                else
+                {
+                    qCDebug(HubLog) << "  packet lost";
+                }
+            }
+        }
+    });
 }
 
-std::shared_future<void> Hub::execute(Command command, DeviceIndex device)
+void Hub::execute(Command command, DeviceIndex device)
 {
     qCInfo(HubLog) << "executing" << command << "on" << device;
 
-    return createRadioTasks(command, std::vector<DeviceIndex>{ device });
+    executeCommandAsync(command, std::vector<DeviceIndex>{ device });
 }
 
-std::shared_future<void> Hub::execute(Command command, std::vector<DeviceIndex>&& devices)
+void Hub::execute(Command command, std::vector<DeviceIndex>&& devices)
 {
     qCInfo(HubLog) << "executing" << command << "on" << devices;
 
-    return createRadioTasks(command, std::move(devices));
+    executeCommandAsync(command, std::move(devices));
 }
 
-std::shared_future<void> Hub::executeOnAll(Command command)
+void Hub::executeOnAll(Command command)
 {
     qCInfo(HubLog) << "executing" << command << "on all devices";
 
@@ -66,40 +94,7 @@ std::shared_future<void> Hub::executeOnAll(Command command)
                    std::back_inserter(indices),
                    [](const std::pair<const hub::DeviceIndex, hub::Device>& p) { return p.first; });
 
-    return createRadioTasks(command, std::move(indices));
-}
-
-void Hub::threadProc()
-{
-    while (!m_shutdownWorkerThread)
-    {
-        QueueElement e;
-
-        do {
-            std::unique_lock<std::mutex> l{ m_workQueueMutex };
-            m_workQueueCV.wait(l, [this] { return !m_workQueue.empty() && !m_shutdownWorkerThread; });
-            e = std::move(m_workQueue.front());
-            m_workQueue.pop();
-        } while (false);
-
-        e.second();
-
-        e.first.set_value();
-    }
-}
-
-std::shared_future<void> Hub::enqueueElement(Hub::QueueElement&& e)
-{
-    auto f = e.first.get_future();
-
-    do {
-        std::lock_guard<std::mutex> l{ m_workQueueMutex };
-        m_workQueue.push(std::move(e));
-    } while (false);
-
-    m_workQueueCV.notify_one();
-
-    return f;
+    executeCommandAsync(command, std::move(indices));
 }
 
 radio::Command mapToRadioCommand(DeviceIndex index,
@@ -121,139 +116,74 @@ radio::Command mapToRadioCommand(DeviceIndex index,
     return radio::Command::Shutter1Down;
 }
 
-std::shared_future<void> Hub::createRadioTasks(Command command, const std::vector<DeviceIndex>& devices)
+void Hub::executeCommandAsync(Command command, const std::vector<DeviceIndex>& devices)
 {
-    if (m_devices.empty())
-    {
-        qCWarning(HubLog) << "no active devices";
-        return{};
-    }
+    m_queue.enqueue([this, command, devices] {
 
-    qCDebug(HubLog).nospace()
-            << "Creating tasks for { command: " << command
-            << ", devices: { " << devices << " } }";
-
-    std::map<std::string, radio::Command> radioCommands;
-
-    // Map device indices and commands to addresses and low level radio commands.
-    // Also group commands addressed to the same device.
-    for (const auto& d : devices)
-    {
-        int indexValue = static_cast<int>(d);
-        int radioDeviceIndex = indexValue / 2;
-
-        std::string deviceAddress{ "SMRR0" };
-        deviceAddress[4] = static_cast<char>('0' + radioDeviceIndex);
-
-        auto& groupedCommand = radioCommands[deviceAddress];
-        auto newCommand = mapToRadioCommand(d, command);
-
-        if (groupedCommand == radio::Command::AllDown || groupedCommand == radio::Command::AllUp)
+        if (m_devices.empty())
         {
-            continue;
+            qCWarning(HubLog) << "no active devices";
+            return;
         }
-        else if ((groupedCommand == radio::Command::Shutter1Down && newCommand == radio::Command::Shutter2Down) ||
-                 (groupedCommand == radio::Command::Shutter2Down && newCommand == radio::Command::Shutter1Down))
+
+        qCDebug(HubLog).nospace()
+                << "Creating tasks for { command: " << command
+                << ", devices: { " << devices << " } }";
+
+        std::map<std::string, radio::Command> radioCommands;
+
+        // Map device indices and commands to addresses and low level radio commands.
+        // Also group commands addressed to the same device.
+        for (const auto& d : devices)
         {
-            groupedCommand = radio::Command::AllDown;
+            int indexValue = static_cast<int>(d);
+            int radioDeviceIndex = indexValue / 2;
+
+            std::string deviceAddress{ "SMRR0" };
+            deviceAddress[4] = static_cast<char>('0' + radioDeviceIndex);
+
+            auto& groupedCommand = radioCommands[deviceAddress];
+            auto newCommand = mapToRadioCommand(d, command);
+
+            if (groupedCommand == radio::Command::AllDown || groupedCommand == radio::Command::AllUp)
+            {
+                continue;
+            }
+            else if ((groupedCommand == radio::Command::Shutter1Down && newCommand == radio::Command::Shutter2Down) ||
+                     (groupedCommand == radio::Command::Shutter2Down && newCommand == radio::Command::Shutter1Down))
+            {
+                groupedCommand = radio::Command::AllDown;
+            }
+            else if ((groupedCommand == radio::Command::Shutter1Up && newCommand == radio::Command::Shutter2Up) ||
+                     (groupedCommand == radio::Command::Shutter2Up && newCommand == radio::Command::Shutter1Up))
+            {
+                groupedCommand = radio::Command::AllUp;
+            }
+            else
+            {
+                groupedCommand = newCommand;
+            }
         }
-        else if ((groupedCommand == radio::Command::Shutter1Up && newCommand == radio::Command::Shutter2Up) ||
-                 (groupedCommand == radio::Command::Shutter2Up && newCommand == radio::Command::Shutter1Up))
+
+        for (const auto& rc : radioCommands)
         {
-            groupedCommand = radio::Command::AllUp;
+            for (int i = 0; i < m_transmitRetryCount; ++i)
+            {
+                auto f = m_radio->sendCommand(rc.second, rc.first);
+                f.wait();
+                auto response = f.get();
+                qCDebug(HubLog) << "radio response:" << response.result;
+
+                if (response.result == radio::Result::Succeeded)
+                {
+                    qCDebug(HubLog) << "command packet transmitted";
+                    break;
+                }
+
+                qCDebug(HubLog) << "command packet lost";
+            }
         }
-        else
-        {
-            groupedCommand = newCommand;
-        }
-    }
-
-    std::vector<std::shared_future<void>> futures;
-    futures.reserve(radioCommands.size());
-
-    for (auto&& command : radioCommands)
-    {
-        QueueElement e;
-
-        e.second = [command { std::move(command) }] {
-            qCDebug(HubLog) << "executing radio command on:" << command.first.c_str();
-        };
-
-        auto&& f = enqueueElement(std::move(e));
-        futures.push_back(std::move(f));
-    }
-
-    QueueElement e;
-
-    // Shared future is necessary because the lambda is being copied into the std::function
-    e.second = [futures{ std::move(futures) }] {
-        for (auto& f : futures)
-            f.wait();
-    };
-
-    return enqueueElement(std::move(e));
+    });
 }
-
-//void Hub::executeNextRadioTask()
-//{
-//    if (m_radioTaskQueue.empty())
-//    {
-//        qCInfo(HubLog) << "no more radio tasks in the queue";
-//        return;
-//    }
-
-//    if (m_radioTaskExecuting)
-//    {
-//        qCWarning(HubLog) << "a radio task is already being executed";
-//        return;
-//    }
-
-//    m_radioTaskExecuting = true;
-
-//    auto task = std::move(m_radioTaskQueue.front());
-//    m_radioTaskQueue.pop();
-
-//    qCDebug(HubLog) << "executing radio task:" << task;
-//    qCDebug(HubLog) << "remaining tasks:" << m_radioTaskQueue.size();
-
-//    m_executingTask = std::move(task);
-
-//    m_radio->send(m_executingTask.command, m_executingTask.address, [this](radio::Command command, radio::Result result) {
-//        handleRadioSendCallback(command, result);
-//    });
-//}
-
-//void Hub::handleRadioSendCallback(radio::Command command, radio::Result result)
-//{
-//    if (command != m_executingTask.command)
-//    {
-//        qCWarning(HubLog) << "radio send result mismatch";
-//        return;
-//    }
-
-//    if (result != radio::Result::Succeeded)
-//    {
-//        qCWarning(HubLog) << "radio task failed with result:" << result;
-
-//        if (m_executingTask.retryCount < m_executingTask.MaxRetryCount)
-//        {
-//            qCWarning(HubLog) << "retrying" << m_executingTask;
-//            ++m_executingTask.retryCount;
-//            m_radioTaskQueue.push(std::move(m_executingTask));
-//        }
-//        else
-//        {
-//            qCWarning(HubLog) << "radio task failed, giving up:" << m_executingTask;
-//        }
-//    }
-//    else
-//    {
-//        qCInfo(HubLog) << "radio task successfully executed:" << m_executingTask;
-//    }
-
-//    m_radioTaskExecuting = false;
-
-//    executeNextRadioTask();
-//}
 
 }
