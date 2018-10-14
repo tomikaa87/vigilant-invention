@@ -34,7 +34,6 @@ contains(DEFINES, RASPBERRY_PI) {
         DiagTerminal.cpp \
         radio/nrf24.c \
         radio/Radio.cpp \
-        radio/radio_protocol.c \
         3rdparty/wiring-pi/wiringPi/wiringPi.c \
         3rdparty/wiring-pi/wiringPi/wiringPiSPI.c \
         3rdparty/wiring-pi/wiringPi/softPwm.c \
@@ -50,7 +49,6 @@ contains(DEFINES, RASPBERRY_PI) {
         DiagTerminal.h \
         radio/nrf24.h \
         radio/Radio.h \
-        radio/radio_protocol.h \
         3rdparty/wiring-pi/wiringPi/wiringPi.h \
         3rdparty/wiring-pi/wiringPi/wiringPiSPI.h \
         3rdparty/wiring-pi/version.h \
@@ -109,7 +107,8 @@ HEADERS += \
     radio/Task.h \
     OperationQueue.h \
     radio/Request.h \
-    radio/Utils.h
+    radio/Utils.h \
+    radio/radio_protocol.h
 
 SOURCES += \
     mock/MockRadio.cpp \

@@ -46,7 +46,7 @@ void hub::Hub::scanDevices()
                     qCDebug(HubLog) << "  receiver found";
 
                     // TODO This redundancy should be fixed
-                    auto primary = static_cast<DeviceIndex>(static_cast<int>(DeviceIndex::D0_0) + i);
+                    auto primary = static_cast<DeviceIndex>(static_cast<int>(DeviceIndex::D0_0) + i * 2);
                     auto secondary = static_cast<DeviceIndex>(static_cast<int>(primary) + 1);
 
                     Device dev{ address };
