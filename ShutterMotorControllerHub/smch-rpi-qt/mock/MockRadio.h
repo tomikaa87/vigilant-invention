@@ -10,6 +10,7 @@ class MockRadio : public radio::IRadio
 {
 public:
     MockRadio();
+    ~MockRadio();
 
     // IRadio interface
 public:

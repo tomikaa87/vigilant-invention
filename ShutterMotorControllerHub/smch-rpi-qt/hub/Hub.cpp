@@ -119,16 +119,13 @@ radio::Command mapToRadioCommand(DeviceIndex index,
 void Hub::executeCommandAsync(Command command, const std::vector<DeviceIndex>& devices)
 {
     m_queue.enqueue([this, command, devices] {
-
         if (m_devices.empty())
         {
-            qCWarning(HubLog) << "no active devices";
+            qCWarning(HubLog) << "execution failed: no active devices";
             return;
         }
 
-        qCDebug(HubLog).nospace()
-                << "Creating tasks for { command: " << command
-                << ", devices: { " << devices << " } }";
+        qCDebug(HubLog) << "executing command" << command << "on" << devices;
 
         std::map<std::string, radio::Command> radioCommands;
 

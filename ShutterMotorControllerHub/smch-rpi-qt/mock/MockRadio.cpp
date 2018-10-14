@@ -12,6 +12,11 @@ MockRadio::MockRadio()
     qCInfo(MockRadioLog) << "created";
 }
 
+MockRadio::~MockRadio()
+{
+    m_queue.flushAndStopSync();
+}
+
 std::future<radio::Response> MockRadio::sendCommand(radio::Command command, const std::string& address)
 {
     qCDebug(MockRadioLog) << "sending command" << command << "to" << address.c_str();
