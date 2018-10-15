@@ -1,8 +1,6 @@
 #pragma once
 
-#include <cstdint>
-#include <string>
-#include <vector>
+#include <future>
 
 namespace hub
 {
@@ -12,7 +10,7 @@ class IHub
 public:
     virtual ~IHub() = default;
 
-    virtual void scanDevices() = 0;
+    virtual std::future<void> scanDevices() = 0;
 };
 
 }

@@ -23,9 +23,11 @@ Hub::~Hub()
     m_queue.flushAndStopSync();
 }
 
-void hub::Hub::scanDevices()
+std::future<void> hub::Hub::scanDevices()
 {
-    m_queue.enqueue([this] {
+    auto promise = std::make_shared<std::promise<void>>();
+
+    m_queue.enqueue([this, promise] {
         std::string address{ "SMRR0" };
 
         for (char i = 0; i < 10; ++i)
@@ -50,7 +52,7 @@ void hub::Hub::scanDevices()
                     auto secondary = static_cast<DeviceIndex>(static_cast<int>(primary) + 1);
 
                     Device dev{ address };
-                    dev.firmwareVersion = std::string{ response.message->payload.status.firmware_ver };
+                    dev.firmwareVersion = std::string{ response.messages.begin()->payload.status.firmware_ver };
 
                     qCDebug(HubLog) << "  firmware version:" << dev.firmwareVersion.c_str();
 
@@ -65,7 +67,11 @@ void hub::Hub::scanDevices()
                 }
             }
         }
+
+        promise->set_value();
     });
+
+    return promise->get_future();
 }
 
 void Hub::execute(Command command, DeviceIndex device)

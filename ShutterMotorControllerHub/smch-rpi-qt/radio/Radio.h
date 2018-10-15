@@ -7,11 +7,14 @@
 
 #pragma once
 
+#include <QDebug>
 #include <QObject>
 
+#include "IRadio.h"
 #include "nrf24.h"
 #include "radio_protocol.h"
-#include "IRadio.h"
+#include "Response.h"
+#include "Request.h"
 #include "OperationQueue.h"
 
 namespace radio
@@ -32,13 +35,13 @@ public:
 private:
     enum class InterruptResult
     {
-        NoInterrupt,
+        Timeout,
         DataSent,
         DataReceived,
         PacketLost
     };
 
-    enum class RadioMode
+    enum class TransceiverMode
     {
         PrimaryTransmitter,
         PrimaryReceiver
@@ -49,71 +52,17 @@ private:
     OperationQueue m_queue;
 
     void initTransceiver();
-    void setTransceiverMode(const RadioMode mode, const std::string& txAddress);
-    void resetTransceiverPacketLossCounter();
+    void setTransceiverMode(const TransceiverMode mode, const std::string& txAddress = {});
     std::list<protocol_msg_t> readIncomingMessages();
 
     InterruptResult checkInterrupt();
     bool isInterruptTriggered() const;
+    InterruptResult waitForInterrupt();
+    Result sendProtocolMsg(const std::string& address, const protocol_msg_t& msg);
+    Result receiveProtocolMessages(std::list<protocol_msg_t>& messages);
+    Response sendRequest(const Request& request);
+
+    friend QDebug& operator<<(QDebug& dbg, Radio::InterruptResult ir);
 };
-
-//class Radio: public QObject
-//{
-//    Q_OBJECT
-
-//public:
-//    Radio(QObject* parent = nullptr);
-
-//    enum class TaskResult
-//    {
-//        None,
-//        Busy,
-//        PacketLost,
-//        DataReceived,
-//        DataSent
-//    };
-
-//    TaskResult task();
-
-//    void sendMessage(
-//            const uint8_t* address,
-//            const protocol_msg_t* msg,
-//            const uint8_t addressLen = 5);
-
-//    struct Stats
-//    {
-//        uint32_t sentPackets = 0;
-//        uint32_t receivedPackets = 0;
-//        uint32_t lostPackets = 0;
-//    };
-
-//    const protocol_msg_t& lastReceivedMessage() const;
-
-//private:
-//    nrf24_t* mNrf24 = nullptr;
-//    uint8_t mChannel = 0;
-//    Stats mStats = {};
-//    bool mBusy = false;
-//    protocol_msg_t mLastReceivedMessage;
-
-//    void initTransceiver(uint8_t channel);
-
-
-
-//    void setRadioMode(
-//            const RadioMode mode,
-//            const uint8_t* txAddress = nullptr,
-//            const uint8_t txAddressLen = 5);
-
-//    void packetLost();
-//    void dataReceived();
-//    void dataSent();
-
-//    void processIncomingMessage(protocol_msg_t* msg);
-
-//    void printStats();
-
-//    void resetPacketLossCounter();
-//};
 
 }

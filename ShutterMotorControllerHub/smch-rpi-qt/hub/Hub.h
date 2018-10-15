@@ -26,7 +26,7 @@ public:
 
     // IHub interface
 public:
-    void scanDevices() override;
+    std::future<void> scanDevices() override;
 
     // IRemoteControl interface
 public:

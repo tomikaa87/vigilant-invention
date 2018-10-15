@@ -6,7 +6,8 @@ namespace radio
 enum class Result
 {
     Succeeded,
-    PacketLost
+    PacketLost,
+    Timeout
 };
 
 }

@@ -26,12 +26,10 @@ QMAKE_CFLAGS += -std=gnu11 # gnu11 is used instead of c11 to support POSIX P1003
 contains(DEFINES, RASPBERRY_PI) {
     message("Compiling for Raspberry Pi")
 
-    CONFIG += gnu++14
+#    CONFIG += c++14
     DEFINES += LINUX
 
     SOURCES += \
-        main.cpp \
-        DiagTerminal.cpp \
         radio/nrf24.c \
         radio/Radio.cpp \
         3rdparty/wiring-pi/wiringPi/wiringPi.c \
@@ -46,7 +44,6 @@ contains(DEFINES, RASPBERRY_PI) {
         3rdparty/blynk-library/src/utility/utility.cpp
 
     HEADERS += \
-        DiagTerminal.h \
         radio/nrf24.h \
         radio/Radio.h \
         3rdparty/wiring-pi/wiringPi/wiringPi.h \
@@ -80,15 +77,15 @@ contains(DEFINES, RASPBERRY_PI) {
     message("Compiling for Desktop")
 
     HEADERS += \
-        mock/MockHub.h
+        mock/MockHub.h \
+        mock/MockRadio.h
 
     SOURCES += \
-        main.cpp \
-        mock/MockHub.cpp
+        mock/MockHub.cpp \
+        mock/MockRadio.cpp
 }
 
 HEADERS += \
-    mock/MockRadio.h \
     radio/IRadio.h \
     hub/IRemoteControl.h \
     hub/Hub.h \
@@ -108,11 +105,13 @@ HEADERS += \
     OperationQueue.h \
     radio/Request.h \
     radio/Utils.h \
-    radio/radio_protocol.h
+    radio/radio_protocol.h #\
+#    DiagTerminal.h
 
 SOURCES += \
-    mock/MockRadio.cpp \
+    main.cpp \
     hub/Hub.cpp \
     logging/LoggingHelpers.cpp \
     radio/radio_protocol.c \
-    radio/RadioUtils.cpp
+    radio/RadioUtils.cpp #\
+#    DiagTerminal.cpp

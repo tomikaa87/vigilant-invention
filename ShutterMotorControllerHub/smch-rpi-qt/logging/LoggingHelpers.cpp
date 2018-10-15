@@ -7,7 +7,7 @@ QDebug& operator<<(QDebug& dbg, const hub::Task& task)
             << ", address: " << task.address.c_str()
             << ", retries: " << task.retryCount
             << " }";
-    return dbg.space();
+    return dbg.maybeSpace();
 }
 
 QDebug& operator<<(QDebug& dbg, const hub::Command& command)
@@ -75,6 +75,42 @@ QDebug& operator<<(QDebug& dbg, radio::Result result)
 
     case radio::Result::Succeeded:
         dbg << "Succeeded";
+        break;
+    }
+
+    return dbg;
+}
+
+QDebug& operator<<(QDebug& dbg, protocol_cmd_t cmd)
+{
+    switch (cmd)
+    {
+    case PROTO_CMD_NOP:
+        dbg << "NOP";
+        break;
+
+    case PROTO_CMD_SHUTTER_1_DOWN:
+        dbg << "PROTO_CMD_SHUTTER_1_DOWN";
+        break;
+
+    case PROTO_CMD_SHUTTER_1_UP:
+        dbg << "PROTO_CMD_SHUTTER_1_UP";
+        break;
+
+    case PROTO_CMD_SHUTTER_2_DOWN:
+        dbg << "PROTO_CMD_SHUTTER_2_DOWN";
+        break;
+
+    case PROTO_CMD_SHUTTER_2_UP:
+        dbg << "PROTO_CMD_SHUTTER_2_UP";
+        break;
+
+    case PROTO_CMD_ALL_DOWN:
+        dbg << "PROTO_CMD_ALL_DOWN";
+        break;
+
+    case PROTO_CMD_ALL_UP:
+        dbg << "PROTO_CMD_ALL_UP";
         break;
     }
 

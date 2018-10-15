@@ -16,13 +16,11 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 
-std::ostream& operator<<(std::ostream& str, protocol_cmd_t cmd);
-
 Q_LOGGING_CATEGORY(DiagTerminalLog, "DiagTerminal")
 
-DiagTerminal::DiagTerminal(std::shared_ptr<IHub> hub, QObject *parent)
+DiagTerminal::DiagTerminal(std::shared_ptr<hub::IHub> hub, QObject *parent)
     : QObject(parent)
-    , mHub(hub)
+    , m_hub(hub)
 {
     initServer();
 }
@@ -233,28 +231,32 @@ void DiagTerminal::selectOption(char option)
 //                    action = Action::ScanUnits;
                     sendDataOnSocket("Scanning devices...\r\n");
 
-                    mHub->scanUnits([this] {
-                        auto&& devices = mHub->devices();
+                    m_hub->scanDevices().wait();
 
-                        sendDataOnSocket("Found devices:\r\n");
 
-                        for (const auto& d : devices)
-                        {
-                            std::stringstream ss;
 
-                            ss << "  "
-                               << int(d.first) << ": "
-                               << d.second.name.c_str()
-                               << " (Firmware: " << d.second.firmwareVersion.c_str()
-                               << ")"
-                               << "\r\n";
+//                    mHub->scanUnits([this] {
+//                        auto&& devices = mHub->devices();
 
-                            sendDataOnSocket(ss.str().c_str());
-                        }
+//                        sendDataOnSocket("Found devices:\r\n");
 
-                        sendDataOnSocket("\r\n");
-                        printMenu();
-                    });
+//                        for (const auto& d : devices)
+//                        {
+//                            std::stringstream ss;
+
+//                            ss << "  "
+//                               << int(d.first) << ": "
+//                               << d.second.name.c_str()
+//                               << " (Firmware: " << d.second.firmwareVersion.c_str()
+//                               << ")"
+//                               << "\r\n";
+
+//                            sendDataOnSocket(ss.str().c_str());
+//                        }
+
+//                        sendDataOnSocket("\r\n");
+//                        printMenu();
+//                    });
                     break;
 
                 case '2':
@@ -265,7 +267,7 @@ void DiagTerminal::selectOption(char option)
                 case '3':
                     sendDataOnSocket("Reading status\r\n");
 //                    action = Action::ReadStatus;
-                    mHub->readStatus([this](IHub::RemoteDeviceStatus&& status) {
+                    m_hub->readStatus([this](IHub::RemoteDeviceStatus&& status) {
                         std::stringstream ss;
 
                         ss << "Device status:\r\n"
@@ -312,22 +314,22 @@ void DiagTerminal::selectOption(char option)
             {
                 case '1':
 //                    action = Action::Shutter1Up;
-                    mHub->shutter1Up();
+                    m_hub->shutter1Up();
                     break;
 
                 case '2':
 //                    action = Action::Shutter1Down;
-                    mHub->shutter1Down();
+                    m_hub->shutter1Down();
                     break;
 
                 case '3':
 //                    action = Action::Shutter2Up;
-                    mHub->shutter2Up();
+                    m_hub->shutter2Up();
                     break;
 
                 case '4':
 //                    action = Action::Shutter2Down;
-                    mHub->shutter2Down();
+                    m_hub->shutter2Down();
                     break;
 
                 case '5':
@@ -344,7 +346,7 @@ void DiagTerminal::selectOption(char option)
             if (option >= '0' && option <= '9')
             {
                 uint8_t index = option - '0';
-                mHub->selectDevice(index);
+                m_hub->selectDevice(index);
 //                action = Action::SelectDevice;
 //                mSelectedDeviceIndex = option - '0';
                 mState = State::InMainMenu;
@@ -370,32 +372,4 @@ void DiagTerminal::selectOption(char option)
         mMenuUpdateNeeded = false;
         printMenu();
     }
-}
-
-std::ostream& operator<<(std::ostream& str, protocol_cmd_t cmd)
-{
-    switch (cmd)
-    {
-        case PROTO_CMD_NOP:
-            str << "NOP";
-            break;
-
-        case PROTO_CMD_SHUTTER_1_DOWN:
-            str << "PROTO_CMD_SHUTTER_1_DOWN";
-            break;
-
-        case PROTO_CMD_SHUTTER_1_UP:
-            str << "PROTO_CMD_SHUTTER_1_UP";
-            break;
-
-        case PROTO_CMD_SHUTTER_2_DOWN:
-            str << "PROTO_CMD_SHUTTER_2_DOWN";
-            break;
-
-        case PROTO_CMD_SHUTTER_2_UP:
-            str << "PROTO_CMD_SHUTTER_2_UP";
-            break;
-    }
-
-    return str;
 }

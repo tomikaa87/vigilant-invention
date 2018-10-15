@@ -8,7 +8,7 @@ Q_LOGGING_CATEGORY(MainLog, "Main")
 #include "wiringPi.h"
 #include "wiringPiSPI.h"
 #include "DiagTerminal.h"
-#include "Radio.h"
+#include "radio/Radio.h"
 #else
 #include "mock/MockRadio.h"
 #include <QDateTime>
@@ -45,9 +45,9 @@ int setupHardware()
     qCDebug(MainLog) << "Setting up the hardware";
 
     qsrand(QDateTime::currentMSecsSinceEpoch() & 0xffffffff);
+#endif
 
     return EXIT_SUCCESS;
-#endif
 }
 
 int main(int argc, char *argv[])
@@ -60,8 +60,23 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
 
 #ifdef RASPBERRY_PI
-    auto radio = std::make_shared<Radio>();
-    auto hub = std::make_shared<Hub2>(radio);
+    auto radio = std::make_shared<radio::Radio>(0);
+    auto hub = std::make_shared<hub::Hub>(radio);
+
+    hub->scanDevices().wait();
+
+//    auto f = radio->readStatus("SMRR4");
+//    f.wait();
+//    auto res = f.get();
+
+//    for (const auto& msg: res.messages)
+//    {
+//        qCDebug(MainLog) << "received message:";
+//        print_protocol_message(&msg);
+//    }
+
+//    int x = 0;
+//    auto hub = std::make_shared<hub::Hub>(radio);
 //    DiagTerminal diagTerminal{ hub };
 
 //    QTimer taskTimer;
@@ -106,14 +121,14 @@ int main(int argc, char *argv[])
 //        qCDebug(MainLog) << "scan 3 finished";
 //    }};
 
-    hub->scanDevices();
+//    hub->scanDevices();
 
-    hub->execute(hub::Command::ShutterDown, {
-                 hub::DeviceIndex::D0_0,
-                 hub::DeviceIndex::D0_1,
-                 hub::DeviceIndex::D1_0,
-                 hub::DeviceIndex::D2_1,
-    });
+//    hub->execute(hub::Command::ShutterDown, {
+//                 hub::DeviceIndex::D0_0,
+//                 hub::DeviceIndex::D0_1,
+//                 hub::DeviceIndex::D1_0,
+//                 hub::DeviceIndex::D2_1,
+//    });
 
 //    qCDebug(MainLog) << "hub command executed";
 

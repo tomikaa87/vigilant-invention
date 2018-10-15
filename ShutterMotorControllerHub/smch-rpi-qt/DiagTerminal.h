@@ -11,7 +11,7 @@
 #include <cstdint>
 #include <memory>
 
-#include "IHub.h"
+#include "hub/IHub.h"
 
 class QTcpServer;
 class QTcpSocket;
@@ -21,7 +21,7 @@ class DiagTerminal: public QObject
     Q_OBJECT
 
 public:
-    DiagTerminal(std::shared_ptr<IHub> hub,
+    DiagTerminal(std::shared_ptr<hub::IHub> hub,
                  QObject* parent = nullptr);
 
     enum class Action
@@ -47,7 +47,7 @@ private:
         InSelectDeviceMenu
     };
 
-    const std::shared_ptr<IHub> mHub;
+    const std::shared_ptr<hub::IHub> m_hub;
     Action mAction = Action::Nothing;
     State mState = State::InMainMenu;
     bool mMenuUpdateNeeded = false;
