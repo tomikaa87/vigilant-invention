@@ -7,9 +7,13 @@
 
 #include "Radio.h"
 #include "nrf24.h"
+#include "Utils.h"
+#include "Task.h"
 
-//#include "wiringPi.h"
-//#include "wiringPiSPI.h"
+#ifndef WIN32
+#include "wiringPi.h"
+#include "wiringPiSPI.h"
+#endif
 
 #include <QLoggingCategory>
 Q_LOGGING_CATEGORY(RadioLog, "Radio")
@@ -18,6 +22,14 @@ Q_LOGGING_CATEGORY(RadioLog, "Radio")
 
 namespace radio
 {
+
+#define ENABLE_DEBUG_LOG
+
+static const uint8_t ReceiveAddress[] = { 'S', 'M', 'R', 'H', '1' };
+
+static const int NRF_CE = 4;
+static const int NRF_CSN = 6;
+static const int NRF_IRQ = 5;
 
 Radio::InterruptResult Radio::checkInterrupt()
 {
@@ -49,21 +61,6 @@ bool Radio::isInterruptTriggered() const
 #endif
 }
 
-//#define ENABLE_DEBUG_LOG
-
-//static const uint8_t ReceiveAddress[] = { 'S', 'M', 'R', 'H', '1' };
-
-//static const int NRF_CE = 4;
-//static const int NRF_CSN = 6;
-//static const int NRF_IRQ = 5;
-
-//Radio::Radio(QObject *parent)
-//    : QObject(parent)
-//    , mNrf24(new nrf24_t)
-//{
-//    initTransceiver(0);
-//}
-
 //void Radio::sendMessage(
 //        const uint8_t* address,
 //        const protocol_msg_t* msg,
@@ -77,125 +74,131 @@ bool Radio::isInterruptTriggered() const
 //#endif
 
 //    setRadioMode(RadioMode::PrimaryTransmitter, address, addressLen);
-//    nrf24_transmit_data(mNrf24, msg->data, sizeof(protocol_msg_t));
-//    nrf24_power_up(mNrf24);
+//    nrf24_transmit_data(&m_nrf, msg->data, sizeof(protocol_msg_t));
+//    nrf24_power_up(&m_nrf);
 //}
 
-//void Radio::initTransceiver(uint8_t channel)
-//{
-//    qCDebug(RadioLog) << "initializing transceiver, channel:" << channel;
+Radio::Radio(uint8_t transceiverChannel, QObject* parent)
+    : QObject{ parent }
+    , m_transceiverChannel{ transceiverChannel }
+{
+    initTransceiver();
+}
 
-//    pinMode(NRF_CE, OUTPUT);
-//    pinMode(NRF_CSN, OUTPUT);
-//    pinMode(NRF_IRQ, INPUT);
+std::future<Response> Radio::sendCommand(Command command, const std::string& address)
+{
+    auto task = std::make_shared<Task>(createCommandRequest(command, address));
 
-//    nrf24_init(mNrf24,
-//        [](nrf24_state_t state) {
-//            digitalWrite(NRF_CE, state == NRF24_HIGH ? HIGH : LOW);
-//        },
-//        [](nrf24_state_t state) {
-//            digitalWrite(NRF_CSN, state == NRF24_HIGH ? HIGH : LOW);
-//        },
-//        [](uint8_t data) -> uint8_t {
-//            wiringPiSPIDataRW(0, &data, 1);
-//            return data;
-//        });
+    m_queue.enqueue([this, task{ std::move(task) }] {
+        Response response;
 
-//    nrf24_rf_setup_t rf_setup;
-//    memset(&rf_setup, 0, sizeof (nrf24_rf_setup_t));
-//    rf_setup.P_RF_DR_HIGH = 0;
-//    rf_setup.P_RF_DR_LOW = 1;
-//    rf_setup.P_RF_PWR = NRF24_RF_OUT_PWR_0DBM;
-//    nrf24_set_rf_setup(mNrf24, rf_setup);
+        setTransceiverMode(RadioMode::PrimaryTransmitter, task->request.address);
+        nrf24_transmit_data(&m_nrf, task->request.msg.data, sizeof(protocol_msg_t));
+        nrf24_power_up(&m_nrf);
 
-//    nrf24_set_rf_channel(mNrf24, channel);
-//    mChannel = channel;
+        while (!isInterruptTriggered() /*&& !timeout*/)
+            continue;
 
-//    nrf24_setup_retr_t setup_retr;
-//    setup_retr.ARC = 15;
-//    setup_retr.ARD = 15;
-//    nrf24_set_setup_retr(mNrf24, setup_retr);
+        if (!isInterruptTriggered())
+        {
+            response.result = Result::PacketLost;
+        }
+        else
+        {
+            response.result = Result::Succeeded;
+            response.messages = readIncomingMessages();
+        }
 
-//    nrf24_set_rx_payload_len(mNrf24, 0, NRF24_DEFAULT_PAYLOAD_LEN);
+        task->promise.set_value(response);
+    });
 
-//#if defined ENABLE_DEBUG_LOG && defined NRF24_NRF24_ENABLE_DUMP_REGISTERS
-//    nrf24_dump_registers(mNrf24);
-//#endif
-//}
+    return task->promise.get_future();
+}
 
-//Radio::TaskResult Radio::task()
-//{
-//    auto result = TaskResult::None;
+std::future<Response> Radio::readStatus(const std::string& address)
+{
 
-//    if (digitalRead(NRF_IRQ) == 0)
-//    {
-//        qCDebug(RadioLog) << "NRF interrupt";
+}
 
-//        auto status = nrf24_get_status(mNrf24);
+void Radio::initTransceiver()
+{
+    qCDebug(RadioLog) << "initializing transceiver, channel:" << m_transceiverChannel;
 
-//        nrf24_clear_interrupts(mNrf24);
+#ifndef WIN32
+    pinMode(NRF_CE, OUTPUT);
+    pinMode(NRF_CSN, OUTPUT);
+    pinMode(NRF_IRQ, INPUT);
+#endif
 
-//        if (status.MAX_RT)
-//        {
-//            packetLost();
-//            result = TaskResult::PacketLost;
-//            mBusy = false;
-//        }
+    nrf24_init(&m_nrf,
+        [](nrf24_state_t state) {
+#ifndef WIN32
+            digitalWrite(NRF_CE, state == NRF24_HIGH ? HIGH : LOW);
+#endif
+        },
+        [](nrf24_state_t state) {
+#ifndef WIN32
+            digitalWrite(NRF_CSN, state == NRF24_HIGH ? HIGH : LOW);
+#endif
+        },
+        [](uint8_t data) -> uint8_t {
+#ifndef WIN32
+            wiringPiSPIDataRW(0, &data, 1);
+            return data;
+#else
+            return 0;
+#endif
+        });
 
-//        if (status.RX_DR)
-//        {
-//            dataReceived();
-//            result = TaskResult::DataReceived;
-//            mBusy = false;
-//        }
+    nrf24_rf_setup_t rf_setup;
+    memset(&rf_setup, 0, sizeof (nrf24_rf_setup_t));
+    rf_setup.P_RF_DR_HIGH = 0;
+    rf_setup.P_RF_DR_LOW = 1;
+    rf_setup.P_RF_PWR = NRF24_RF_OUT_PWR_0DBM;
+    nrf24_set_rf_setup(&m_nrf, rf_setup);
 
-//        if (status.TX_DS)
-//        {
-//            dataSent();
-//            result = TaskResult::DataSent;
-//            mBusy = false;
-//        }
+    nrf24_set_rf_channel(&m_nrf, m_transceiverChannel);
 
-//        printStats();
-//    }
+    nrf24_setup_retr_t setup_retr;
+    setup_retr.ARC = 15;
+    setup_retr.ARD = 15;
+    nrf24_set_setup_retr(&m_nrf, setup_retr);
 
-//    if (mBusy)
-//        result = TaskResult::Busy;
+    nrf24_set_rx_payload_len(&m_nrf, 0, NRF24_DEFAULT_PAYLOAD_LEN);
 
-//    return result;
-//}
+#if defined ENABLE_DEBUG_LOG && defined NRF24_NRF24_ENABLE_DUMP_REGISTERS
+    nrf24_dump_registers(&m_nrf);
+#endif
+}
 
-//void Radio::setRadioMode(
-//        const RadioMode mode,
-//        const uint8_t* txAddress,
-//        const uint8_t txAddressLen)
-//{
-//    qCDebug(RadioLog) << "setting mode to" << (mode == RadioMode::PrimaryReceiver ? "PRX" : "PTX");
+void Radio::setTransceiverMode(const RadioMode mode, const std::string& txAddress)
+{
+    qCDebug(RadioLog) << "setting mode to" << (mode == RadioMode::PrimaryReceiver ? "PRX" : "PTX");
 
-//    nrf24_power_down(mNrf24);
+    nrf24_power_down(&m_nrf);
 
-//    resetPacketLossCounter();
+    resetTransceiverPacketLossCounter();
 
-//    nrf24_config_t config;
-//    memset(&config, 0, sizeof (nrf24_config_t));
-//    config.EN_CRC = 1;
-//    config.PWR_UP = 1;
+    nrf24_config_t config;
+    memset(&config, 0, sizeof (nrf24_config_t));
+    config.EN_CRC = 1;
+    config.PWR_UP = 1;
 
-//    if (mode == RadioMode::PrimaryReceiver)
-//    {
-//        nrf24_set_rx_address(mNrf24, 0, ReceiveAddress, sizeof(ReceiveAddress));
-//        config.PRIM_RX = 1;
-//    }
-//    else if (txAddress)
-//    {
-//        resetPacketLossCounter();
-//        nrf24_set_tx_address(mNrf24, txAddress, txAddressLen);
-//        nrf24_set_rx_address(mNrf24, 0, txAddress, txAddressLen);
-//    }
+    if (mode == RadioMode::PrimaryReceiver)
+    {
+        nrf24_set_rx_address(&m_nrf, 0, ReceiveAddress, sizeof(ReceiveAddress));
+        config.PRIM_RX = 1;
+    }
+    else
+    {
+        resetTransceiverPacketLossCounter();
+        nrf24_set_tx_address(&m_nrf, reinterpret_cast<const uint8_t*>(txAddress.c_str()), txAddress.size() & 0x07);
+        nrf24_set_rx_address(&m_nrf, 0, reinterpret_cast<const uint8_t*>(txAddress.c_str()), txAddress.size() & 0x07);
+    }
 
-//    nrf24_set_config(mNrf24, config);
-//    nrf24_power_up(mNrf24);
-//}
+    nrf24_set_config(&m_nrf, config);
+    nrf24_power_up(&m_nrf);
+}
 
 //void Radio::packetLost()
 //{
@@ -203,7 +206,7 @@ bool Radio::isInterruptTriggered() const
 //    qCWarning(RadioLog) << "packet lost";
 //    ++mStats.lostPackets;
 
-//    auto otx = nrf24_get_observe_tx(mNrf24);
+//    auto otx = nrf24_get_observe_tx(&m_nrf);
 //    qCDebug(RadioLog) << "current packet loss count:" << otx.PLOS_CNT;
 
 //    if (otx.PLOS_CNT == 15)
@@ -212,37 +215,40 @@ bool Radio::isInterruptTriggered() const
 //    setRadioMode(RadioMode::PrimaryReceiver);
 //}
 
-//void Radio::dataReceived()
-//{
-//    qCDebug(RadioLog) << "data received";
+std::list<protocol_msg_t> Radio::readIncomingMessages()
+{
+    qCDebug(RadioLog) << "data received";
 //    ++mStats.receivedPackets;
 
-//    while (1)
-//    {
-//        qCDebug(RadioLog) << "reading incoming payload";
+    std::list<protocol_msg_t> messages;
 
-//        auto fifo_status = nrf24_get_fifo_status(mNrf24);
+    while (1)
+    {
+        qCDebug(RadioLog) << "reading incoming payload";
 
-//        if (fifo_status.RX_EMPTY)
-//        {
-//            qCDebug(RadioLog) << "RX FIFO empty";
-//            break;
-//        }
+        auto fifoStatus = nrf24_get_fifo_status(&m_nrf);
 
-//        protocol_msg_t msg;
+        if (fifoStatus.RX_EMPTY)
+        {
+            qCDebug(RadioLog) << "RX FIFO empty";
+            break;
+        }
 
-//        nrf24_read_rx_payload(mNrf24, msg.data, sizeof(protocol_msg_t));
+        protocol_msg_t msg;
 
-//        if (msg.msg_magic != PROTO_MSG_MAGIC)
-//        {
-//            qCWarning(RadioLog) << "incoming protocol message is invalid";
-//            return;
-//        }
+        nrf24_read_rx_payload(&m_nrf, msg.data, sizeof(protocol_msg_t));
 
-//        // TODO: add incoming message to a queue instead of processing immediately
-//        processIncomingMessage(&msg);
-//    };
-//}
+        if (msg.msg_magic != PROTO_MSG_MAGIC)
+        {
+            qCWarning(RadioLog) << "incoming protocol message is invalid";
+            break;
+        }
+
+        messages.push_back(std::move(msg));
+    };
+
+    return messages;
+}
 
 //void Radio::dataSent()
 //{
@@ -270,13 +276,13 @@ bool Radio::isInterruptTriggered() const
 //            mStats.lostPackets);
 //}
 
-//void Radio::resetPacketLossCounter()
-//{
-//    qCDebug(RadioLog) << "resetting packet loss counter";
+void Radio::resetTransceiverPacketLossCounter()
+{
+    qCDebug(RadioLog) << "resetting packet loss counter";
 
-//    // According to the documentation, setting RF_CH resets PLOS_CNT
-//    nrf24_set_rf_channel(mNrf24, mChannel);
-//}
+    // According to the documentation, setting RF_CH resets PLOS_CNT
+    nrf24_set_rf_channel(&m_nrf, m_transceiverChannel);
+}
 
 //const protocol_msg_t& Radio::lastReceivedMessage() const
 //{

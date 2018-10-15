@@ -2,7 +2,7 @@
 
 #include "Result.h"
 #include "radio_protocol.h"
-#include <memory>
+#include <list>
 
 namespace radio
 {
@@ -10,7 +10,7 @@ namespace radio
 struct Response
 {
     Result result;
-    std::unique_ptr<protocol_msg_t> message;
+    std::list<protocol_msg_t> messages;
 };
 
 }

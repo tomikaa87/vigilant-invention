@@ -63,7 +63,7 @@ radio::Response MockRadio::createCommandResponse(bool simulatePacketLoss)
         msg.msg_type = PROTO_MSG_RESULT;
         msg.payload.result.result_code = PROTO_RESULT_OK;
 
-        r.message = std::make_unique<protocol_msg_t>(msg);
+        r.messages = std::list<protocol_msg_t>{ msg };
     }
 
     return r;
@@ -84,7 +84,7 @@ radio::Response MockRadio::createStatusResponse(bool simulatePacketLoss)
         strcpy(msg.payload.status.firmware_ver, "9.9.9");
         msg.payload.status.last_commands[0] = PROTO_CMD_SHUTTER_1_DOWN;
 
-        r.message = std::make_unique<protocol_msg_t>(msg);
+        r.messages = std::list<protocol_msg_t>{ msg };
     }
 
     return r;

@@ -69,10 +69,6 @@ QDebug& operator<<(QDebug& dbg, radio::Result result)
 {
     switch (result)
     {
-    case radio::Result::Busy:
-        dbg << "Busy";
-        break;
-
     case radio::Result::PacketLost:
         dbg << "PacketLost";
         break;

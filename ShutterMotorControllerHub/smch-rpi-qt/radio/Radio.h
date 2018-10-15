@@ -12,6 +12,7 @@
 #include "nrf24.h"
 #include "radio_protocol.h"
 #include "IRadio.h"
+#include "OperationQueue.h"
 
 namespace radio
 {
@@ -21,7 +22,7 @@ class Radio: public QObject, public IRadio
     Q_OBJECT
 
 public:
-    explicit Radio(QObject* parent = nullptr);
+    Radio(uint8_t transceiverChannel, QObject* parent = nullptr);
 
     // IRadio interface
 public:
@@ -29,8 +30,6 @@ public:
     std::future<Response> readStatus(const std::string& address) override;
 
 private:
-    nrf24_t m_nrf;
-
     enum class InterruptResult
     {
         NoInterrupt,
@@ -38,6 +37,21 @@ private:
         DataReceived,
         PacketLost
     };
+
+    enum class RadioMode
+    {
+        PrimaryTransmitter,
+        PrimaryReceiver
+    };
+
+    nrf24_t m_nrf;
+    uint8_t m_transceiverChannel = 0;
+    OperationQueue m_queue;
+
+    void initTransceiver();
+    void setTransceiverMode(const RadioMode mode, const std::string& txAddress);
+    void resetTransceiverPacketLossCounter();
+    std::list<protocol_msg_t> readIncomingMessages();
 
     InterruptResult checkInterrupt();
     bool isInterruptTriggered() const;
@@ -84,11 +98,7 @@ private:
 
 //    void initTransceiver(uint8_t channel);
 
-//    enum class RadioMode
-//    {
-//        PrimaryTransmitter,
-//        PrimaryReceiver
-//    };
+
 
 //    void setRadioMode(
 //            const RadioMode mode,
