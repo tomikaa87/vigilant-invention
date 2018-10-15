@@ -19,6 +19,36 @@ Q_LOGGING_CATEGORY(RadioLog, "Radio")
 namespace radio
 {
 
+Radio::InterruptResult Radio::checkInterrupt()
+{
+    if (isInterruptTriggered())
+    {
+        auto status = nrf24_get_status(&m_nrf);
+
+        nrf24_clear_interrupts(&m_nrf);
+
+        if (status.MAX_RT)
+            return InterruptResult::PacketLost;
+
+        if (status.RX_DR)
+            return InterruptResult::DataReceived;
+
+        if (status.TX_DS)
+            return InterruptResult::DataSent;
+    }
+
+    return InterruptResult::NoInterrupt;
+}
+
+bool Radio::isInterruptTriggered() const
+{
+#ifdef WIN32
+    return false;
+#else
+    return digitalRead(NRF_IRQ) == 0;
+#endif
+}
+
 //#define ENABLE_DEBUG_LOG
 
 //static const uint8_t ReceiveAddress[] = { 'S', 'M', 'R', 'H', '1' };

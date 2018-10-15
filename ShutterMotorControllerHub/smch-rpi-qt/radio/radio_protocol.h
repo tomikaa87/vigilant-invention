@@ -15,7 +15,12 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef WIN32
+#define PROTO_PACKED
+#else
 #define PROTO_PACKED		__attribute__((__packed__))
+#endif
+
 #define PROTO_MSG_MAGIC		('T' << 8 | 'K')
 
 typedef enum

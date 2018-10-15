@@ -11,9 +11,37 @@
 
 #include "nrf24.h"
 #include "radio_protocol.h"
+#include "IRadio.h"
 
 namespace radio
 {
+
+class Radio: public QObject, public IRadio
+{
+    Q_OBJECT
+
+public:
+    explicit Radio(QObject* parent = nullptr);
+
+    // IRadio interface
+public:
+    std::future<Response> sendCommand(Command command, const std::string& address) override;
+    std::future<Response> readStatus(const std::string& address) override;
+
+private:
+    nrf24_t m_nrf;
+
+    enum class InterruptResult
+    {
+        NoInterrupt,
+        DataSent,
+        DataReceived,
+        PacketLost
+    };
+
+    InterruptResult checkInterrupt();
+    bool isInterruptTriggered() const;
+};
 
 //class Radio: public QObject
 //{
