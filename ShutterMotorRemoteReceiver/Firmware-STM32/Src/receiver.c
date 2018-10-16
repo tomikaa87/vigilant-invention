@@ -195,6 +195,7 @@ static void switch_to_prx()
     nrf24_set_rx_address(&recv.radio, 0, ReceiveAddress,
             sizeof(ReceiveAddress));
 
+    nrf24_clear_interrupts(&recv.radio);
     reset_plos_cnt();
 
     nrf24_config_t config = { 0 };
@@ -217,6 +218,7 @@ static void switch_to_ptx()
     nrf24_set_rx_address(&recv.radio, 0, TransmitAddress,
             sizeof(TransmitAddress));
 
+    nrf24_clear_interrupts(&recv.radio);
     reset_plos_cnt();
 
     nrf24_config_t config = { 0 };
