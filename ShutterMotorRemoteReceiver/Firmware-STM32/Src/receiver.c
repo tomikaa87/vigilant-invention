@@ -43,7 +43,9 @@ static void reset_plos_cnt();
 
 static uint8_t ReceiveAddress[] = { 'S', 'M', 'R', 'R', 0 };
 static const uint8_t TransmitAddress[] = { 'S', 'M', 'R', 'H', '1' };
-static const char FirmwareVersion[] = "1.0.3";
+static const char FirmwareVersion[] = "1.1.0";
+
+static const uint32_t HubResponseDelayMs = 50;
 
 static struct
 {
@@ -258,6 +260,9 @@ static void send_message_to_hub(const protocol_msg_t* msg)
 
     print_protocol_message(msg);
 #endif
+
+    // Give some time to the Hub to switch over to PRX
+    HAL_Delay(HubResponseDelayMs);
 
     switch_to_ptx();
 
