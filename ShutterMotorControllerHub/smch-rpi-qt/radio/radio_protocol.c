@@ -36,6 +36,14 @@ static void print_command(protocol_cmd_t command)
 		printf("SHUTTER_2_DOWN");
 		break;
 
+    case PROTO_CMD_ALL_UP:
+        printf("PROTO_CMD_ALL_UP");
+        break;
+
+    case PROTO_CMD_ALL_DOWN:
+        printf("PROTO_CMD_ALL_DOWN");
+        break;
+
 	default:
 		printf("UNKNOWN");
 	}

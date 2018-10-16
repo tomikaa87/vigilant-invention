@@ -620,9 +620,9 @@ void nrf24_dump_registers(nrf24_t* radio)
     nrf24_feature_t feature = nrf24_get_feature(radio);
     printf("  0x1D - FEATURE\r\n");
     printf("    Reserved        : %d\r\n", feature.reserved);
-    printf("    DPL_P5          : %d\r\n", feature.EN_DPL);
-    printf("    DPL_P4          : %d\r\n", feature.EN_ACK_PAY);
-    printf("    DPL_P3          : %d\r\n", feature.EN_DYN_ACK);
+    printf("    EN_DPL          : %d\r\n", feature.EN_DPL);
+    printf("    EN_ACK_PAY      : %d\r\n", feature.EN_ACK_PAY);
+    printf("    EN_DYN_ACK      : %d\r\n", feature.EN_DYN_ACK);
 
     printf("****\r\n");
 }

@@ -20,10 +20,11 @@ Q_LOGGING_CATEGORY(RadioLog, "Radio")
 #include <chrono>
 #include <cstdio>
 
+
 namespace radio
 {
 
-#define ENABLE_DEBUG_LOG
+//#define ENABLE_DEBUG_LOG
 
 static const uint8_t ReceiveAddress[] = { 'S', 'M', 'R', 'H', '1' };
 
@@ -150,7 +151,9 @@ void Radio::setTransceiverMode(const TransceiverMode mode, const std::string& tx
 
     nrf24_set_config(&m_nrf, config);
 
+#if defined ENABLE_DEBUG_LOG && defined NRF24_ENABLE_DUMP_REGISTERS
     nrf24_dump_registers(&m_nrf);
+#endif
 }
 
 std::list<protocol_msg_t> Radio::readIncomingMessages()
@@ -193,7 +196,9 @@ Radio::InterruptResult Radio::checkInterrupt()
     {
         auto status = nrf24_get_status(&m_nrf);
 
+#if defined ENABLE_DEBUG_LOG && defined NRF24_ENABLE_DUMP_REGISTERS
         nrf24_dump_registers(&m_nrf);
+#endif
 
         nrf24_clear_interrupts(&m_nrf);
 
@@ -245,10 +250,15 @@ Radio::InterruptResult Radio::waitForInterrupt()
 Result Radio::sendProtocolMsg(const std::string& address, const protocol_msg_t& msg)
 {
     qCDebug(RadioLog) << "sending protocol message to" << address.c_str();
+    qCDebug(RadioLog) << "transmitting" << sizeof(protocol_msg_t) << "bytes of data";
+
+#ifdef ENABLE_DEBUG_LOG
+    print_protocol_message(&msg);
+#endif
 
     setTransceiverMode(TransceiverMode::PrimaryTransmitter, address);
 
-    nrf24_transmit_data(&m_nrf, msg.data, sizeof(protocol_msg_t));
+    nrf24_write_tx_payload(&m_nrf, msg.data, sizeof(protocol_msg_t));
     nrf24_power_up(&m_nrf);
 
     auto interruptResult = waitForInterrupt();

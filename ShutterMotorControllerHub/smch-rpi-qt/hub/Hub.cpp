@@ -31,6 +31,7 @@ std::future<void> hub::Hub::scanDevices()
         std::string address{ "SMRR0" };
 
         for (char i = 0; i < 10; ++i)
+//        for (char i = 9; i < 10; ++i)
         {
             address[4] = '0' + i;
             qCDebug(HubLog) << "looking for" << address.c_str();
