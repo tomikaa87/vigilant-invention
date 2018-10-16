@@ -305,6 +305,16 @@ static void process_command_request(const protocol_msg_t* msg)
             opto_pulse(OPTO_D);
             break;
 
+        case PROTO_CMD_SHUTTER_ALL_UP:
+            opto_pulse(OPTO_A);
+            opto_pulse(OPTO_C);
+            break;
+
+        case PROTO_CMD_SHUTTER_ALL_DOWN:
+            opto_pulse(OPTO_B);
+            opto_pulse(OPTO_D);
+            break;
+
         default:
             send_result_to_hub(PROTO_RESULT_NO_SUCH_COMMAND);
             return;
