@@ -104,6 +104,30 @@ void Hub::executeOnAll(Command command)
     executeCommandAsync(command, std::move(indices));
 }
 
+std::future<std::tuple<bool, Device>> Hub::queryStatus(DeviceIndex index)
+{
+    auto promise = std::make_shared<std::promise<std::tuple<bool, Device>>>();
+
+    m_queue.enqueue([radio{ m_radio }, promise, index] {
+        bool succeeded = false;
+        Device dev{ Hub::deviceIndexToAddress(index) };
+
+        auto f = radio->readStatus(dev.address);
+        f.wait();
+        auto response = f.get();
+
+        if (response.result == radio::Result::Succeeded)
+        {
+            dev.firmwareVersion = response.messages.begin()->payload.status.firmware_ver;
+            succeeded = true;
+        }
+
+        promise->set_value(std::make_tuple(succeeded, std::move(dev)));
+    });
+
+    return promise->get_future();
+}
+
 radio::Command mapToRadioCommand(DeviceIndex index,
                                  Command command)
 {
@@ -188,6 +212,14 @@ void Hub::executeCommandAsync(Command command, const std::vector<DeviceIndex>& d
             }
         }
     });
+}
+
+std::string Hub::deviceIndexToAddress(DeviceIndex index)
+{
+    std::string address{ "SMRR0" };
+    char no = '0' + static_cast<char>(index) / 2;
+    address[4] = no;
+    return address;
 }
 
 }

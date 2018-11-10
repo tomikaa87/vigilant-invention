@@ -33,6 +33,7 @@ public:
     void execute(hub::Command command, DeviceIndex device) override;
     void execute(hub::Command command, std::vector<DeviceIndex>&& devices) override;
     void executeOnAll(hub::Command command) override;
+    std::future<std::tuple<bool, Device>> queryStatus(DeviceIndex device) override;
 
 private:
     OperationQueue m_queue;
@@ -41,6 +42,8 @@ private:
     int m_transmitRetryCount = 3;
 
     void executeCommandAsync(Command command, const std::vector<DeviceIndex>& devices);
+
+    static std::string deviceIndexToAddress(DeviceIndex index);
 };
 
 }
