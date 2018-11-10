@@ -43,7 +43,8 @@ MEMORY
 	/* The first 192 bytes of RAM is reserved for the vector table */
 	RAM (xrw)	: ORIGIN = 0x200000C0, 	LENGTH = 4K - 192
 	
-	FLASH (rx)  : ORIGIN = 0x8000000, 	LENGTH = 32K
+	/* First 8K of Flash is reserved for OpenBLT */
+	FLASH (rx)  : ORIGIN = 0x8000000, 	LENGTH = 8K
 }
 
 /* Define output sections */
@@ -166,5 +167,3 @@ SECTIONS
 
   .ARM.attributes 0 : { *(.ARM.attributes) }
 }
-
-
