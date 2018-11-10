@@ -118,7 +118,7 @@
  *         in the bootloader's core has more flash memory reserved for the bootloader
  *         than is needed for this demo.
  */
-#define BOOT_FLASH_CUSTOM_LAYOUT_ENABLE (0)
+#define BOOT_FLASH_CUSTOM_LAYOUT_ENABLE (1)
 
 
 /****************************************************************************************
