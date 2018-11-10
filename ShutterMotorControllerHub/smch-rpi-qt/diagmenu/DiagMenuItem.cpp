@@ -1,31 +1,31 @@
 #include "DiagMenuItem.h"
 
-DiagMenuItem::DiagMenuItem(const char shortcut, const QString& text, const Type type, Action&& action)
+DiagMenuItem::DiagMenuItem(const char shortcut, QString&& text, const Type type, Action&& action)
     : m_key(shortcut)
-    , m_text(text)
+    , m_text(std::move(text))
     , m_type(type)
     , m_action(std::move(action))
 {
 }
 
-DiagMenuItem DiagMenuItem::createAction(const char key, const QString& text, DiagMenuItem::Action&& action)
+DiagMenuItem DiagMenuItem::createAction(const char key, QString&& text, DiagMenuItem::Action&& action)
 {
-    return DiagMenuItem(key, text, DiagMenuItem::Type::Action, std::move(action));
+    return DiagMenuItem(key, std::move(text), DiagMenuItem::Type::Action, std::move(action));
 }
 
-DiagMenuItem DiagMenuItem::createSubMenu(const char key, const QString& text)
+DiagMenuItem DiagMenuItem::createSubMenu(const char key, QString&& text)
 {
-    return DiagMenuItem(key, text, DiagMenuItem::Type::SubMenu);
+    return DiagMenuItem(key, std::move(text), DiagMenuItem::Type::SubMenu);
 }
 
-DiagMenuItem DiagMenuItem::createBackNavigator(const char key, const QString& text)
+DiagMenuItem DiagMenuItem::createBackNavigator(const char key, QString&& text)
 {
-    return DiagMenuItem(key, text, DiagMenuItem::Type::BackNavigator);
+    return DiagMenuItem(key, std::move(text), DiagMenuItem::Type::BackNavigator);
 }
 
-DiagMenuItem DiagMenuItem::createSeparator(const QString& text)
+DiagMenuItem DiagMenuItem::createSeparator(QString&& text)
 {
-    return DiagMenuItem(0, text, DiagMenuItem::Type::Separator);
+    return DiagMenuItem(0, std::move(text), DiagMenuItem::Type::Separator);
 }
 
 char DiagMenuItem::key() const

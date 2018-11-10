@@ -22,10 +22,10 @@ public:
 
     using Action = std::function<void()>;
 
-    static DiagMenuItem createAction(const char key, const QString& text, Action&& action);
-    static DiagMenuItem createSubMenu(const char key, const QString& text);
-    static DiagMenuItem createBackNavigator(const char key, const QString& text);
-    static DiagMenuItem createSeparator(const QString& text = "---------------");
+    static DiagMenuItem createAction(const char key, QString&& text, Action&& action);
+    static DiagMenuItem createSubMenu(const char key, QString&& text);
+    static DiagMenuItem createBackNavigator(const char key, QString&& text);
+    static DiagMenuItem createSeparator(QString&& text = "---------------");
 
     char key() const;
     const QString& text() const;
@@ -33,7 +33,7 @@ public:
     void trigger() const;
 
 private:
-    DiagMenuItem(const char key, const QString& text, const Type type, Action&& action = {});
+    DiagMenuItem(const char key, QString&& text, const Type type, Action&& action = {});
 
     const char m_key;
     QString m_text;

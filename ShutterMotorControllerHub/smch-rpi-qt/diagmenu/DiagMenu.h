@@ -44,7 +44,7 @@ private:
         uint32_t parentId;
         DiagMenuItem item;
 
-        ItemTreeElement(uint32_t id, DiagMenuItem&& item, uint32_t parentId)
+        ItemTreeElement(const uint32_t id, DiagMenuItem&& item, const uint32_t parentId)
             : id(id), parentId(parentId), item(std::move(item))
         {}
 
