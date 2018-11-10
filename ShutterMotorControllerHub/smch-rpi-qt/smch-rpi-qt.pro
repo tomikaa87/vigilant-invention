@@ -2,7 +2,7 @@ QT -= gui
 QT += network
 
 CONFIG += console
-CONFIG += c++14
+CONFIG += c++1z
 CONFIG -= app_bundle
 
 # The following define makes your compiler emit warnings if you use
@@ -26,7 +26,6 @@ QMAKE_CFLAGS += -std=gnu11 # gnu11 is used instead of c11 to support POSIX P1003
 contains(DEFINES, RASPBERRY_PI) {
     message("Compiling for Raspberry Pi")
 
-#    CONFIG += c++14
     DEFINES += LINUX
 
     SOURCES += \
@@ -105,13 +104,20 @@ HEADERS += \
     OperationQueue.h \
     radio/Request.h \
     radio/Utils.h \
-    radio/radio_protocol.h #\
-#    DiagTerminal.h
+    radio/radio_protocol.h \
+    diagmenu/AbstractDiagMenuBackend.h \
+    diagmenu/DiagMenu.h \
+    diagmenu/DiagMenuConsoleBackend.h \
+    diagmenu/DiagMenuItem.h \
+    diagmenu/DiagMenuTcpBackend.h
 
 SOURCES += \
     main.cpp \
     hub/Hub.cpp \
     logging/LoggingHelpers.cpp \
     radio/radio_protocol.c \
-    radio/RadioUtils.cpp #\
-#    DiagTerminal.cpp
+    radio/RadioUtils.cpp \
+    diagmenu/DiagMenu.cpp \
+    diagmenu/DiagMenuConsoleBackend.cpp \
+    diagmenu/DiagMenuItem.cpp \
+    diagmenu/DiagMenuTcpBackend.cpp

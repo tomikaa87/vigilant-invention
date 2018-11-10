@@ -267,24 +267,24 @@ void DiagTerminal::selectOption(char option)
                 case '3':
                     sendDataOnSocket("Reading status\r\n");
 //                    action = Action::ReadStatus;
-                    m_hub->readStatus([this](IHub::RemoteDeviceStatus&& status) {
-                        std::stringstream ss;
+//                    m_hub->readStatus([this](IHub::RemoteDeviceStatus&& status) {
+//                        std::stringstream ss;
 
-                        ss << "Device status:\r\n"
-                           << "  Firmware version: " << status.firmwareVersion << "\r\n"
-                           << "  Last commands:\r\n";
+//                        ss << "Device status:\r\n"
+//                           << "  Firmware version: " << status.firmwareVersion << "\r\n"
+//                           << "  Last commands:\r\n";
 
-                        for (auto cmd : status.lastCommands)
-                        {
-                            ss << "    " << cmd << "\r\n";
-                        }
+//                        for (auto cmd : status.lastCommands)
+//                        {
+//                            ss << "    " << cmd << "\r\n";
+//                        }
 
-                        ss << "\r\n";
+//                        ss << "\r\n";
 
-                        sendDataOnSocket(ss.str().c_str());
+//                        sendDataOnSocket(ss.str().c_str());
 
-                        printMenu();
-                    });
+//                        printMenu();
+//                    });
                     break;
 
                 case '4':
@@ -314,22 +314,22 @@ void DiagTerminal::selectOption(char option)
             {
                 case '1':
 //                    action = Action::Shutter1Up;
-                    m_hub->shutter1Up();
+//                    m_hub->shutter1Up();
                     break;
 
                 case '2':
 //                    action = Action::Shutter1Down;
-                    m_hub->shutter1Down();
+//                    m_hub->shutter1Down();
                     break;
 
                 case '3':
 //                    action = Action::Shutter2Up;
-                    m_hub->shutter2Up();
+//                    m_hub->shutter2Up();
                     break;
 
                 case '4':
 //                    action = Action::Shutter2Down;
-                    m_hub->shutter2Down();
+//                    m_hub->shutter2Down();
                     break;
 
                 case '5':
@@ -346,7 +346,7 @@ void DiagTerminal::selectOption(char option)
             if (option >= '0' && option <= '9')
             {
                 uint8_t index = option - '0';
-                m_hub->selectDevice(index);
+//                m_hub->selectDevice(index);
 //                action = Action::SelectDevice;
 //                mSelectedDeviceIndex = option - '0';
                 mState = State::InMainMenu;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <functional>
-#include <map>
+#include <unordered_map>
 #include <memory>
 
 #include <QObject>
@@ -37,7 +37,7 @@ public:
 private:
     OperationQueue m_queue;
     std::shared_ptr<radio::IRadio> m_radio;
-    std::map<DeviceIndex, Device> m_devices;
+    std::unordered_map<DeviceIndex, Device> m_devices;
     int m_transmitRetryCount = 3;
 
     void executeCommandAsync(Command command, const std::vector<DeviceIndex>& devices);
