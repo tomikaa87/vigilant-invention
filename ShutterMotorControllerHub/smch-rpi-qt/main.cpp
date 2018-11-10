@@ -83,24 +83,89 @@ namespace menu
 
     void addDeviceControlItems(DiagMenu& m, const std::shared_ptr<hub::Hub>& hub)
     {
-        m.addSubItem(id::deviceMenu, DiagMenuItem::createAction('q', "Query Status", []{}));
-
         m.addSubItem(id::deviceMenu, DiagMenuItem::createSeparator());
 
-        m.addSubItem(id::deviceMenu, DiagMenuItem::createAction('e', "All: Shutter 1 & 2 Up", []{}));
-        m.addSubItem(id::deviceMenu, DiagMenuItem::createAction('d', "All: Shutter 1 & 2 Down", []{}));
-        m.addSubItem(id::deviceMenu, DiagMenuItem::createAction('r', "All: Shutter 1 Up", []{}));
-        m.addSubItem(id::deviceMenu, DiagMenuItem::createAction('f', "All: Shutter 1 Down", []{}));
-        m.addSubItem(id::deviceMenu, DiagMenuItem::createAction('t', "All: Shutter 2 Up", []{}));
-        m.addSubItem(id::deviceMenu, DiagMenuItem::createAction('g', "All: Shutter 2 Down", []{}));
+        m.addSubItem(id::deviceMenu, DiagMenuItem::createAction('e', "All: Shutter 1 & 2 Up", [hub]{
+            hub->executeOnAll(hub::Command::ShutterUp);
+        }));
+
+        m.addSubItem(id::deviceMenu, DiagMenuItem::createAction('d', "All: Shutter 1 & 2 Down", [hub]{
+            hub->executeOnAll(hub::Command::ShutterDown);
+        }));
+
+        m.addSubItem(id::deviceMenu, DiagMenuItem::createAction('r', "All: Shutter 1 Up", [hub]{
+            hub->execute(hub::Command::ShutterUp, { hub::DeviceIndex::D0_0,
+                                                    hub::DeviceIndex::D1_0,
+                                                    hub::DeviceIndex::D2_0,
+                                                    hub::DeviceIndex::D3_0,
+                                                    hub::DeviceIndex::D4_0,
+                                                    hub::DeviceIndex::D5_0,
+                                                    hub::DeviceIndex::D6_0,
+                                                    hub::DeviceIndex::D7_0,
+                                                    hub::DeviceIndex::D8_0,
+                                                    hub::DeviceIndex::D9_0 });
+        }));
+
+        m.addSubItem(id::deviceMenu, DiagMenuItem::createAction('f', "All: Shutter 1 Down", [hub]{
+            hub->execute(hub::Command::ShutterDown, { hub::DeviceIndex::D0_0,
+                                                      hub::DeviceIndex::D1_0,
+                                                      hub::DeviceIndex::D2_0,
+                                                      hub::DeviceIndex::D3_0,
+                                                      hub::DeviceIndex::D4_0,
+                                                      hub::DeviceIndex::D5_0,
+                                                      hub::DeviceIndex::D6_0,
+                                                      hub::DeviceIndex::D7_0,
+                                                      hub::DeviceIndex::D8_0,
+                                                      hub::DeviceIndex::D9_0 });
+        }));
+        m.addSubItem(id::deviceMenu, DiagMenuItem::createAction('t', "All: Shutter 2 Up", [hub]{
+            hub->execute(hub::Command::ShutterUp, { hub::DeviceIndex::D0_1,
+                                                    hub::DeviceIndex::D1_1,
+                                                    hub::DeviceIndex::D2_1,
+                                                    hub::DeviceIndex::D3_1,
+                                                    hub::DeviceIndex::D4_1,
+                                                    hub::DeviceIndex::D5_1,
+                                                    hub::DeviceIndex::D6_1,
+                                                    hub::DeviceIndex::D7_1,
+                                                    hub::DeviceIndex::D8_1,
+                                                    hub::DeviceIndex::D9_1 });
+        }));
+        m.addSubItem(id::deviceMenu, DiagMenuItem::createAction('g', "All: Shutter 2 Down", [hub]{
+            hub->execute(hub::Command::ShutterDown, { hub::DeviceIndex::D0_1,
+                                                      hub::DeviceIndex::D1_1,
+                                                      hub::DeviceIndex::D2_1,
+                                                      hub::DeviceIndex::D3_1,
+                                                      hub::DeviceIndex::D4_1,
+                                                      hub::DeviceIndex::D5_1,
+                                                      hub::DeviceIndex::D6_1,
+                                                      hub::DeviceIndex::D7_1,
+                                                      hub::DeviceIndex::D8_1,
+                                                      hub::DeviceIndex::D9_1 });
+        }));
 
         m.addSubItem(id::deviceMenu, DiagMenuItem::createSeparator());
 
         for (int i = 0; i < 10; ++i)
         {
+            auto devIndex = static_cast<hub::DeviceIndex>(i * 2);
+
             uint32_t id = m.addSubItem(id::deviceMenu, DiagMenuItem::createSubMenu(static_cast<char>('0' + i), QString{ "Device %1 (SMRR%1)" }.arg(i)));
 
-            m.addSubItem(id, DiagMenuItem::createAction('q', "Query Status", []{}));
+            m.addSubItem(id, DiagMenuItem::createAction('q', "Query Status", [&m, &hub, devIndex]{
+                auto f = hub->queryStatus(devIndex);
+                f.wait();
+                auto [ok, device] = f.get();
+
+                if (ok)
+                {
+                    m.printMessage("Query succeeded");
+                    m.printMessage(QString{ "Device firmware version: %1" }.arg(device.firmwareVersion.c_str()));
+                }
+                else
+                {
+                    m.printMessage("Query failed");
+                }
+            }));
 
             m.addSubItem(id, DiagMenuItem::createSeparator());
 
