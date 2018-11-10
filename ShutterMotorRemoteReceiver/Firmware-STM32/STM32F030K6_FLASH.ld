@@ -43,7 +43,7 @@ MEMORY
 	/* The first 192 bytes of RAM is reserved for the vector table */
 	RAM (xrw)	: ORIGIN = 0x200000C0, 	LENGTH = 4K - 192
 	
-	FLASH (rx)  : ORIGIN = 0x8000000, 	LENGTH = 32K
+	FLASH (rx)  : ORIGIN = 0x08002800, 	LENGTH = 32K - 10K
 }
 
 /* Define output sections */
