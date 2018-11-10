@@ -65,7 +65,7 @@
  *
  */
 /** \brief Enable/disable UART transport layer. */
-#define BOOT_COM_UART_ENABLE            (1)
+#define BOOT_COM_UART_ENABLE            (0)
 /** \brief Configure the desired communication speed. */
 #define BOOT_COM_UART_BAUDRATE          (57600)
 /** \brief Configure number of bytes in the target->host data packet. */
