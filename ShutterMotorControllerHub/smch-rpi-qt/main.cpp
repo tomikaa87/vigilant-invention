@@ -159,7 +159,7 @@ namespace menu
                 if (ok)
                 {
                     m.printMessage("Query succeeded");
-                    m.printMessage(QString{ "Device firmware version: %1" }.arg(device.firmwareVersion.c_str()));
+                    m.printMessage(QString{ "(%1) Device firmware version: %2" }.arg(device.address.c_str()).arg(device.firmwareVersion.c_str()));
                 }
                 else
                 {
