@@ -295,6 +295,7 @@ __pycache__/
 **/dist/
 **/debug/
 **/build/
+**/disassembly/
 
 # Eagle related files
 *.b#?
