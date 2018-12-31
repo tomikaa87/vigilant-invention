@@ -155,13 +155,9 @@ void Touchpad_Task()
     uint16_t xFiltered = TPFilter_InputSample(&xChannel, xAdc, pressed);
     uint16_t yFiltered = TPFilter_InputSample(&yChannel, yAdc, pressed);
 
-    // Detect touch
     if (TPFilter_IsPressedDebounced(&xChannel))
     {
         static uint16_t xMin = 5000, xMax = 0, yMin = 5000, yMax = 0;
-
-//        uint16_t xFiltered = xAdc;
-//        TPFilter_Input(&xFiltered, &yAdc);
 
         if (xFiltered < xMin)
             xMin = xFiltered;
@@ -183,8 +179,4 @@ void Touchpad_Task()
 
         Graphics_DrawCursor(x, y);
     }
-//    else
-//    {
-//        HAL_Delay(50);
-//    }
 }
