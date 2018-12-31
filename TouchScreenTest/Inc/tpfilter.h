@@ -12,6 +12,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+
 typedef struct
 {
     uint16_t samples[5];
@@ -19,12 +20,12 @@ typedef struct
 
 typedef struct
 {
-    uint16_t s;
+    uint16_t sample;
 } IIRFilter;
 
 typedef struct
 {
-    uint16_t s;
+    uint16_t sample;
 } DebounceFilter;
 
 typedef struct
@@ -36,15 +37,13 @@ typedef struct
 
 typedef struct
 {
-    MedianFilter m;
-    IIRFilter i;
-    DebounceFilter d;
+    MedianFilter medianFilter;
+    IIRFilter iirFilter;
+    DebounceFilter debounceFilter;
 } TPFilter_Channel;
 
 void TPFilter_InitChannel(TPFilter_Channel* channel);
 uint16_t TPFilter_InputSample(TPFilter_Channel* channel, uint16_t sample, bool pressed);
-bool TPFilter_IsPressed(TPFilter_Channel* channel);
-void TPFilter_Input(uint16_t* x, uint16_t* y);
-
+bool TPFilter_IsPressedDebounced(TPFilter_Channel* channel);
 
 #endif /* TPFILTER_H_ */

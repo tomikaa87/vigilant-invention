@@ -156,7 +156,7 @@ void Touchpad_Task()
     uint16_t yFiltered = TPFilter_InputSample(&yChannel, yAdc, pressed);
 
     // Detect touch
-    if (TPFilter_IsPressed(&xChannel))
+    if (TPFilter_IsPressedDebounced(&xChannel))
     {
         static uint16_t xMin = 5000, xMax = 0, yMin = 5000, yMax = 0;
 
