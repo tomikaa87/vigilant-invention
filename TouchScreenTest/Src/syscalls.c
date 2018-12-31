@@ -103,7 +103,7 @@ int _read (int file, char *ptr, int len)
 return len;
 }
 
-int _write(int32_t file, uint8_t *ptr, int32_t len)
+int _write(int file, char *ptr, int len)
 {
     while (HAL_UART_GetState(&huart1) != HAL_UART_STATE_READY)
         continue;
