@@ -14,9 +14,6 @@
 #include <string.h>
 
 
-#define HALF_WINDOW_SIZE        2
-#define WINDOW_SIZE             (2 * HALF_WINDOW_SIZE + 1)
-
 #define IIR_N                   6
 #define IIR_D                   10
 
