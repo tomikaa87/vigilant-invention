@@ -15,4 +15,6 @@
 void Graphics_DrawCursor(uint8_t x, uint8_t y);
 void Graphics_UpdateScreen();
 
+void Graphics_SetPixel(uint8_t x, uint8_t y);
+
 #endif /* GRAPHICS_H_ */

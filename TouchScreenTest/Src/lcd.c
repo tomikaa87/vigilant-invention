@@ -16,17 +16,23 @@
 void LCD_Init()
 {
     LCD_HardReset();
+
+    LCD_SetAutoReadControl(LCD_OFF);
+    LCD_SetOTPWRRDControl(LCD_OTP_ENABLE_READ);
+    LCD_OTPRead();
+    LCD_SetOTP(LCD_OFF);
+
     LCD_SetPowerSave(LCD_OFF);
     LCD_SetPartialMode(LCD_OFF);
     LCD_SetDisplay(LCD_OFF);
 
     LCD_DELAY_MS(50);
 
-    LCD_SetVop(0x130);
+    LCD_SetVop(0x136);
     LCD_SetBiasSystem(LCD_BIAS_1_14);
     LCD_SetBoosterLevel(LCD_BOOSTER_X8);
     LCD_EnableAnalogControl();
-    LCD_SetNLineInversion(0, 0);
+    LCD_SetNLineInversion(LCD_NLINE_INV_MODE_EVERY_FRAME, LCD_NLINE_INV_FRAME);
     LCD_SetMonochromeMode(LCD_OFF);
     LCD_EnableDDRAMInterface();
     LCD_SetScanDirection(LCD_ON, LCD_ON);
@@ -41,34 +47,47 @@ void LCD_Init()
 void LCD_WriteCommand(uint8_t command)
 {
     LCD_RESET_A0();
+
     LCD_RESET_CSB();
-    LCD_RESET_RW();
+    LCD_RESET_NWR();
 
     LCD_WRITE_PORT(command);
 
+    LCD_SET_NWR();
     LCD_SET_CSB();
 }
 
 void LCD_WriteData(uint8_t data)
 {
     LCD_SET_A0();
+
     LCD_RESET_CSB();
-    LCD_RESET_RW();
+    LCD_RESET_NWR();
 
     LCD_WRITE_PORT(data);
 
+    LCD_SET_NWR();
     LCD_SET_CSB();
 }
 
 uint8_t LCD_ReadData()
 {
+    LCD_SET_PORT_INPUT();
+
     LCD_SET_A0();
+
     LCD_RESET_CSB();
-    LCD_SET_RW();
+
+    LCD_RESET_NRD();
+    LCD_SET_NRD();
+    LCD_RESET_NRD();
 
     uint8_t data = LCD_READ_PORT();
 
+    LCD_SET_NRD();
     LCD_SET_CSB();
+
+    LCD_SET_PORT_OUTPUT();
 
     return data;
 }
@@ -78,7 +97,7 @@ void LCD_Clear()
     LCD_SetAddress(0, 0);
     LCD_WriteCommand(0x2c);
     for (uint16_t i = 0; i < 160 * 120; ++i)
-        LCD_WriteData(0x00);
+        LCD_WriteData(0);
 }
 
 void LCD_DrawTestPattern()
@@ -86,32 +105,17 @@ void LCD_DrawTestPattern()
     LCD_SetAddress(0, 0);
     LCD_WriteCommand(0x2c);
 
-    LCD_SET_A0();
-    LCD_RESET_RW();
+    for (uint16_t i = 0; i < 120 * 40; ++i)
+        LCD_WriteData(0xff);
 
-    for (uint16_t i = 0; i < 120 * 40; ++i) {
-        LCD_WRITE_PORT(0xff);
-        LCD_RESET_CSB();
-        LCD_SET_CSB();
-    }
+    for (uint16_t i = 0; i < 120 * 40; ++i)
+        LCD_WriteData(0b10010010);
 
-    for (uint16_t i = 0; i < 120 * 40; ++i) {
-        LCD_WRITE_PORT(0b10010010);
-        LCD_RESET_CSB();
-        LCD_SET_CSB();
-    }
+    for (uint16_t i = 0; i < 120 * 40; ++i)
+        LCD_WriteData(0b01001001);
 
-    for (uint16_t i = 0; i < 120 * 40; ++i) {
-        LCD_WRITE_PORT(0b01001001);
-        LCD_RESET_CSB();
-        LCD_SET_CSB();
-    }
-
-    for (uint16_t i = 0; i < 120 * 40; ++i) {
-        LCD_WRITE_PORT(0);
-        LCD_RESET_CSB();
-        LCD_SET_CSB();
-    }
+    for (uint16_t i = 0; i < 120 * 40; ++i)
+        LCD_WriteData(0);
 }
 
 void LCD_NOP()
@@ -126,15 +130,17 @@ void LCD_SoftReset()
 
 void LCD_HardReset()
 {
+    LCD_SET_NRD();
+    LCD_SET_NWR();
+    LCD_SET_CSB();
+
     LCD_DELAY_MS(5);
     LCD_SET_RST();
     LCD_DELAY_MS(5);
     LCD_RESET_RST();
     LCD_DELAY_MS(10);
     LCD_SET_RST();
-    LCD_DELAY_MS(50);
-
-    LCD_SET_E();
+    LCD_DELAY_MS(130);
 }
 
 void LCD_SetPowerSave(uint8_t on)
@@ -197,7 +203,7 @@ void LCD_WriteDisplayDataBuffer(const uint8_t* const data, uint16_t length)
     LCD_WriteCommand(0b00101100);
 
     LCD_SET_A0();
-    LCD_RESET_RW();
+    LCD_RESET_NWR();
 
     for (uint16_t i = 0; i < length; ++i) {
         LCD_WRITE_PORT(data[i]);
@@ -300,7 +306,7 @@ void LCD_SetNLineInversion(uint8_t mode, uint8_t value)
 
 void LCD_SetReadModifyWrite(uint8_t on)
 {
-    LCD_WriteCommand(0b10111000 | (on ? 1 : 0));
+    LCD_WriteCommand(0b10111000 | (on ? 0 : 1));
 }
 
 void LCD_SetVop(uint16_t value)
@@ -348,4 +354,21 @@ void LCD_SetAutoReadControl(uint8_t on)
 {
     LCD_WriteCommand(0b11010111);
     LCD_WriteData(0b10001111 | (on ? 0b10000 : 0));
+}
+
+void LCD_SetOTPWRRDControl(uint8_t value)
+{
+    LCD_WriteCommand(0b11100000);
+    LCD_WriteData(value == LCD_OTP_ENABLE_WRITE ? 0b100000 : 0);
+}
+
+void LCD_OTPRead()
+{
+    LCD_WriteCommand(0b11100011);
+}
+
+void LCD_SetOTP(uint8_t on)
+{
+    LCD_WriteCommand(0b11100100);
+    LCD_WriteData(0b11001 | (on ? 0b1000000 : 0));
 }

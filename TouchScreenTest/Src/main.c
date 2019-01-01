@@ -125,7 +125,31 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   LCD_Init();
+
   LCD_DrawTestPattern();
+
+//  LCD_SetAddress(0, 0);
+//  LCD_WriteDisplayData(0b11100000);
+//  LCD_SetAddress(0, 1);
+//  LCD_WriteDisplayData(0b00011100);
+
+//  LCD_DrawTestPattern();
+
+//  Graphics_SetPixel(0, 0);
+//  Graphics_SetPixel(1, 0);
+
+//  LCD_DrawTestPattern();
+
+//  LCD_SetMonochromeMode(LCD_OFF);
+//
+//  LCD_SetAddress(10, 10);
+//  LCD_WriteCommand(0b00101100);
+//  LCD_WriteData(0xff);
+//  LCD_WriteData(0b01001001);
+//  LCD_WriteData(0b11111000);
+//
+//  LCD_SetAddress(20, 20);
+//  LCD_WriteDisplayData(0xff);
 
   Touchpad_Init();
 
@@ -333,7 +357,7 @@ static void MX_GPIO_Init(void)
                           |LCD_D4_Pin|LCD_D5_Pin|LCD_D6_Pin|LCD_D7_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LCD_CS_Pin|LCD_RST_Pin|LCD_EN_Pin|LCD_RW_Pin 
+  HAL_GPIO_WritePin(GPIOB, LCD_CS_Pin|LCD_RST_Pin|LCD_nRD_Pin|LCD_nWR_Pin 
                           |LCD_A0_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : LCD_D0_Pin LCD_D1_Pin LCD_D2_Pin LCD_D3_Pin 
@@ -362,9 +386,9 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LCD_CS_Pin LCD_RST_Pin LCD_EN_Pin LCD_RW_Pin 
+  /*Configure GPIO pins : LCD_CS_Pin LCD_RST_Pin LCD_nRD_Pin LCD_nWR_Pin 
                            LCD_A0_Pin */
-  GPIO_InitStruct.Pin = LCD_CS_Pin|LCD_RST_Pin|LCD_EN_Pin|LCD_RW_Pin 
+  GPIO_InitStruct.Pin = LCD_CS_Pin|LCD_RST_Pin|LCD_nRD_Pin|LCD_nWR_Pin 
                           |LCD_A0_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;

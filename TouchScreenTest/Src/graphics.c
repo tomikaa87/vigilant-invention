@@ -26,11 +26,25 @@ void Graphics_DrawCursor(uint8_t x, uint8_t y)
     if (x < 10 && y < 10)
         LCD_Clear();
 
-    LCD_SetAddress(x / 2, y);
-    LCD_WriteDisplayData(0xff);
+    Graphics_SetPixel(x, y);
 }
 
 void Graphics_UpdateScreen()
 {
     LCD_WriteDisplayDataBuffer(g_buffer, sizeof(g_buffer));
+}
+
+void Graphics_SetPixel(uint8_t x, uint8_t y)
+{
+    LCD_SetAddress(x / 2, y);
+    LCD_SetReadModifyWrite(LCD_ON);
+    uint8_t d = LCD_ReadData();
+
+    if (!(x & 1))
+        d |= 0b00011100;
+    else
+        d |= 0b11100000;
+
+    LCD_WriteData(d);
+    LCD_SetReadModifyWrite(LCD_OFF);
 }
