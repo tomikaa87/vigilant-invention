@@ -5,15 +5,12 @@
  *      Author: tomikaa
  */
 
-
 #include "graphics.h"
 #include "lcd.h"
 
 #include <stdbool.h>
 
-
 static uint8_t g_buffer[240 / 3 * 160] = { 0, };
-
 
 void drawPalette()
 {
@@ -106,4 +103,26 @@ void Graphics_SetPixel(uint8_t x, uint8_t y, uint8_t color)
 
     LCD_WriteData(d);
     LCD_SetReadModifyWrite(LCD_OFF);
+}
+
+void Graphics_DrawRect(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t color)
+{
+    for (uint8_t x = x1; x <= x2; ++x)
+    {
+        Graphics_SetPixel(x, y1, color);
+        Graphics_SetPixel(x, y2, color);
+    }
+
+    for (uint8_t y = y1 + 1; y <= y2 - 1; ++y)
+    {
+        Graphics_SetPixel(x1, y, color);
+        Graphics_SetPixel(x2, y, color);
+    }
+}
+
+void Graphics_FillRect(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t color)
+{
+    for (uint8_t x = x1; x <= x2; ++x)
+        for (uint8_t y = y1; y <= y2; ++y)
+            Graphics_SetPixel(x, y, color);
 }

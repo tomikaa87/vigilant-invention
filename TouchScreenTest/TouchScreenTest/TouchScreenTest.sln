@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.168
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TouchScreenTest", "TouchScreenTest.vcxproj", "{A2AAE9A5-837E-429E-8BD2-DDA847FFD511}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|VisualGDB = Debug|VisualGDB
+		Release|VisualGDB = Release|VisualGDB
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A2AAE9A5-837E-429E-8BD2-DDA847FFD511}.Debug|VisualGDB.ActiveCfg = Debug|VisualGDB
+		{A2AAE9A5-837E-429E-8BD2-DDA847FFD511}.Debug|VisualGDB.Build.0 = Debug|VisualGDB
+		{A2AAE9A5-837E-429E-8BD2-DDA847FFD511}.Release|VisualGDB.ActiveCfg = Release|VisualGDB
+		{A2AAE9A5-837E-429E-8BD2-DDA847FFD511}.Release|VisualGDB.Build.0 = Release|VisualGDB
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8AB9E1B8-3539-4C92-9FF7-9E71D8B51E71}
+	EndGlobalSection
+EndGlobal

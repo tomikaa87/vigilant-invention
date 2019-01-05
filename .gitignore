@@ -301,3 +301,8 @@ __pycache__/
 *.b#?
 *.s#?
 *.l#?
+
+# VisualGDB related files
+**/VisualGDBCache
+**/Debug
+**/Release

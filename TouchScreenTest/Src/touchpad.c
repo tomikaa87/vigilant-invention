@@ -5,7 +5,6 @@
  *      Author: tomikaa
  */
 
-
 #include "touchpad.h"
 #include "main.h"
 #include "stm32f1xx_hal.h"
@@ -15,9 +14,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-
 #define AVG_FILTER_COUNT    10
-
 
 static void standby()
 {
@@ -131,11 +128,14 @@ void Touchpad_Init()
     standby();
 }
 
-void Touchpad_Task()
+bool Touchpad_Task(uint8_t* x, uint8_t* y, bool* pressed)
 {
     static TPFilter_Channel xChannel;
     static TPFilter_Channel yChannel;
     static bool initialized = false;
+    static bool lastPressed = false;
+    static uint8_t lastX = 0;
+    static uint8_t lastY = 0;
 
     if (!initialized)
     {
@@ -150,13 +150,21 @@ void Touchpad_Task()
     uint16_t yAdc = readADCY();
     standby();
 
-    bool pressed = xAdc < 3700;
+    bool touchDetected = xAdc < 3700;
 
-    uint16_t xFiltered = TPFilter_InputSample(&xChannel, xAdc, pressed);
-    uint16_t yFiltered = TPFilter_InputSample(&yChannel, yAdc, pressed);
+    uint16_t xFiltered = TPFilter_InputSample(&xChannel, xAdc, touchDetected);
+    uint16_t yFiltered = TPFilter_InputSample(&yChannel, yAdc, touchDetected);
 
     if (TPFilter_IsPressedDebounced(&xChannel))
     {
+        bool changed = false;
+
+        if (!lastPressed)
+        {
+            lastPressed = true;
+            changed = true;
+        }
+
         static uint16_t xMin = 5000, xMax = 0, yMin = 5000, yMax = 0;
 
         if (xFiltered < xMin)
@@ -169,14 +177,39 @@ void Touchpad_Task()
         if (yFiltered > yMax)
             yMax = yFiltered;
 
-        uint8_t x = 240 - (xFiltered - xMin) * 240 / (xMax - xMin);
-        uint8_t y = 160 - (yFiltered - yMin) * 160 / (yMax - yMin);
+        uint8_t currentX = 240 - (xFiltered - xMin) * 240 / (xMax - xMin);
+        uint8_t currentY = 160 - (yFiltered - yMin) * 160 / (yMax - yMin);
 
+        if (currentX != lastX || currentY != lastY)
+        {
+            lastX = currentX;
+            lastY = currentY;
+            changed = true;
+        }
+
+        if (changed)
+        {
+            *x = currentX;
+            *y = currentY;
+            *pressed = true;
+        }
 #if 0
         printf("X = %3d (%4d, %4d-%4d), Y = %3d (%4d, %4d-%4d)\r\n",
-                x, xFiltered, xMin, xMax, y, yFiltered, yMin, yMax);
+               x, xFiltered, xMin, xMax, y, yFiltered, yMin, yMax);
 #endif
 
-        Graphics_DrawCursor(x, y);
+        return changed;
     }
+    else if (lastPressed)
+    {
+        lastPressed = false;
+
+        *x = lastX;
+        *y = lastY;
+        *pressed = false;
+
+        return true;
+    }
+
+    return false;
 }
