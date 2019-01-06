@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Charge Controller</string>
+    <string name="channel_name">ForegroundServiceNotificationChannel</string>
+    <string name="channel_description">Notification channel for Foreground Service</string>
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
+    <string name="active">Active</string>
+    <string name="inactive">Inactive</string>
+    <string name="charge_upper_limit_title">Stop charging above:</string>
+    <string name="charge_lower_limit_title">Start charging below:</string>
+</resources>
