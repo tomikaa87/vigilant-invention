@@ -1,6 +1,6 @@
 [PreviousGenFiles]
 HeaderPath=C:/Work/git/vigilant-invention-3/TouchScreenTest/Inc
-HeaderFiles=stm32f1xx_it.h;stm32f1xx_hal_conf.h;main.h;
+HeaderFiles=stm32f1xx_it.h;stm32f1xx_hal_conf.h;main.h;stm32_assert.h;
 SourcePath=C:/Work/git/vigilant-invention-3/TouchScreenTest/Src
 SourceFiles=stm32f1xx_it.c;stm32f1xx_hal_msp.c;main.c;
 

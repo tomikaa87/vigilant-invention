@@ -14,7 +14,16 @@
 #include <stdint.h>
 #include <stdio.h>
 
+
+extern ADC_HandleTypeDef hadc1;
+
+
 #define AVG_FILTER_COUNT    10
+
+
+static uint16_t g_adcResults[2] = { 0 };
+static volatile bool g_adcConvCompleted = false;
+
 
 static void standby()
 {
@@ -76,9 +85,10 @@ static uint32_t readADCX()
     uint32_t sum = 0;
     for (uint8_t i = 0; i < AVG_FILTER_COUNT; ++i)
     {
-        HAL_ADC_Start(&hadc2);
-        HAL_ADC_PollForConversion(&hadc2, 250);
-        sum += HAL_ADC_GetValue(&hadc2);
+        g_adcConvCompleted = false;
+        while (!g_adcConvCompleted);
+
+        sum += g_adcResults[1];
     }
 
     return sum / AVG_FILTER_COUNT;
@@ -115,16 +125,37 @@ static uint16_t readADCY()
     uint32_t sum = 0;
     for (uint8_t i = 0; i < AVG_FILTER_COUNT; ++i)
     {
-        HAL_ADC_Start(&hadc1);
-        HAL_ADC_PollForConversion(&hadc1, 250);
-        sum += HAL_ADC_GetValue(&hadc1);
+        g_adcConvCompleted = false;
+        while (!g_adcConvCompleted);
+
+        sum += g_adcResults[0];
     }
 
     return sum / AVG_FILTER_COUNT;
 }
 
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+{
+    UNUSED(hadc);
+    g_adcConvCompleted = true;
+}
+
 void Touchpad_Init()
 {
+    HAL_StatusTypeDef status;
+
+    status = HAL_ADC_Start_DMA(&hadc1,
+                               (uint32_t*)g_adcResults,
+                               sizeof(g_adcResults) / sizeof(g_adcResults[0]));
+
+    if (status != HAL_OK)
+    {
+        printf("Touchpad: failed to start ADC in DMA mode\r\n");
+        return;
+    }
+
+    printf("Touchpad initialized\r\n");
+
     standby();
 }
 

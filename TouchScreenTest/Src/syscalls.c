@@ -56,6 +56,7 @@
 #include "stm32f1xx_hal.h"
 #include "main.h"
 
+extern UART_HandleTypeDef huart1;
 
 /* Variables */
 //#undef errno
@@ -108,7 +109,7 @@ int _write(int file, char *ptr, int len)
     while (HAL_UART_GetState(&huart1) != HAL_UART_STATE_READY)
         continue;
 
-    HAL_UART_Transmit(&huart1, ptr, len, 1000);
+    HAL_UART_Transmit(&huart1, (uint8_t*)ptr, len, 1000);
 
     return len;
 }
