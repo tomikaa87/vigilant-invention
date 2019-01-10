@@ -31,12 +31,12 @@ public:
 
     inline uint8_t top() const
     {
-        return m_topLeft.x();
+        return m_topLeft.y();
     }
 
     inline uint8_t left() const
     {
-        return m_topLeft.y();
+        return m_topLeft.x();
     }
 
     inline uint8_t bottom() const

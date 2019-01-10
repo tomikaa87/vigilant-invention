@@ -18,7 +18,8 @@
 extern ADC_HandleTypeDef hadc1;
 
 
-#define AVG_FILTER_COUNT    10
+#define AVG_FILTER_COUNT                10
+#define TOUCH_DETECTION_ADC_THRESHOLD   3600
 
 
 static uint16_t g_adcResults[2] = { 0 };
@@ -181,7 +182,7 @@ bool Touchpad_Task(uint8_t* x, uint8_t* y, bool* pressed)
     uint16_t yAdc = readADCY();
     standby();
 
-    bool touchDetected = xAdc < 3700;
+    bool touchDetected = xAdc < TOUCH_DETECTION_ADC_THRESHOLD;
 
     uint16_t xFiltered = TPFilter_InputSample(&xChannel, xAdc, touchDetected);
     uint16_t yFiltered = TPFilter_InputSample(&yChannel, yAdc, touchDetected);
@@ -226,7 +227,7 @@ bool Touchpad_Task(uint8_t* x, uint8_t* y, bool* pressed)
         }
 #if 0
         printf("X = %3d (%4d, %4d-%4d), Y = %3d (%4d, %4d-%4d)\r\n",
-               x, xFiltered, xMin, xMax, y, yFiltered, yMin, yMax);
+               currentX, xFiltered, xMin, xMax, currentY, yFiltered, yMin, yMax);
 #endif
 
         return changed;

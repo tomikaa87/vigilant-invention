@@ -22,8 +22,12 @@ namespace UI
 void UI_Init()
 {
     static UI::Button btn{ UI::Point{ 0, 0 }, UI::Size{ 100, 40 } };
+    static UI::Button btn2{ UI::Point{ 120, 50 }, UI::Size{ 100, 100 } };
+    static UI::Button btn3{ UI::Point{ 150, 10 }, UI::Size{ 50, 50 } };
 
     UI::registerWidget(&btn);
+    UI::registerWidget(&btn2);
+    UI::registerWidget(&btn3);
 }
 
 void UI_SendTouchEvent(uint8_t x, uint8_t y, bool pressed)
