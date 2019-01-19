@@ -1,5 +1,6 @@
 package home.tomikaa.chargecontroller
 
+import android.arch.lifecycle.MutableLiveData
 import android.support.annotation.WorkerThread
 import android.util.Log
 import org.json.JSONObject
@@ -20,6 +21,10 @@ class ChargeManager {
     var chargeUpperLimit = Constants.defaultChargeUpperLimit
     var changedCallback: (() -> Unit)? = null
 
+    val currentChargeLevel: MutableLiveData<Int> by lazy {
+        MutableLiveData<Int>()
+    }
+
     private val defaultScope = CoroutineScope(Dispatchers.Default)
     private val uiScope = CoroutineScope(Dispatchers.Main)
 
@@ -29,6 +34,8 @@ class ChargeManager {
 
     fun handleBatteryChanged(level: Int, pluggedIn: Boolean) {
         Log.i(tag, "Battery state changed. Charge level: $level. Plugged in? ${if (pluggedIn) "Yes" else "No"}")
+
+        currentChargeLevel.value = level
 
         if (level >= 80 && outputEnabled) {
             disableOutput()
