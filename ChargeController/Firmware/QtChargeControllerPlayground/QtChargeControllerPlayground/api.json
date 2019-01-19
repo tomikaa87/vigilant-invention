@@ -1,0 +1,63 @@
+[
+
+  // Base request format
+  // `type` is mandatory
+  // `id` is mandatory and should be unique
+  // `param` is optional
+  {
+    "type": "<request type>",
+    "id": 0,
+    "param": {
+      "param1": "value",
+      "param2": "value"
+    }
+  },
+
+  // Base response format if the call is succeeded
+  // `type` is the same as it was in the request
+  // `id` is the same as it was in the request
+  // `result` is mandatory and must contain the result code
+  // `param` is optional
+  {
+    "type": "<response type>",
+    "id": 0,
+    "result": 0,
+    "param": {
+      "param1": "value",
+      "param2": "value"
+    }
+  },
+
+  // Base response format if the call is failed
+  // `id` mandatory and is the same as it was in the request, or 0 if the request didn't contain an ID
+  // `error` is mandatory and must contain the error code
+  //
+  // possible error codes:
+  //    0: unknown/internal error
+  //    1: malformed request
+  //    2: unknown request typr
+  //    3: missing mandatory input parameter
+  //
+  // This response must not contain any other fields
+  {
+    "id": 0,
+    "error": 0
+  },
+
+  //
+  // Specific packets
+  //
+
+  // switch
+  // switches the output on or off
+  //
+  // `on`: [0, 1] 0: off, 1: on
+  {
+    "type": "switch",
+    "id": 0,
+    "param": {
+      "on": 1
+    }
+  }
+
+]

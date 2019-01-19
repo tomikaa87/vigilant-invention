@@ -1,0 +1,5 @@
+namespace PrivateConfig
+{
+	const char* WifiSSID = "<ssid>"
+	const char* WiFiPassword = "<password>";
+}
