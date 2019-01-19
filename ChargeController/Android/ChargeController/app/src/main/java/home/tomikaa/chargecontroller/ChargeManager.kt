@@ -1,7 +1,7 @@
 package home.tomikaa.chargecontroller
 
-import android.arch.lifecycle.MutableLiveData
-import android.support.annotation.WorkerThread
+import androidx.lifecycle.MutableLiveData
+import androidx.annotation.WorkerThread
 import android.util.Log
 import org.json.JSONObject
 import java.io.IOException
@@ -175,6 +175,8 @@ class ChargeManager {
 
     @WorkerThread
     private suspend fun sendDatagram(datagram: ByteArray, address: InetSocketAddress): ByteArray? {
+        return null
+
         val socket = Socket()
 
         try {

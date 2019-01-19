@@ -2,19 +2,19 @@ package home.tomikaa.chargecontroller
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.arch.lifecycle.MutableLiveData
-import android.arch.lifecycle.Observer
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import android.content.*
 import android.os.Build
 import android.os.Bundle
-import android.support.v4.content.LocalBroadcastManager
-import android.support.v7.app.AppCompatActivity
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.appcompat.app.AppCompatActivity
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.SeekBar
 import android.widget.Switch
 import android.widget.TextView
-import android.support.design.widget.Snackbar
+import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : AppCompatActivity() {
 
@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
 
         batteryChangeBroadcastReceiver.callback = this::handleBatteryChanged
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(chargeControllerBroadcastReceiver, IntentFilter(Constants.controllerStatusChanged))
+        androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(this).registerReceiver(chargeControllerBroadcastReceiver, IntentFilter(Constants.controllerStatusChanged))
         registerReceiver(batteryChangeBroadcastReceiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
 
         var seekBar = findViewById<SeekBar>(R.id.chargeLowerLimitSeekBar)
@@ -126,7 +126,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(batteryChangeBroadcastReceiver)
+        androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(this).unregisterReceiver(batteryChangeBroadcastReceiver)
         unregisterReceiver(batteryChangeBroadcastReceiver)
 
         super.onDestroy()

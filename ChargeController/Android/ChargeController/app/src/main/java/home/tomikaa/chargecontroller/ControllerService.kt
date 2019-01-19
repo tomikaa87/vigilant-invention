@@ -8,22 +8,19 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.IBinder
-import android.support.v4.app.NotificationCompat
-import android.support.v4.content.LocalBroadcastManager
+import androidx.core.app.NotificationCompat
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.lifecycle.LifecycleService
 import android.util.Log
 
-class ControllerService : Service() {
+class ControllerService : LifecycleService() {
 
     private var notificationBuilder: NotificationCompat.Builder? = null
-    private val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    private var notificationManager: NotificationManager? = null
     private val batteryChangeBroadcastReceiver = BatteryChangeBroadcastReceiver()
     private val chargeManager = ChargeManager()
     private var serviceActive = false
     private var preferencesChangeListenerRegistered = false
-
-    init {
-
-    }
 
     override fun onBind(intent: Intent): IBinder {
         TODO("Return the communication channel to the service.")
@@ -34,6 +31,9 @@ class ControllerService : Service() {
             Constants.startForegroundAction -> {
                 if (!serviceActive) {
                     Log.i(tag, "StartAction")
+                    if (notificationManager == null)
+                        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
                     if (notificationBuilder == null)
                         notificationBuilder = createNotificationBuilder()
 
@@ -125,7 +125,7 @@ class ControllerService : Service() {
         val notification = notificationBuilder?.build()
         notification?.flags = Notification.FLAG_ONGOING_EVENT
 
-        notificationManager.notify(Constants.notificationId, notificationBuilder?.build())
+        notificationManager?.notify(Constants.notificationId, notificationBuilder?.build())
     }
 
     private fun registerBroadcastReceiver() {
