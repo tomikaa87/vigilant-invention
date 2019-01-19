@@ -1,0 +1,1 @@
+pio serialports monitor -b 74880 --rts=0 --dtr=0
