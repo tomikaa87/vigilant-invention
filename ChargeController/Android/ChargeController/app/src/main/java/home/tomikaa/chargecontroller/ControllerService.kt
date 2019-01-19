@@ -124,6 +124,7 @@ class ControllerService : LifecycleService() {
             .setSmallIcon(R.drawable.ic_charging)
             .setChannelId(Constants.notificationChannelId)
             .setUsesChronometer(true)
+            .setOnlyAlertOnce(true)
     }
 
     private fun updateNotification() {
