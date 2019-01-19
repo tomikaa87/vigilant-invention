@@ -8,6 +8,8 @@ import java.io.IOException
 import java.lang.Exception
 import java.net.*
 import kotlinx.coroutines.*
+import java.util.*
+import kotlin.concurrent.scheduleAtFixedRate
 
 class ChargeManager {
 
@@ -31,6 +33,9 @@ class ChargeManager {
 
     private val defaultScope = CoroutineScope(Dispatchers.Default)
     private val uiScope = CoroutineScope(Dispatchers.Main)
+
+    private val keepAliveTimer = Timer("keepAliveTimer")
+    private var keepAliveTimerTask: TimerTask? = null
 
     init {
         updateStatus()
@@ -134,12 +139,64 @@ class ChargeManager {
                 }
 
                 outputEnabled = response.getJSONObject("param").getBoolean("switch")
+
+                if (outputEnabled)
+                    startKeepAliveTimer()
+                else
+                    stopKeepAliveTimer()
             }
 
             uiScope.launch {
                 changedCallback?.invoke()
             }
         }
+    }
+
+    private fun sendKeepAlive() {
+        val id = nextPacketId++
+
+        val json = createBasicCommandPacket("keep-alive", id)
+        val param = JSONObject()
+        param.put("timeout", 60)
+        json.put("param", param)
+
+        Log.d(tag,"Sending keep-alive packet")
+
+        defaultScope.launch {
+            val response = sendDeviceRequest(json)
+
+            if (response != null) {
+                Log.d(tag, "sendKeepAlive response: $response")
+
+                if (response.optInt("id", -1) != id) {
+                    Log.w(tag, "sendKeepAlive: packet ID mismatch")
+                    return@launch
+                }
+
+                val resultCode = response.optInt("result", -1)
+                if (resultCode != 0) {
+                    Log.w(tag, "sendKeepAlive: command failed, result code: $resultCode")
+                    return@launch
+                }
+            } else {
+                Log.w(tag, "sendKeepAlive: no response from the device")
+            }
+        }
+    }
+
+    private fun startKeepAliveTimer() {
+        Log.d(tag, "Starting keep-alive timer")
+
+        keepAliveTimerTask = keepAliveTimer.scheduleAtFixedRate(0, 30 * 1000) {
+            sendKeepAlive()
+        }
+    }
+
+    private fun stopKeepAliveTimer() {
+        Log.d(tag, "Stopping keep-alive timer")
+
+        keepAliveTimerTask?.cancel()
+        keepAliveTimerTask = null
     }
 
     private fun createBasicCommandPacket(type: String, id: Int): JSONObject {

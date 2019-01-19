@@ -31,4 +31,5 @@ void setup()
 void loop()
 {
     wifiServerAdapter.task();
+    server.task();
 }

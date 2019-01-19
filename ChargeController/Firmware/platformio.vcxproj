@@ -100,12 +100,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\SwitchModule.cpp" />
+    <ClCompile Include="src\Timer.cpp" />
     <ClCompile Include="src\WiFiServerAdapter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\SwitchModule.h" />
+    <ClInclude Include="src\Timer.h" />
     <ClInclude Include="src\WiFiServerAdapter.h">
       <Filter>Header Files</Filter>
     </ClInclude>

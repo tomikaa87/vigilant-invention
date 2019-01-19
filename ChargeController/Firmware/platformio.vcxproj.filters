@@ -20,12 +20,18 @@
     <ClCompile Include="src\SwitchModule.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Timer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ChargeControllerServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\SwitchModule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Timer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

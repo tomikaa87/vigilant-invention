@@ -1,11 +1,20 @@
 #include "ChargeControllerServer.h"
 
+#include <Arduino.h>
+
 ChargeControllerServer::ChargeControllerServer(IServerAdapter& serverAdapter)
     : m_serverAdapter(serverAdapter)
 {
     m_serverAdapter.onClientConnected([this](const uint16_t endpointId) { onClientConnected(endpointId); });
     m_serverAdapter.onClientDisconnected([this](const uint16_t endpointId) { onClientDisconnected(endpointId); });
     m_serverAdapter.onClientDataReceived([this](const uint16_t endpointId) { onClientDataReceived(endpointId); });
+
+    m_keepAliveTimer.setTimeoutCallback([this] { onKeepAliveTimerTimeout(); });
+}
+
+void ChargeControllerServer::task()
+{
+    m_keepAliveTimer.task();
 }
 
 void ChargeControllerServer::onClientConnected(const uint16_t endpointId)
@@ -33,6 +42,16 @@ void ChargeControllerServer::onClientDataReceived(const uint16_t endpointId)
     {
         handleIncomingPacket(endpointId, packetParser.payload());
         packetParser.reset();
+    }
+}
+
+void ChargeControllerServer::onKeepAliveTimerTimeout()
+{
+    Serial.println("CCS: keep-alive timer timeout");
+
+    if (m_switchModule.state())
+    {
+        m_switchModule.setState(false);
     }
 }
 
@@ -66,7 +85,9 @@ bool ChargeControllerServer::isBaseRequestPacketValid(const nlohmann::json& req)
 
 bool ChargeControllerServer::routeRequest(const uint16_t endpointId, const nlohmann::json& req)
 {
-    auto&& t = req["type"];
+    std::string t = req["type"];
+
+    Serial.printf("CCS: routing request: %s\n", t.c_str());
 
     if (t == "set-switch")
     {
@@ -76,6 +97,11 @@ bool ChargeControllerServer::routeRequest(const uint16_t endpointId, const nlohm
     else if (t == "get-status")
     {
         sendStatusResponse(endpointId, req);
+        return true;
+    }
+    else if (t == "keep-alive")
+    {
+        keepAlive(endpointId, req);
         return true;
     }
 
@@ -102,6 +128,23 @@ void ChargeControllerServer::sendStatusResponse(const uint16_t endpointId, const
     json["switch"] = m_switchModule.state();
 
     sendSuccessResponseToClient(endpointId, req["id"], 0, json);
+}
+
+void ChargeControllerServer::keepAlive(const uint16_t endpointId, const nlohmann::json& req)
+{
+    if (!hasParam(req, "timeout"))
+    {
+        sendErrorResponseToClient(endpointId, req, ErrorCode::MissingMandatoryParameter);
+        return;
+    }
+
+    int timeout = req["param"]["timeout"];
+
+    Serial.printf("CCS: keep-alive received, timeout: %d\n", timeout);
+
+    m_keepAliveTimer.restart(timeout);
+
+    sendSuccessResponseToClient(endpointId, req["id"]);
 }
 
 void ChargeControllerServer::sendErrorResponseToClient(const uint16_t endpointId, const nlohmann::json& req, const ErrorCode errorCode)
