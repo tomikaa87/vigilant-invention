@@ -21,8 +21,12 @@ class ChargeManager {
     var chargeUpperLimit = Constants.defaultChargeUpperLimit
     var changedCallback: (() -> Unit)? = null
 
-    val currentChargeLevel: MutableLiveData<Int> by lazy {
+    val currentChargeLevel by lazy {
         MutableLiveData<Int>()
+    }
+
+    val pluggedIn by lazy {
+        MutableLiveData<Boolean>()
     }
 
     private val defaultScope = CoroutineScope(Dispatchers.Default)
@@ -36,6 +40,7 @@ class ChargeManager {
         Log.i(tag, "Battery state changed. Charge level: $level. Plugged in? ${if (pluggedIn) "Yes" else "No"}")
 
         currentChargeLevel.value = level
+        this.pluggedIn.value = pluggedIn
 
         if (level >= 80 && outputEnabled) {
             disableOutput()
@@ -175,8 +180,6 @@ class ChargeManager {
 
     @WorkerThread
     private suspend fun sendDatagram(datagram: ByteArray, address: InetSocketAddress): ByteArray? {
-        return null
-
         val socket = Socket()
 
         try {

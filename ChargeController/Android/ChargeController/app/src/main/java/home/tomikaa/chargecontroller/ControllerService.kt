@@ -3,15 +3,14 @@ package home.tomikaa.chargecontroller
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.lifecycle.LifecycleService
 import android.util.Log
+import androidx.lifecycle.Observer
 
 class ControllerService : LifecycleService() {
 
@@ -22,17 +21,24 @@ class ControllerService : LifecycleService() {
     private var serviceActive = false
     private var preferencesChangeListenerRegistered = false
 
-    override fun onBind(intent: Intent): IBinder {
-        TODO("Return the communication channel to the service.")
-    }
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
+
         when (intent?.action) {
             Constants.startForegroundAction -> {
                 if (!serviceActive) {
                     Log.i(tag, "StartAction")
-                    if (notificationManager == null)
+                    if (notificationManager == null) {
                         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+                        chargeManager.currentChargeLevel.observe(this, Observer {
+                            updateNotification()
+                        })
+
+                        chargeManager.pluggedIn.observe(this, Observer {
+                            updateNotification()
+                        })
+                    }
 
                     if (notificationBuilder == null)
                         notificationBuilder = createNotificationBuilder()
@@ -113,15 +119,34 @@ class ControllerService : LifecycleService() {
             .addAction(0, "Stop Monitoring", PendingIntent.getService(this, 0, stopServiceIntent, 0))
             .setSmallIcon(R.drawable.ic_charging)
             .setChannelId(Constants.notificationChannelId)
+            .setUsesChronometer(true)
     }
 
     private fun updateNotification() {
         if (chargeManager.currentChargeLevel.value == null)
             return
 
-        val text = "Remaining to target: ${chargeManager.chargeUpperLimit - chargeManager.currentChargeLevel.value!!}"
+        val title = if (chargeManager.pluggedIn.value == true) {
+            val distance = chargeManager.currentChargeLevel.value!! - chargeManager.chargeUpperLimit
 
+            if (chargeManager.currentChargeLevel.value!! < chargeManager.chargeUpperLimit)
+                "Charging will stop at ${chargeManager.chargeUpperLimit}% ($distance%)"
+            else
+                "(!) Charging should have stopped at ${chargeManager.chargeUpperLimit}% (+$distance%)"
+        } else {
+            val distance = chargeManager.currentChargeLevel.value!! - chargeManager.chargeLowerLimit
+
+            if (chargeManager.currentChargeLevel.value!! > chargeManager.chargeLowerLimit)
+                "Charging will start at ${chargeManager.chargeLowerLimit}% (+$distance%)"
+            else
+                "(!) Charging should have started at ${chargeManager.chargeLowerLimit}% ($distance%)"
+        }
+
+        val text = "Output is ${if (chargeManager.outputEnabled) "enabled" else "disabled"}"
+
+        notificationBuilder?.setContentTitle(title)
         notificationBuilder?.setContentText(text)
+
         val notification = notificationBuilder?.build()
         notification?.flags = Notification.FLAG_ONGOING_EVENT
 
