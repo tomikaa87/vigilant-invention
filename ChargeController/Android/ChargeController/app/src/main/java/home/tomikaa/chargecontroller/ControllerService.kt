@@ -38,6 +38,10 @@ class ControllerService : LifecycleService() {
                         chargeManager.pluggedIn.observe(this, Observer {
                             updateNotification()
                         })
+
+                        chargeManager.outputEnabled.observe(this, Observer {
+                            updateNotification()
+                        })
                     }
 
                     if (notificationBuilder == null)
@@ -142,7 +146,7 @@ class ControllerService : LifecycleService() {
                 "(!) Charging should have started at ${chargeManager.chargeLowerLimit}% ($distance%)"
         }
 
-        val text = "Output is ${if (chargeManager.outputEnabled) "enabled" else "disabled"}"
+        val text = "Output is ${if (chargeManager.outputEnabled.value == true) "enabled" else "disabled"}"
 
         notificationBuilder?.setContentTitle(title)
         notificationBuilder?.setContentText(text)
@@ -159,7 +163,7 @@ class ControllerService : LifecycleService() {
 
     private fun sendStatusUpdate() {
         val intent = Intent(Constants.controllerStatusChanged)
-        intent.putExtra("output_enabled", chargeManager.outputEnabled)
+        intent.putExtra("output_enabled", chargeManager.outputEnabled.value == true)
         intent.putExtra("device_responsive", chargeManager.deviceResponsive)
         intent.putExtra("service_active", serviceActive)
         if (!LocalBroadcastManager.getInstance(this).sendBroadcast(intent)) {

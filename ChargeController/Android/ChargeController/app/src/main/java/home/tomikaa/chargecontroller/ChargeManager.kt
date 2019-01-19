@@ -13,8 +13,9 @@ import kotlin.concurrent.scheduleAtFixedRate
 
 class ChargeManager {
 
-    var outputEnabled = false
-        private set
+    val outputEnabled by lazy {
+        MutableLiveData<Boolean>()
+    }
 
     var deviceResponsive = true
         private set
@@ -47,9 +48,9 @@ class ChargeManager {
         currentChargeLevel.value = level
         this.pluggedIn.value = pluggedIn
 
-        if (level >= 80 && outputEnabled) {
+        if (level >= 80 && outputEnabled.value == true) {
             disableOutput()
-        } else if (level <= 70 && !outputEnabled) {
+        } else if (level <= 70 && outputEnabled.value == false) {
             enableOutput()
         }
     }
@@ -88,14 +89,14 @@ class ChargeManager {
     }
 
     fun toggleOutput() {
-        if (outputEnabled)
+        if (isEnabled())
             disableOutput()
         else
             enableOutput()
     }
 
     fun isEnabled(): Boolean {
-        return outputEnabled
+        return outputEnabled.value == true
     }
 
     private fun createSwitchPacket(on: Boolean, id: Int): JSONObject {
@@ -138,9 +139,13 @@ class ChargeManager {
                     return@launch
                 }
 
-                outputEnabled = response.getJSONObject("param").getBoolean("switch")
+                val switchState = response.getJSONObject("param").getBoolean("switch")
 
-                if (outputEnabled)
+                uiScope.launch {
+                    outputEnabled.value = switchState
+                }
+
+                if (isEnabled())
                     startKeepAliveTimer()
                 else
                     stopKeepAliveTimer()
