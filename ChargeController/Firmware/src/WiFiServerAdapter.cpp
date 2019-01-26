@@ -17,6 +17,7 @@ void WiFiServerAdapter::connect()
         return;
     }
 
+    WiFi.mode(WIFI_STA);
     WiFi.setAutoConnect(true);
     WiFi.setPhyMode(WIFI_PHY_MODE_11N);
 
