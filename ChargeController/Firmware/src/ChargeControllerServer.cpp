@@ -2,8 +2,9 @@
 
 #include <Arduino.h>
 
-ChargeControllerServer::ChargeControllerServer(IServerAdapter& serverAdapter)
+ChargeControllerServer::ChargeControllerServer(IServerAdapter& serverAdapter, LedController& ledController)
     : m_serverAdapter(serverAdapter)
+    , m_ledController(ledController)
 {
     m_serverAdapter.onClientConnected([this](const uint16_t endpointId) { onClientConnected(endpointId); });
     m_serverAdapter.onClientDisconnected([this](const uint16_t endpointId) { onClientDisconnected(endpointId); });
@@ -51,14 +52,15 @@ void ChargeControllerServer::onKeepAliveTimerTimeout()
 
     if (m_switchModule.state())
     {
+        m_ledController.setLed(LedController::Led::Red, LedController::State::On, 2000);
         m_switchModule.setState(false);
     }
 }
 
 void ChargeControllerServer::handleIncomingPacket(const uint16_t endpointId, const char* payload)
 {
-    const char* begin = payload;
-    const char* end = payload + strlen(payload);
+    const auto begin = payload;
+    const auto end = payload + strlen(payload);
 
     auto json = nlohmann::json::parse(begin, end, nullptr, false);
 
@@ -71,6 +73,7 @@ void ChargeControllerServer::handleIncomingPacket(const uint16_t endpointId, con
     if (!routeRequest(endpointId, json))
     {
         sendErrorResponseToClient(endpointId, json, ErrorCode::UnknownRequestType);
+        m_ledController.setLed(LedController::Led::Red, LedController::State::On, 1000);
     }
 }
 
@@ -116,7 +119,10 @@ void ChargeControllerServer::switchController(const uint16_t endpointId, const n
         return;
     }
 
-    m_switchModule.setState(req["param"]["on"] != 0);
+    const bool on = req["param"]["on"] != 0;
+
+    m_switchModule.setState(on);
+    m_ledController.setLed(on ? LedController::Led::Green : LedController::Led::Red, LedController::State::On, 2000);
 
     sendSuccessResponseToClient(endpointId, req["id"]);
 }

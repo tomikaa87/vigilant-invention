@@ -10,7 +10,7 @@ class WiFiServerAdapter : public IServerAdapter
 public:
     WiFiServerAdapter();
 
-    void connect();
+    static void connect();
     void start();
     void task();
 

@@ -4,32 +4,31 @@
 
 #include "ChargeControllerServer.h"
 #include "WiFiServerAdapter.h"
+#include "LedController.h"
 
+static LedController ledController;
 static WiFiServerAdapter wifiServerAdapter;
-static ChargeControllerServer server{ wifiServerAdapter };
+static ChargeControllerServer server{ wifiServerAdapter, ledController };
 
 void setup()
 {
     Serial.begin(74880);
 
     pinMode(Pins::Relay, OUTPUT);
-    pinMode(Pins::RedLed, OUTPUT);
-    pinMode(Pins::GreenLed, OUTPUT);
-
     digitalWrite(Pins::Relay, LOW);
 
-    digitalWrite(Pins::RedLed, HIGH);
-    digitalWrite(Pins::GreenLed, LOW);
+    ledController.setLed(LedController::Led::Red, LedController::State::On);
 
     wifiServerAdapter.connect();
     wifiServerAdapter.start();
 
-    digitalWrite(Pins::RedLed, LOW);
-    digitalWrite(Pins::GreenLed, HIGH);
+    ledController.setLed(LedController::Led::Red, LedController::State::Off);
+    ledController.setLed(LedController::Led::Green, LedController::State::On, 5000);
 }
 
 void loop()
 {
     wifiServerAdapter.task();
     server.task();
+    ledController.task();
 }

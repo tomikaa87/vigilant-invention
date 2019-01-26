@@ -2,6 +2,7 @@
 
 #include "ClientPacketParser.h"
 #include "IServerAdapter.h"
+#include "LedController.h"
 #include "SwitchModule.h"
 #include "Timer.h"
 
@@ -14,12 +15,13 @@
 class ChargeControllerServer
 {
 public:
-    ChargeControllerServer(IServerAdapter& serverAdapter);
+    ChargeControllerServer(IServerAdapter& serverAdapter, LedController& ledController);
 
     void task();
 
 private:
     IServerAdapter& m_serverAdapter;
+    LedController& m_ledController;
 
     std::map<uint16_t, ClientPacketParser> m_packetParsers;
 

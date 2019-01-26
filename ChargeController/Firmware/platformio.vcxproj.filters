@@ -17,10 +17,13 @@
     <ClCompile Include="src\ChargeControllerServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\SwitchModule.cpp">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Timer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LedController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SwitchModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -32,6 +35,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Timer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LedController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

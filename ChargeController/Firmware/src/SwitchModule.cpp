@@ -12,7 +12,6 @@ void SwitchModule::setState(bool on)
     Serial.printf("Switch, on = %d\r\n", on ? 1 : 0);
 
     digitalWrite(Pins::Relay, on ? HIGH : LOW);
-    digitalWrite(Pins::RedLed, on ? HIGH : LOW);
 
     m_state = on;
 }

@@ -94,6 +94,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\LedController.cpp" />
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -106,6 +107,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\LedController.h" />
     <ClInclude Include="src\SwitchModule.h" />
     <ClInclude Include="src\Timer.h" />
     <ClInclude Include="src\WiFiServerAdapter.h">
