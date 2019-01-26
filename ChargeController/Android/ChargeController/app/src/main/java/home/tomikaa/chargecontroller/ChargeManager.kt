@@ -1,13 +1,17 @@
 package home.tomikaa.chargecontroller
 
-import androidx.lifecycle.MutableLiveData
-import androidx.annotation.WorkerThread
 import android.util.Log
+import androidx.annotation.WorkerThread
+import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.IOException
-import java.lang.Exception
-import java.net.*
-import kotlinx.coroutines.*
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.net.SocketTimeoutException
 import java.util.*
 import kotlin.concurrent.scheduleAtFixedRate
 
@@ -37,6 +41,7 @@ class ChargeManager {
 
     private val keepAliveTimer = Timer("keepAliveTimer")
     private var keepAliveTimerTask: TimerTask? = null
+    private val keepAliveSendInterval: Long = 300
 
     init {
         updateStatus()
@@ -141,14 +146,14 @@ class ChargeManager {
 
                 val switchState = response.getJSONObject("param").getBoolean("switch")
 
-                uiScope.launch {
-                    outputEnabled.value = switchState
-                }
-
-                if (isEnabled())
+                if (switchState)
                     startKeepAliveTimer()
                 else
                     stopKeepAliveTimer()
+
+                uiScope.launch {
+                    outputEnabled.value = switchState
+                }
             }
 
             uiScope.launch {
@@ -162,7 +167,7 @@ class ChargeManager {
 
         val json = createBasicCommandPacket("keep-alive", id)
         val param = JSONObject()
-        param.put("timeout", 60)
+        param.put("timeout", keepAliveSendInterval + 30)
         json.put("param", param)
 
         Log.d(tag,"Sending keep-alive packet")
@@ -192,7 +197,7 @@ class ChargeManager {
     private fun startKeepAliveTimer() {
         Log.d(tag, "Starting keep-alive timer")
 
-        keepAliveTimerTask = keepAliveTimer.scheduleAtFixedRate(0, 30 * 1000) {
+        keepAliveTimerTask = keepAliveTimer.scheduleAtFixedRate(0, keepAliveSendInterval * 1000) {
             sendKeepAlive()
         }
     }
