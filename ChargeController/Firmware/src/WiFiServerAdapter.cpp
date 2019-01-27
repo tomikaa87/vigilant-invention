@@ -107,7 +107,7 @@ void WiFiServerAdapter::onClientDataReceived(ClientDataReceivedHandler&& handler
     m_clientDataReceivedHandler = std::move(handler);
 }
 
-size_t WiFiServerAdapter::availableDataBytes(const uint16_t endpointId) const
+std::size_t WiFiServerAdapter::availableDataBytes(const uint16_t endpointId) const
 {
     auto&& client = findClientByEndpointId(endpointId);
     if (!client)
@@ -116,7 +116,7 @@ size_t WiFiServerAdapter::availableDataBytes(const uint16_t endpointId) const
     return client->available();
 }
 
-size_t WiFiServerAdapter::sendDataToClient(const uint16_t endpointId, const char* const data, const size_t length)
+std::size_t WiFiServerAdapter::sendDataToClient(const uint16_t endpointId, const char* const data, const std::size_t length)
 {
     auto&& client = findClientByEndpointId(endpointId);
     if (!client)
@@ -125,7 +125,7 @@ size_t WiFiServerAdapter::sendDataToClient(const uint16_t endpointId, const char
     return client->write(data, length);
 }
 
-size_t WiFiServerAdapter::readClientData(const uint16_t endpointId, char* data, const size_t length)
+std::size_t WiFiServerAdapter::readClientData(const uint16_t endpointId, char* data, const std::size_t length)
 {
     auto&& client = findClientByEndpointId(endpointId);
     if (!client)

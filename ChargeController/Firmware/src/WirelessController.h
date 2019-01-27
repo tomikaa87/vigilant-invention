@@ -1,9 +1,11 @@
 #pragma once
 
+#include "IdeHelper.h"
+
 #include <ESP8266WiFi.h>
 #include <list>
 
-class WirelessController
+class WirelessController final
 {
 public:
     WirelessController();

@@ -30,7 +30,7 @@ void LedController::task()
     }
 }
 
-void LedController::setLed(const Led led, const State state, const unsigned timeout)
+void LedController::setLed(const Led led, const State state, const uint32_t timeout)
 {
     auto&& ledInfo = getLedInfo(led);
 

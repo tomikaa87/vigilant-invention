@@ -1,5 +1,7 @@
 #pragma once
 
+#include "IdeHelper.h"
+
 #include <cstdint>
 #include <functional>
 

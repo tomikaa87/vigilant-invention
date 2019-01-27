@@ -1,12 +1,14 @@
 #pragma once
 
+#include "IdeHelper.h"
+
 #include "ClientPacketHeader.h"
 
 #include <cstdint>
 
 //#define HEADER_DIRECT_ACCESS
 
-class ClientPacketParser
+class ClientPacketParser final
 {
 public:
     void reset();

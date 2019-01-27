@@ -1,6 +1,8 @@
 #pragma once
 
-class SwitchModule
+#include "IdeHelper.h"
+
+class SwitchModule final
 {
 public:
     SwitchModule();

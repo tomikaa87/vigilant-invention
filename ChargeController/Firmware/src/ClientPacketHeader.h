@@ -1,8 +1,10 @@
 #pragma once
 
+#include "IdeHelper.h"
+
 #include <cstdint>
 
-union ClientPacketHeader
+union ClientPacketHeader final
 {
     struct
     {
@@ -11,5 +13,5 @@ union ClientPacketHeader
         uint16_t endMagic;
     };
 
-    char data[6];
+    char data[6] = { 0 };
 };

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "IdeHelper.h"
+
 #include "ClientPacketParser.h"
 #include "IServerAdapter.h"
 #include "LedController.h"
@@ -8,11 +10,9 @@
 
 #include "json.hpp"
 
-#include <functional>
-#include <memory>
 #include <map>
 
-class ChargeControllerServer
+class ChargeControllerServer final
 {
 public:
     ChargeControllerServer(IServerAdapter& serverAdapter, LedController& ledController);
