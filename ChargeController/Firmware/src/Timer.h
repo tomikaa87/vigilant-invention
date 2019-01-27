@@ -1,8 +1,9 @@
 #pragma once
 
+#include <cstdint>
 #include <functional>
 
-class Timer
+class Timer final
 {
 public:
     void task();
@@ -15,6 +16,6 @@ public:
 
 private:
     TimeoutCallback m_timeoutCallback;
-    int m_timeoutSeconds = -1;
-    int m_startTime = 0;
+    uint32_t m_timeoutSeconds = 0;
+    uint32_t m_startTime = 0;
 };

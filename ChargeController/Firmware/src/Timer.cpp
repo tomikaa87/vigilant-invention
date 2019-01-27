@@ -4,14 +4,9 @@
 
 void Timer::task()
 {
-    if (m_timeoutSeconds > 0 && millis() > m_startTime + m_timeoutSeconds * 1000)
+    if (m_timeoutSeconds > 0 && millis() > (m_startTime + m_timeoutSeconds * 1000))
     {
         m_timeoutSeconds = 0;
-    }
-
-    if (m_timeoutSeconds == 0)
-    {
-        m_timeoutSeconds = -1;
 
         if (m_timeoutCallback)
             m_timeoutCallback();
