@@ -5,8 +5,8 @@
 #include <algorithm>
 #include <cstring>
 
-static const uint16_t HEADER_MAGIC = 'K' | 'T' << 8;
-static const uint16_t HEADER_END_MAGIC = 'T' | 'K' << 8;
+static const uint16_t HeaderMagic = 'K' | 'T' << 8;
+static const uint16_t HeaderEndMagic = 'T' | 'K' << 8;
 
 void ClientPacketParser::reset()
 {
@@ -133,7 +133,7 @@ void ClientPacketParser::processBuffer()
             Serial.printf("Parser: processBuffer, header magic=%x\r\n", header.magic);
             Serial.printf("Parser: processBuffer, header endMagic=%x\r\n", header.endMagic);
 
-            if (header.magic == HEADER_MAGIC && header.endMagic == HEADER_END_MAGIC)
+            if (header.magic == HeaderMagic && header.endMagic == HeaderEndMagic)
             {
                 Serial.printf("Parser: processBuffer, header found at %p, readCursor=%d\r\n", data, m_readCursor);
 

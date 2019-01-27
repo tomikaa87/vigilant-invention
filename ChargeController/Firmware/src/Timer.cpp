@@ -1,6 +1,6 @@
-#include <Arduino.h>
-
 #include "Timer.h"
+
+#include <Arduino.h>
 
 void Timer::task()
 {

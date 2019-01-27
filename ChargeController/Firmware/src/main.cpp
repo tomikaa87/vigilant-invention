@@ -1,10 +1,9 @@
-#include <Arduino.h>
-
 #include "hardware.h"
-
 #include "ChargeControllerServer.h"
 #include "WiFiServerAdapter.h"
 #include "LedController.h"
+
+#include <Arduino.h>
 
 static LedController ledController;
 static WiFiServerAdapter wifiServerAdapter;
@@ -19,7 +18,7 @@ void setup()
 
     ledController.setLed(LedController::Led::Red, LedController::State::On);
 
-    wifiServerAdapter.connect();
+    WiFiServerAdapter::connect();
     wifiServerAdapter.start();
 
     ledController.setLed(LedController::Led::Red, LedController::State::Off);

@@ -1,13 +1,14 @@
 #include "SwitchModule.h"
-#include "Arduino.h"
 #include "hardware.h"
+
+#include <Arduino.h>
 
 SwitchModule::SwitchModule()
 {
     setState(false);
 }
 
-void SwitchModule::setState(bool on)
+void SwitchModule::setState(const bool on)
 {
     Serial.printf("Switch, on = %d\r\n", on ? 1 : 0);
 

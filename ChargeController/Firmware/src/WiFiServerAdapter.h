@@ -33,6 +33,11 @@ private:
     {
         uint16_t id;
         WiFiClient client;
+
+        Endpoint(const uint16_t id, WiFiClient&& wifiClient)
+            : id{ id }
+            , client{ std::move(wifiClient) }
+        {}
     };
 
     std::list<Endpoint> m_endpoints;

@@ -55,7 +55,7 @@ void WiFiServerAdapter::task()
 
         auto endpointId = m_nextEndpointId++;
 
-        m_endpoints.push_back(Endpoint{ endpointId, std::move(client) });
+        m_endpoints.emplace_back(endpointId, std::move(client));
 
         if (m_clientConnectedHandler)
             m_clientConnectedHandler(endpointId);
