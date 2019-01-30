@@ -21,7 +21,7 @@ void WiFiServerAdapter::connect()
     WiFi.setAutoConnect(true);
     WiFi.setPhyMode(WIFI_PHY_MODE_11N);
 
-    WiFi.begin(PrivateConfig::WifiSSID, PrivateConfig::WiFiPassword);
+    WiFi.begin(PrivateConfig::WiFiSsid, PrivateConfig::WiFiPassword);
 
     WiFi.onStationModeConnected([](const WiFiEventStationModeConnected& e) {
         Serial.printf("WiFi connected. Channel: %d\r\n", e.channel);
@@ -45,7 +45,7 @@ void WiFiServerAdapter::start()
 
 void WiFiServerAdapter::task()
 {
-    if (m_server.hasClient())
+    while (m_server.hasClient())
     {
         auto&& client = m_server.available();
 
@@ -53,9 +53,27 @@ void WiFiServerAdapter::task()
         Serial.print(client.remoteIP().toString());
         Serial.printf(":%d\r\n", client.remotePort());
 
+        if (client.remoteIP() == 0u)
+        {
+            Serial.println("Dropping connection from invalid source IP");
+            client.stop();
+
+            return;
+        }
+
+        if (m_endpoints.size() == 2)
+        {
+            Serial.println("Maximum number of simultaneous connections reached, dropping connection");
+            client.stop();
+
+            return;
+        }
+
         auto endpointId = m_nextEndpointId++;
 
         m_endpoints.emplace_back(endpointId, std::move(client));
+
+        Serial.printf("Connected endpoints: %d\r\n", m_endpoints.size());
 
         if (m_clientConnectedHandler)
             m_clientConnectedHandler(endpointId);
@@ -72,6 +90,8 @@ void WiFiServerAdapter::task()
 
             if (m_clientDisconnectedHandler)
                 m_clientDisconnectedHandler(it->id);
+
+            it->client.stop();
 
             it = m_endpoints.erase(it);
             continue;

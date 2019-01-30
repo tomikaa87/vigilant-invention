@@ -41,7 +41,7 @@ class ChargeManager {
 
     private val keepAliveTimer = Timer("keepAliveTimer")
     private var keepAliveTimerTask: TimerTask? = null
-    private val keepAliveSendInterval: Long = 300
+    private val keepAliveSendInterval: Long = 60
 
     init {
         updateStatus()
@@ -195,6 +195,11 @@ class ChargeManager {
     }
 
     private fun startKeepAliveTimer() {
+        if (keepAliveTimerTask != null) {
+            Log.w(tag, "Keep-alive timer is already running")
+            return
+        }
+
         Log.d(tag, "Starting keep-alive timer")
 
         keepAliveTimerTask = keepAliveTimer.scheduleAtFixedRate(0, keepAliveSendInterval * 1000) {
@@ -249,47 +254,50 @@ class ChargeManager {
     private suspend fun sendDatagram(datagram: ByteArray, address: InetSocketAddress): ByteArray? {
         val socket = Socket()
 
-        try {
-            socket.connect(address, 3000)
-        } catch (e: SocketTimeoutException) {
-            Log.w(tag, "Connection timed out")
-            deviceResponsive = false
-            return null
-        } catch (e: Exception) {
-            Log.w(tag, "Exception: $e")
-            return null
+        Log.d(tag, "Sending datagram to the device")
+
+        socket.use {
+            try {
+                socket.connect(address, 3000)
+            } catch (e: SocketTimeoutException) {
+                Log.w(tag, "Connection timed out")
+                deviceResponsive = false
+                return null
+            } catch (e: Exception) {
+                Log.w(tag, "Exception: $e")
+                return null
+            }
+
+            try {
+                val out = socket.getOutputStream()
+                out.write(datagram)
+            } catch (e: IOException) {
+                Log.w(tag, "Failed to send datagram. Error: $e")
+                return null
+            }
+
+            val inputStream = socket.getInputStream()
+
+            for (i in 1..3) {
+                if (inputStream.available() == 0)
+                    delay(500)
+            }
+
+            if (inputStream.available() == 0) {
+                Log.w(tag, "No response from the device")
+                deviceResponsive = false
+                return null
+            }
+
+            deviceResponsive = true
+
+            val buffer = ByteArray(inputStream.available())
+            inputStream.read(buffer)
+
+            Log.d(tag, "Response received from the device")
+
+            return buffer
         }
-
-        try {
-            val out = socket.getOutputStream()
-            out.write(datagram)
-        } catch (e: IOException) {
-            socket.close()
-            Log.w(tag, "Failed to send datagram. Error: $e")
-            return null
-        }
-
-        val inputStream = socket.getInputStream()
-
-        for (i in 1..3) {
-            if (inputStream.available() == 0)
-                delay(500)
-        }
-
-        if (inputStream.available() == 0) {
-            Log.w(tag, "No response from the device")
-            deviceResponsive = false
-            return null
-        }
-
-        deviceResponsive = true
-
-        val buffer = ByteArray(inputStream.available())
-        inputStream.read(buffer)
-
-        socket.close()
-
-        return buffer
     }
 
     companion object {

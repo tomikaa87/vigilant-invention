@@ -10,6 +10,8 @@ static const uint16_t HeaderEndMagic = 'T' | 'K' << 8;
 
 void ClientPacketParser::reset()
 {
+    Serial.println("Parser: reset");
+
     memset(m_buffer, 0, sizeof(m_buffer));
     m_bufferCursor = 0;
     m_readCursor = 0;

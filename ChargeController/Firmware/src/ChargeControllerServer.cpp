@@ -20,16 +20,23 @@ void ChargeControllerServer::task()
 
 void ChargeControllerServer::onClientConnected(const uint16_t endpointId)
 {
+    Serial.printf("CCS: packet parser created for endpoint: %d\r\n", endpointId);
+
     m_packetParsers[endpointId].reset();
 }
 
 void ChargeControllerServer::onClientDisconnected(const uint16_t endpointId)
 {
     m_packetParsers.erase(endpointId);
+
+    Serial.printf("CCS: removed packet parser of endpoint: %d. Remaining: %d\r\n",
+        endpointId, m_packetParsers.size());
 }
 
 void ChargeControllerServer::onClientDataReceived(const uint16_t endpointId)
 {
+    Serial.printf("CCS: client data received, endpoindId: %d\r\n", endpointId);
+
     char buf[128] = { 0 };
     auto&& packetParser = m_packetParsers[endpointId];
 
