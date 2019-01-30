@@ -54,7 +54,7 @@ BlynkHandler::BlynkHandler(PersistentStorage& persistentStorage)
 
     m_log.debug("Starting Blynk");
 
-    Blynk.begin(PrivateConfig::BlynkApiToken, PrivateConfig::WiFiSSID, PrivateConfig::WiFiPassword);
+    Blynk.begin(PrivateConfig::BlynkApiToken, PrivateConfig::WiFiSSID, PrivateConfig::WiFiPassword, "blynk-server.home", 8080);
 
     m_log.debug("Blynk started");
     m_log.debug("Configuring WiFi");
