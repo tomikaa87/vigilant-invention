@@ -7,6 +7,7 @@ import androidx.lifecycle.Observer
 import android.content.*
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.appcompat.app.AppCompatActivity
 import android.view.View
@@ -17,6 +18,10 @@ import android.widget.TextView
 import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        const val tag = "MainActivity"
+    }
 
     class ChargeControllerBroadcastReceiver : BroadcastReceiver() {
         val outputEnabled: MutableLiveData<Boolean> by lazy {
@@ -93,6 +98,8 @@ class MainActivity : AppCompatActivity() {
 
         controlService(true)
         requestServiceStatusUpdate()
+
+        Log.d(tag, "Created")
     }
 
     private fun observeChargeController() {
@@ -128,6 +135,8 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(this).unregisterReceiver(batteryChangeBroadcastReceiver)
         unregisterReceiver(batteryChangeBroadcastReceiver)
+
+        Log.w(tag, "Destroying")
 
         super.onDestroy()
     }

@@ -95,6 +95,8 @@ class ControllerService : LifecycleService() {
     override fun onCreate() {
         super.onCreate()
 
+        Log.d(tag, "Created")
+
         batteryChangeBroadcastReceiver.callback = chargeManager::handleBatteryChanged
         chargeManager.changedCallback = this::sendStatusUpdate
     }
