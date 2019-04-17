@@ -53,9 +53,9 @@ class ChargeManager {
         currentChargeLevel.value = level
         this.pluggedIn.value = pluggedIn
 
-        if (level >= 80 && outputEnabled.value == true) {
+        if (level >= chargeUpperLimit && outputEnabled.value == true) {
             disableOutput()
-        } else if (level <= 70 && outputEnabled.value == false) {
+        } else if (level <= chargeLowerLimit && outputEnabled.value == false) {
             enableOutput()
         }
     }
