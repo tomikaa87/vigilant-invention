@@ -3,10 +3,7 @@ package home.tomikaa.chargecontroller
 import android.util.Log
 import androidx.annotation.WorkerThread
 import androidx.lifecycle.MutableLiveData
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.io.IOException
 import java.net.InetSocketAddress
@@ -70,26 +67,7 @@ class ChargeManager {
 
     fun setOutput(enabled: Boolean) {
         defaultScope.launch {
-            val id = nextPacketId++
-
-            val response = sendDeviceRequest(createSwitchPacket(enabled, id))
-
-            if (response != null) {
-                Log.d(tag, "setOutput: response: $response")
-
-                if (response.optInt("id", -1) != id) {
-                    Log.w(tag, "setOutput: packet ID mismatch")
-                    return@launch
-                }
-
-                val result = response.getInt("result")
-
-                if (result != 0) {
-                    Log.w(tag, "setOutput: switch operation failed, result: $result")
-                }
-            }
-
-            updateStatus()
+            sendSetOutputRequest(enabled)
         }
     }
 
@@ -102,6 +80,29 @@ class ChargeManager {
 
     fun isEnabled(): Boolean {
         return outputEnabled.value == true
+    }
+
+    private suspend fun sendSetOutputRequest(enabled: Boolean) {
+        val id = nextPacketId++
+
+        val response = sendDeviceRequest(createSwitchPacket(enabled, id))
+
+        if (response != null) {
+            Log.d(tag, "setOutput: response: $response")
+
+            if (response.optInt("id", -1) != id) {
+                Log.w(tag, "setOutput: packet ID mismatch")
+                return
+            }
+
+            val result = response.getInt("result")
+
+            if (result != 0) {
+                Log.w(tag, "setOutput: switch operation failed, result: $result")
+            }
+        }
+
+        updateStatus()
     }
 
     private fun createSwitchPacket(on: Boolean, id: Int): JSONObject {
@@ -162,7 +163,7 @@ class ChargeManager {
         }
     }
 
-    private fun sendKeepAlive() {
+    private suspend fun sendKeepAlive(): Boolean {
         val id = nextPacketId++
 
         val json = createBasicCommandPacket("keep-alive", id)
@@ -172,26 +173,27 @@ class ChargeManager {
 
         Log.d(tag,"Sending keep-alive packet")
 
-        defaultScope.launch {
-            val response = sendDeviceRequest(json)
+        val response = sendDeviceRequest(json)
 
-            if (response != null) {
-                Log.d(tag, "sendKeepAlive response: $response")
+        if (response != null) {
+            Log.d(tag, "sendKeepAlive response: $response")
 
-                if (response.optInt("id", -1) != id) {
-                    Log.w(tag, "sendKeepAlive: packet ID mismatch")
-                    return@launch
-                }
-
-                val resultCode = response.optInt("result", -1)
-                if (resultCode != 0) {
-                    Log.w(tag, "sendKeepAlive: command failed, result code: $resultCode")
-                    return@launch
-                }
-            } else {
-                Log.w(tag, "sendKeepAlive: no response from the device")
+            if (response.optInt("id", -1) != id) {
+                Log.w(tag, "sendKeepAlive: packet ID mismatch")
+                return false
             }
+
+            val resultCode = response.optInt("result", -1)
+            if (resultCode != 0) {
+                Log.w(tag, "sendKeepAlive: command failed, result code: $resultCode")
+                return false
+            }
+        } else {
+            Log.w(tag, "sendKeepAlive: no response from the device")
+            return false
         }
+
+        return true
     }
 
     private fun startKeepAliveTimer() {
@@ -203,7 +205,7 @@ class ChargeManager {
         Log.d(tag, "Starting keep-alive timer")
 
         keepAliveTimerTask = keepAliveTimer.scheduleAtFixedRate(0, keepAliveSendInterval * 1000) {
-            sendKeepAlive()
+            keepAliveTimerTask()
         }
     }
 
@@ -212,6 +214,19 @@ class ChargeManager {
 
         keepAliveTimerTask?.cancel()
         keepAliveTimerTask = null
+    }
+
+    private fun keepAliveTimerTask() {
+        defaultScope.launch {
+            val responsive = deviceResponsive
+            val succeeded = sendKeepAlive()
+
+            if (!responsive && succeeded) {
+                Log.d(tag, "Device became responsive after sending keep-alive, updating state")
+
+                sendSetOutputRequest(true)
+            }
+        }
     }
 
     private fun createBasicCommandPacket(type: String, id: Int): JSONObject {
@@ -265,6 +280,7 @@ class ChargeManager {
                 return null
             } catch (e: Exception) {
                 Log.w(tag, "Exception: $e")
+                deviceResponsive = false
                 return null
             }
 
