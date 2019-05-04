@@ -19,6 +19,10 @@ int main(int argc, char *argv[])
         teveclubService.feed([](ITeveclubService::FeedResult result) {
             qDebug() << "Feed finished";
         });
+
+        teveclubService.teach([](ITeveclubService::TeachResult result) {
+            qDebug() << "Teach finished";
+        });
     });
 
     return a.exec();

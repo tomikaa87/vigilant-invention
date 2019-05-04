@@ -5,7 +5,9 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QUrlQuery>
+
 #include "MainPage.h"
+#include "TeachingPage.h"
 
 Q_LOGGING_CATEGORY(TeveclubServiceLog, "TeveclubService")
 
@@ -61,7 +63,7 @@ void TeveclubService::login(std::function<void(LoginResult)>&& callback)
 
 void TeveclubService::feed(std::function<void(FeedResult)>&& callback)
 {
-    getMainPage([this, callback{ std::move(callback) }](bool succeeded, QByteArray&& content) {
+    getPage("/myteve.pet", [this, callback{ std::move(callback) }](const bool succeeded, QByteArray&& content) {
         if (!succeeded)
         {
             qCWarning(TeveclubServiceLog) << "feeding failed, main page couldn't be loaded";
@@ -107,9 +109,6 @@ void TeveclubService::feed(std::function<void(FeedResult)>&& callback)
                 return;
             }
 
-            auto statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-            auto content = reply->readAll();
-
             callback(FeedResult::Ok);
         });
     });
@@ -117,30 +116,59 @@ void TeveclubService::feed(std::function<void(FeedResult)>&& callback)
 
 void TeveclubService::teach(std::function<void(TeachResult)>&& callback)
 {
-    auto&& request = createPostRequest();
+    getPage("/tanit.pet", [this, callback{ std::move(callback) }](const bool succeeded, QByteArray&& content) {
+        if (!succeeded)
+        {
+            qCWarning(TeveclubServiceLog) << "feeding failed, main page couldn't be loaded";
+            callback(TeachResult::NetworkError);
+            return;
+        }
 
-    /*
-     * form name = tanitb
-     * formdoit = tanit
-     * input submit name learn
-     */
+        TeachingPage teachingPage{ content };
 
-    QUrlQuery query;
+        QUrlQuery query;
 
-    auto reply = m_network->post(request, query.toString(QUrl::FullyEncoded).toUtf8());
+        if (teachingPage.hasTeachingForm())
+        {
+            query.addQueryItem("learn", "Tanulj teve!");
+            query.addQueryItem("farmdoit", "tanit");
+        }
+        else if (teachingPage.hasTeachingFormWithSelector())
+        {
 
-    connect(reply, &QNetworkReply::finished, [reply, callback{ std::move(callback) }]{
+        }
+        else
+        {
+            qCWarning(TeveclubServiceLog) << "teaching is unnecessary";
+            callback(TeachResult::AlreadyTaught);
+            return;
+        }
 
+        auto reply = m_network->post(createPostRequest("/tanit.pet"), query.toString(QUrl::FullyEncoded).toUtf8());
+
+        connect(reply, &QNetworkReply::finished, [reply, callback{ std::move(callback) }] {
+            if (reply->error() != QNetworkReply::NoError)
+            {
+                qCWarning(TeveclubServiceLog) << "network error:" << reply->errorString();
+                callback(TeachResult::NetworkError);
+                return;
+            }
+
+            auto statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+            auto content = reply->readAll();
+
+            callback(TeachResult::Ok);
+        });
     });
 }
 
-void TeveclubService::getMainPage(std::function<void(bool succeeded, QByteArray&& content)>&& callback)
+void TeveclubService::getPage(const QString& path, std::function<void(bool succeeded, QByteArray&& content)>&& callback)
 {
-    auto&& request = createRequest("/myteve.pet");
+    auto&& request = createRequest(path);
 
     auto reply = m_network->get(request);
 
-    connect(reply, &QNetworkReply::finished, [reply, callback{ std::move(callback) }] {
+    connect(reply, &QNetworkReply::finished, [reply, callback{ std::move(callback) }, path] {
         if (reply->error() != QNetworkReply::NoError)
         {
             qCWarning(TeveclubServiceLog) << "network error:" << reply->errorString();
@@ -148,7 +176,7 @@ void TeveclubService::getMainPage(std::function<void(bool succeeded, QByteArray&
             return;
         }
 
-        qCDebug(TeveclubServiceLog) << "main page loaded";
+        qCDebug(TeveclubServiceLog) << "main page loaded:" << path;
 
         callback(true, reply->readAll());
     });

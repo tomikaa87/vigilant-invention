@@ -2,11 +2,12 @@
 
 #include <QRegularExpression>
 #include <QString>
+#include <QStringView>
 
 class MainPage
 {
 public:
-    MainPage(QString content);
+    explicit MainPage(QString content);
 
     bool hasFeedingForm();
     QStringView findFeedingForm();

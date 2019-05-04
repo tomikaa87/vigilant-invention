@@ -102,6 +102,7 @@
     <ClCompile Include="Configuration.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainPage.cpp" />
+    <ClCompile Include="TeachingPage.cpp" />
     <ClCompile Include="TeveclubService.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -112,6 +113,7 @@
     <ClInclude Include="IConfiguration.h" />
     <ClInclude Include="ITeveclubService.h" />
     <ClInclude Include="MainPage.h" />
+    <ClInclude Include="TeachingPage.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
