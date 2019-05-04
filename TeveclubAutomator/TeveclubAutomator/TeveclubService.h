@@ -25,5 +25,5 @@ private:
     void getMainPage(std::function<void(bool succeeded, QByteArray&& content)>&& callback);
 
     static QNetworkRequest createRequest(const QString& path = {});
-    static QNetworkRequest createPostRequest();
+    static QNetworkRequest createPostRequest(const QString& path = {});
 };

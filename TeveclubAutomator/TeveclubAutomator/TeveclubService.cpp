@@ -18,8 +18,6 @@ TeveclubService::TeveclubService(IConfiguration& configuration, QObject *parent)
 
 void TeveclubService::login(std::function<void(LoginResult)>&& callback)
 {
-    auto&& request = createPostRequest();
-
     QUrlQuery query;
     query.addQueryItem("tevenev", m_configuration.readValue("login/username").toString());
     query.addQueryItem("pass", m_configuration.readValue("login/password").toString());
@@ -27,7 +25,7 @@ void TeveclubService::login(std::function<void(LoginResult)>&& callback)
     query.addQueryItem("y", "26");
     query.addQueryItem("login", "Gyere!");
 
-    auto reply = m_network->post(request, query.toString(QUrl::FullyEncoded).toUtf8());
+    auto reply = m_network->post(createPostRequest(), query.toString(QUrl::FullyEncoded).toUtf8());
 
     connect(reply, &QNetworkReply::finished, [reply, callback{ std::move(callback) }] {
         if (reply->error() != QNetworkReply::NoError)
@@ -80,26 +78,41 @@ void TeveclubService::feed(std::function<void(FeedResult)>&& callback)
             return;
         }
 
-        mainPage.countEmptyDrinkSlots();
-        mainPage.countEmptyFoodSlots();
+        const auto drinkAmount = mainPage.countEmptyDrinkSlots();
+        const auto foodAmount = mainPage.countEmptyFoodSlots();
+
+        qCDebug(TeveclubServiceLog).nospace()
+            << "drinkAmount: " << drinkAmount
+            << ", foodAmount: " << foodAmount;
+
+        if (drinkAmount == 0 || foodAmount == 0)
+        {
+            qCWarning(TeveclubServiceLog) << "feeding is unnecessary";
+            callback(FeedResult::AlreadyFed);
+            return;
+        }
+
+        QUrlQuery query;
+        query.addQueryItem("kaja", QString::number(foodAmount));
+        query.addQueryItem("pia", QString::number(drinkAmount));
+        query.addQueryItem("etet", "Mehet!");
+
+        auto reply = m_network->post(createPostRequest("/myteve.pet"), query.toString(QUrl::FullyEncoded).toUtf8());
+
+        connect(reply, &QNetworkReply::finished, [reply, callback{ std::move(callback) }] {
+            if (reply->error() != QNetworkReply::NoError)
+            {
+                qCWarning(TeveclubServiceLog) << "network error:" << reply->errorString();
+                callback(FeedResult::NetworkError);
+                return;
+            }
+
+            auto statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+            auto content = reply->readAll();
+
+            callback(FeedResult::Ok);
+        });
     });
-
-    //auto&& request = createPostRequest();
-
-    ///*
-    // * form name = etet
-    // * select name kaja, value 7
-    // * select name pia, value 7
-    // * input submit name etet
-    // */
-
-    //QUrlQuery query;
-
-    //auto reply = m_network->post(request, query.toString(QUrl::FullyEncoded).toUtf8());
-
-    //connect(reply, &QNetworkReply::finished, [reply, callback{ std::move(callback) }] {
-
-    //});
 }
 
 void TeveclubService::teach(std::function<void(TeachResult)>&& callback)
@@ -148,9 +161,9 @@ QNetworkRequest TeveclubService::createRequest(const QString& path)
     return request;
 }
 
-QNetworkRequest TeveclubService::createPostRequest()
+QNetworkRequest TeveclubService::createPostRequest(const QString& path)
 {
-    auto&& request = createRequest();
+    auto&& request = createRequest(path);
 
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
 
