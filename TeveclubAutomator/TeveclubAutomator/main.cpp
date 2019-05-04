@@ -13,8 +13,12 @@ int main(int argc, char *argv[])
 
     qDebug() << "Logging in";
 
-    teveclubService.login([](ITeveclubService::LoginResult result) {
+    teveclubService.login([&teveclubService](ITeveclubService::LoginResult result) {
         qDebug() << "Login finished";
+
+        teveclubService.feed([](ITeveclubService::FeedResult result) {
+            qDebug() << "Feed finished";
+        });
     });
 
     return a.exec();

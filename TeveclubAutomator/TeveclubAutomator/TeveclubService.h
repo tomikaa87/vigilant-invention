@@ -22,5 +22,8 @@ private:
     IConfiguration& m_configuration;
     QNetworkAccessManager* const m_network;
 
+    void getMainPage(std::function<void(bool succeeded, QByteArray&& content)>&& callback);
+
+    static QNetworkRequest createRequest(const QString& path = {});
     static QNetworkRequest createPostRequest();
 };

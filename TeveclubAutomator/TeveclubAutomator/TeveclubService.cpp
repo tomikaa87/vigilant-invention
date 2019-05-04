@@ -1,9 +1,11 @@
 #include "TeveclubService.h"
 
+#include <QBuffer>
 #include <QLoggingCategory>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QUrlQuery>
+#include "MainPage.h"
 
 Q_LOGGING_CATEGORY(TeveclubServiceLog, "TeveclubService")
 
@@ -61,20 +63,54 @@ void TeveclubService::login(std::function<void(LoginResult)>&& callback)
 
 void TeveclubService::feed(std::function<void(FeedResult)>&& callback)
 {
-    auto&& request = createPostRequest();
+    getMainPage([this, callback{ std::move(callback) }](bool succeeded, QByteArray&& content) {
+        if (!succeeded)
+        {
+            qCWarning(TeveclubServiceLog) << "feeding failed, main page couldn't be loaded";
+            callback(FeedResult::NetworkError);
+            return;
+        }
 
-    QUrlQuery query;
+        MainPage mainPage{ content };
 
-    auto reply = m_network->post(request, query.toString(QUrl::FullyEncoded).toUtf8());
+        if (!mainPage.hasFeedingForm())
+        {
+            qCWarning(TeveclubServiceLog) << "feeding is unnecessary";
+            callback(FeedResult::AlreadyFed);
+            return;
+        }
 
-    connect(reply, &QNetworkReply::finished, [reply, callback{ std::move(callback) }] {
-
+        mainPage.countEmptyDrinkSlots();
+        mainPage.countEmptyFoodSlots();
     });
+
+    //auto&& request = createPostRequest();
+
+    ///*
+    // * form name = etet
+    // * select name kaja, value 7
+    // * select name pia, value 7
+    // * input submit name etet
+    // */
+
+    //QUrlQuery query;
+
+    //auto reply = m_network->post(request, query.toString(QUrl::FullyEncoded).toUtf8());
+
+    //connect(reply, &QNetworkReply::finished, [reply, callback{ std::move(callback) }] {
+
+    //});
 }
 
 void TeveclubService::teach(std::function<void(TeachResult)>&& callback)
 {
     auto&& request = createPostRequest();
+
+    /*
+     * form name = tanitb
+     * formdoit = tanit
+     * input submit name learn
+     */
 
     QUrlQuery query;
 
@@ -85,9 +121,36 @@ void TeveclubService::teach(std::function<void(TeachResult)>&& callback)
     });
 }
 
+void TeveclubService::getMainPage(std::function<void(bool succeeded, QByteArray&& content)>&& callback)
+{
+    auto&& request = createRequest("/myteve.pet");
+
+    auto reply = m_network->get(request);
+
+    connect(reply, &QNetworkReply::finished, [reply, callback{ std::move(callback) }] {
+        if (reply->error() != QNetworkReply::NoError)
+        {
+            qCWarning(TeveclubServiceLog) << "network error:" << reply->errorString();
+            callback(false, {});
+            return;
+        }
+
+        qCDebug(TeveclubServiceLog) << "main page loaded";
+
+        callback(true, reply->readAll());
+    });
+}
+
+QNetworkRequest TeveclubService::createRequest(const QString& path)
+{
+    QNetworkRequest request{ QUrl{ "https://teveclub.hu" + path } };
+
+    return request;
+}
+
 QNetworkRequest TeveclubService::createPostRequest()
 {
-    QNetworkRequest request{ QUrl{ "https://teveclub.hu" } };
+    auto&& request = createRequest();
 
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
 

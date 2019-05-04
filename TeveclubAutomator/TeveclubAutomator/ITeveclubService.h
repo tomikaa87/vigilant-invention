@@ -20,7 +20,8 @@ public:
     {
         Ok,
         NotLoggedIn,
-        NetworkError
+        NetworkError,
+        AlreadyFed
     };
 
     enum class TeachResult
