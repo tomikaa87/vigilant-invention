@@ -32,7 +32,7 @@ void TeveclubService::login(std::function<void(LoginResult)>&& callback)
     connect(reply, &QNetworkReply::finished, [reply, callback{ std::move(callback) }] {
         if (reply->error() != QNetworkReply::NoError)
         {
-            qCWarning(TeveclubServiceLog) << "network error:" << reply->errorString();
+            qCWarning(TeveclubServiceLog) << "Login failed, network error:" << reply->errorString();
             callback(LoginResult::NetworkError);
             return;
         }
@@ -41,7 +41,7 @@ void TeveclubService::login(std::function<void(LoginResult)>&& callback)
 
         if (statusCode != 302)
         {
-            qCWarning(TeveclubServiceLog) << "invalid response status code:" << statusCode;
+            qCWarning(TeveclubServiceLog) << "Invalid response status code after login:" << statusCode;
             callback(LoginResult::NetworkError);
             return;
         }
@@ -50,12 +50,12 @@ void TeveclubService::login(std::function<void(LoginResult)>&& callback)
 
         if (location.path() == "/error.pet")
         {
-            qCWarning(TeveclubServiceLog) << "invalid credentials";
+            qCWarning(TeveclubServiceLog) << "Invalid credentials";
             callback(LoginResult::InvalidCredentials);
             return;
         }
 
-        qCDebug(TeveclubServiceLog) << "logged in successfully";
+        qCDebug(TeveclubServiceLog) << "Logged in successfully";
 
         callback(LoginResult::Ok);
     });
@@ -66,7 +66,7 @@ void TeveclubService::feed(std::function<void(FeedResult)>&& callback)
     getPage("/myteve.pet", [this, callback{ std::move(callback) }](const bool succeeded, QByteArray&& content) {
         if (!succeeded)
         {
-            qCWarning(TeveclubServiceLog) << "feeding failed, main page couldn't be loaded";
+            qCWarning(TeveclubServiceLog) << "Feeding failed, main page couldn't be loaded";
             callback(FeedResult::NetworkError);
             return;
         }
@@ -75,7 +75,7 @@ void TeveclubService::feed(std::function<void(FeedResult)>&& callback)
 
         if (!mainPage.hasFeedingForm())
         {
-            qCWarning(TeveclubServiceLog) << "feeding is unnecessary";
+            qCWarning(TeveclubServiceLog) << "Feeding is unnecessary";
             callback(FeedResult::AlreadyFed);
             return;
         }
@@ -89,7 +89,7 @@ void TeveclubService::feed(std::function<void(FeedResult)>&& callback)
 
         if (drinkAmount == 0 || foodAmount == 0)
         {
-            qCWarning(TeveclubServiceLog) << "feeding is unnecessary";
+            qCWarning(TeveclubServiceLog) << "Feeding is unnecessary";
             callback(FeedResult::AlreadyFed);
             return;
         }
@@ -104,7 +104,7 @@ void TeveclubService::feed(std::function<void(FeedResult)>&& callback)
         connect(reply, &QNetworkReply::finished, [reply, callback{ std::move(callback) }] {
             if (reply->error() != QNetworkReply::NoError)
             {
-                qCWarning(TeveclubServiceLog) << "network error:" << reply->errorString();
+                qCWarning(TeveclubServiceLog) << "Feeding failed, network error:" << reply->errorString();
                 callback(FeedResult::NetworkError);
                 return;
             }
@@ -119,7 +119,7 @@ void TeveclubService::teach(std::function<void(TeachResult)>&& callback)
     getPage("/tanit.pet", [this, callback{ std::move(callback) }](const bool succeeded, QByteArray&& content) {
         if (!succeeded)
         {
-            qCWarning(TeveclubServiceLog) << "feeding failed, main page couldn't be loaded";
+            qCWarning(TeveclubServiceLog) << "Teaching failed, main page couldn't be loaded";
             callback(TeachResult::NetworkError);
             return;
         }
@@ -128,18 +128,18 @@ void TeveclubService::teach(std::function<void(TeachResult)>&& callback)
 
         QUrlQuery query;
 
-        if (teachingPage.hasTeachingForm())
+        if (teachingPage.hasForm())
         {
             query.addQueryItem("learn", "Tanulj teve!");
             query.addQueryItem("farmdoit", "tanit");
         }
-        else if (teachingPage.hasTeachingFormWithSelector())
+        else if (teachingPage.hasFormWithSelector())
         {
 
         }
         else
         {
-            qCWarning(TeveclubServiceLog) << "teaching is unnecessary";
+            qCWarning(TeveclubServiceLog) << "Teaching is unnecessary";
             callback(TeachResult::AlreadyTaught);
             return;
         }
@@ -149,7 +149,7 @@ void TeveclubService::teach(std::function<void(TeachResult)>&& callback)
         connect(reply, &QNetworkReply::finished, [reply, callback{ std::move(callback) }] {
             if (reply->error() != QNetworkReply::NoError)
             {
-                qCWarning(TeveclubServiceLog) << "network error:" << reply->errorString();
+                qCWarning(TeveclubServiceLog) << "Teaching failed, network error:" << reply->errorString();
                 callback(TeachResult::NetworkError);
                 return;
             }
@@ -171,12 +171,12 @@ void TeveclubService::getPage(const QString& path, std::function<void(bool succe
     connect(reply, &QNetworkReply::finished, [reply, callback{ std::move(callback) }, path] {
         if (reply->error() != QNetworkReply::NoError)
         {
-            qCWarning(TeveclubServiceLog) << "network error:" << reply->errorString();
+            qCWarning(TeveclubServiceLog).nospace() << "Network error while loading page '" << path << "': " << reply->errorString();
             callback(false, {});
             return;
         }
 
-        qCDebug(TeveclubServiceLog) << "main page loaded:" << path;
+        qCDebug(TeveclubServiceLog) << "Page loaded:" << path;
 
         callback(true, reply->readAll());
     });

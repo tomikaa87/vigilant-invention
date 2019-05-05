@@ -5,7 +5,7 @@ TeachingPage::TeachingPage(QString content)
 {
 }
 
-bool TeachingPage::hasTeachingForm() const
+bool TeachingPage::hasForm() const
 {
     auto&& pattern =
         QRegularExpression::escape(R"(<form action="" method="post" name="tanitb">)") +
@@ -19,12 +19,12 @@ bool TeachingPage::hasTeachingForm() const
     return match.hasMatch();
 }
 
-bool TeachingPage::hasTeachingFormWithSelector()
+bool TeachingPage::hasFormWithSelector()
 {
-    return !findTeachingFormWithSelector().isNull();
+    return !findFormWithSkillSelector().isNull();
 }
 
-QStringView TeachingPage::findTeachingFormWithSelector()
+QStringView TeachingPage::findFormWithSkillSelector()
 {
     if (!m_teachingFormWithSelector.isNull())
         return m_teachingFormWithSelector;

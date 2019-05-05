@@ -9,10 +9,12 @@ class TeachingPage
 public:
     explicit TeachingPage(QString content);
 
-    bool hasTeachingForm() const;
-    bool hasTeachingFormWithSelector();
+    bool hasForm() const;
+    bool hasFormWithSelector();
 
-    QStringView findTeachingFormWithSelector();
+    QStringView findFormWithSkillSelector();
+
+    int selectRandomSkill();
 
 private:
     const QString m_content;
