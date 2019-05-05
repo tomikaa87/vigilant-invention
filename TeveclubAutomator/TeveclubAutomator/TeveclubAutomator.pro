@@ -4,15 +4,18 @@
 
 TEMPLATE = app
 TARGET = TeveclubAutomator
-DESTDIR = ../x64/Debug
 QT += core network
-CONFIG += debug console
-DEFINES += _UNICODE _ENABLE_EXTENDED_ALIGNED_STORAGE WIN64 QT_DLL QT_NETWORK_LIB
+CONFIG += console
+DEFINES += _ENABLE_EXTENDED_ALIGNED_STORAGE QT_NETWORK_LIB
 INCLUDEPATH += . \
     ./GeneratedFiles/$(ConfigurationName)
 DEPENDPATH += .
 MOC_DIR += ./GeneratedFiles/$(ConfigurationName)
-OBJECTS_DIR += debug
+OBJECTS_DIR += ./GeneratedFiles
 UI_DIR += ./GeneratedFiles
 RCC_DIR += ./GeneratedFiles
+
+target.path = .
+INSTALLS += target
+
 include(TeveclubAutomator.pri)
