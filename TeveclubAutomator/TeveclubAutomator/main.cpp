@@ -70,11 +70,18 @@ void run(TeveclubService& teveclubService, bool feedEnabled, bool teachEnabled)
     qDebug() << "Logging in";
 
     teveclubService.login([&teveclubService, feedEnabled, teachEnabled, state](ITeveclubService::LoginResult result) {
+        if (result != ITeveclubService::LoginResult::Ok)
+        {
+            qCritical() << "Login failed";
+            QCoreApplication::exit(1);
+            return;
+        }
+
         qDebug() << "Login finished";
 
         if (feedEnabled)
         {
-            teveclubService.feed([state](ITeveclubService::FeedResult result) {
+            teveclubService.feed([state](ITeveclubService::FeedResult) {
                 qDebug() << "Feeding finished";
 
                 state->fed();
@@ -83,7 +90,7 @@ void run(TeveclubService& teveclubService, bool feedEnabled, bool teachEnabled)
 
         if (teachEnabled)
         {
-            teveclubService.teach([state](ITeveclubService::TeachResult result) {
+            teveclubService.teach([state](ITeveclubService::TeachResult) {
                 qDebug() << "Teaching finished";
 
                 state->taught();
