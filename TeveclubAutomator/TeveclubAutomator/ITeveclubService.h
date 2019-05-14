@@ -29,7 +29,8 @@ public:
         Ok,
         NotLoggedIn,
         NetworkError,
-        AlreadyTaught
+        AlreadyTaught,
+        SkillSelectionFailed
     };
 
     virtual void login(std::function<void(LoginResult)>&& callback) = 0;

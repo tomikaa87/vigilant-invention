@@ -124,18 +124,31 @@ void TeveclubService::teach(std::function<void(TeachResult)>&& callback)
             return;
         }
 
-        TeachingPage teachingPage{ content };
+        // Must convert from Latin-1 because teveclub ignores Accept-Charset.
+        TeachingPage teachingPage{ QString::fromLatin1(content) };
 
         QUrlQuery query;
 
-        if (teachingPage.hasForm())
+        if (teachingPage.hasFormWithSelector())
         {
+            auto skill = teachingPage.selectRandomSkill();
+            if (skill.first.isEmpty())
+            {
+                qCWarning(TeveclubServiceLog) << "Teaching failed, skill could not be selected";
+                callback(TeachResult::SkillSelectionFailed);
+                return;
+            }
+
+            qCInfo(TeveclubServiceLog).noquote().nospace() << "Selected skill: " << skill.second << " (" << skill.first << ")";
+
+            query.addQueryItem("tudomany", skill.first);
             query.addQueryItem("learn", "Tanulj teve!");
             query.addQueryItem("farmdoit", "tanit");
         }
-        else if (teachingPage.hasFormWithSelector())
+        else if (teachingPage.hasForm())
         {
-
+            query.addQueryItem("learn", "Tanulj teve!");
+            query.addQueryItem("farmdoit", "tanit");
         }
         else
         {

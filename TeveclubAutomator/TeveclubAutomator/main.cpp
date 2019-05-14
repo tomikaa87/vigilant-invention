@@ -105,8 +105,10 @@ int main(int argc, char *argv[])
 
     QCoreApplication application{ argc, argv };
 
+    qsrand(static_cast<uint>(QDateTime::currentMSecsSinceEpoch()));
+
     QCoreApplication::setApplicationName("Teveclub Automation");
-    QCoreApplication::setApplicationVersion("1.0.1");
+    QCoreApplication::setApplicationVersion("1.1.0");
 
     Configuration configuration{ QCoreApplication::applicationDirPath() + "/TeveclubAutomator.ini" };
 
@@ -114,8 +116,8 @@ int main(int argc, char *argv[])
 
     QCommandLineParser commandLineParser;
     commandLineParser.setApplicationDescription("This application automates certain actions on teveclub.hu");
-    commandLineParser.addHelpOption();
-    commandLineParser.addVersionOption();
+    (void)commandLineParser.addHelpOption();
+    (void)commandLineParser.addVersionOption();
 
     commandLineParser.addOption(QCommandLineOption{
         QStringList{ "f", "feed" },

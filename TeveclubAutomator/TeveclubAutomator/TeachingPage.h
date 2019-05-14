@@ -14,7 +14,7 @@ public:
 
     QStringView findFormWithSkillSelector();
 
-    int selectRandomSkill();
+    std::pair<QString, QString> selectRandomSkill();
 
 private:
     const QString m_content;
