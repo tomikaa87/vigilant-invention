@@ -107,8 +107,8 @@ int main(int argc, char *argv[])
 
     qsrand(static_cast<uint>(QDateTime::currentMSecsSinceEpoch()));
 
-    QCoreApplication::setApplicationName("Teveclub Automation");
-    QCoreApplication::setApplicationVersion("1.1.0");
+    QCoreApplication::setApplicationName("Teveclub Automator");
+    QCoreApplication::setApplicationVersion("1.1.1");
 
     Configuration configuration{ QCoreApplication::applicationDirPath() + "/TeveclubAutomator.ini" };
 
