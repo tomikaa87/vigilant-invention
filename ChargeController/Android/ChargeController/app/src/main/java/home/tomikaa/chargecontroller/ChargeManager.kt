@@ -40,6 +40,8 @@ class ChargeManager {
     private var keepAliveTimerTask: TimerTask? = null
     private val keepAliveSendInterval: Long = 60
 
+    private val deviceAddress = "smartplug-bedroom.devices";
+
     init {
         updateStatus()
     }
@@ -241,7 +243,7 @@ class ChargeManager {
         var response: ByteArray?
 
         for (i in 1..3) {
-            response = sendDatagram(request, InetSocketAddress("192.168.0.7", 52461))
+            response = sendDatagram(request, InetSocketAddress(deviceAddress, 52461))
 
             if (response != null)
                 return JSONObject(response.toString(Charsets.UTF_8))
