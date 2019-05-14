@@ -46,7 +46,7 @@ void run(TeveclubService& teveclubService, bool feedEnabled, bool teachEnabled)
         {
             alreadyFed = true;
 
-            if (teach && alreadyTaught)
+            if (!teach || (teach && alreadyTaught))
                 QCoreApplication::exit();
         }
 
@@ -54,7 +54,7 @@ void run(TeveclubService& teveclubService, bool feedEnabled, bool teachEnabled)
         {
             alreadyTaught = true;
 
-            if (feed && alreadyFed)
+            if (!feed || (feed && alreadyFed))
                 QCoreApplication::exit();
         }
 
@@ -106,9 +106,9 @@ int main(int argc, char *argv[])
     QCoreApplication application{ argc, argv };
 
     QCoreApplication::setApplicationName("Teveclub Automation");
-    QCoreApplication::setApplicationVersion("1.0.0");
+    QCoreApplication::setApplicationVersion("1.0.1");
 
-    Configuration configuration{ QCoreApplication::applicationDirPath() + "/config.ini" };
+    Configuration configuration{ QCoreApplication::applicationDirPath() + "/TeveclubAutomator.ini" };
 
     TeveclubService teveclubService{ configuration };
 
@@ -137,6 +137,8 @@ int main(int argc, char *argv[])
         std::cout << "No action defined." << std::endl << std::endl;
         commandLineParser.showHelp(1);
     }
+
+    qInfo().noquote() << "Version:" << QCoreApplication::applicationVersion();
 
     run(teveclubService, feedEnabled, teachEnabled);
 
