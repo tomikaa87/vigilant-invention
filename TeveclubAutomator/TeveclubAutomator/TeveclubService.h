@@ -17,6 +17,7 @@ public:
     void login(std::function<void(LoginResult)>&& callback) override;
     void feed(std::function<void(FeedResult)>&& callback) override;
     void teach(std::function<void(TeachResult)>&& callback) override;
+    void play(std::function<void(PlayResult)>&& callback) override;
 
 private:
     IConfiguration& m_configuration;

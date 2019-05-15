@@ -101,6 +101,7 @@
   <ItemGroup>
     <ClCompile Include="Actions.cpp" />
     <ClCompile Include="Configuration.cpp" />
+    <ClCompile Include="GamePage.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainPage.cpp" />
     <ClCompile Include="TeachingPage.cpp" />
@@ -112,6 +113,7 @@
   <ItemGroup>
     <ClInclude Include="Actions.h" />
     <ClInclude Include="Configuration.h" />
+    <ClInclude Include="GamePage.h" />
     <ClInclude Include="IConfiguration.h" />
     <ClInclude Include="ITeveclubService.h" />
     <ClInclude Include="MainPage.h" />

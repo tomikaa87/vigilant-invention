@@ -8,6 +8,7 @@
 
 #include "MainPage.h"
 #include "TeachingPage.h"
+#include "GamePage.h"
 
 Q_LOGGING_CATEGORY(TeveclubServiceLog, "TeveclubService")
 
@@ -171,6 +172,69 @@ void TeveclubService::teach(std::function<void(TeachResult)>&& callback)
             auto content = reply->readAll();
 
             callback(TeachResult::Ok);
+        });
+    });
+}
+
+void TeveclubService::play(std::function<void(PlayResult)>&& callback)
+{
+    bool ok;
+
+    const auto minBet = m_configuration.readValue("game/minBet").toInt(&ok);
+    if (!ok || minBet < 0 || minBet > 99999)
+    {
+        qCWarning(TeveclubServiceLog) << "Cannot play because of 'minBet' is configured improperly. Valid range is 0-99999.";
+        callback(PlayResult::InvalidConfiguration);
+        return;
+    }
+
+    const auto maxBet = m_configuration.readValue("game/maxBet").toInt(&ok);
+    if (!ok || maxBet < 0 || maxBet > 99999 || maxBet < minBet)
+    {
+        qCWarning(TeveclubServiceLog) << "Cannot play because of 'maxBet' is configured improperly. Valid range is 0-99999 and it must be greater than or equal to 'minBet'.";
+        callback(PlayResult::InvalidConfiguration);
+        return;
+    }
+
+    getPage("/egyszam.pet", [this, callback{ std::move(callback) }, minBet, maxBet](const bool succeeded, QByteArray&& content) {
+        if (!succeeded)
+        {
+            qCWarning(TeveclubServiceLog) << "Cannot play because main page couldn't be loaded";
+            callback(PlayResult::NetworkError);
+            return;
+        }
+
+        GamePage gamePage{ content };
+
+        if (!gamePage.hasForm())
+        {
+            qCWarning(TeveclubServiceLog) << "Camel has already played";
+            callback(PlayResult::AlreadyPlayed);
+            return;
+        }
+
+        const auto bet =
+            minBet == maxBet
+                ? minBet
+                : (qrand() % (maxBet - minBet) + minBet);
+
+        qCInfo(TeveclubServiceLog) << "Placing bet:" << bet;
+
+        QUrlQuery query;
+        query.addQueryItem("honnan", QString::number(bet));
+        query.addQueryItem("tipp", "Ez a tippem!");
+
+        auto reply = m_network->post(createPostRequest("/egyszam.pet"), query.toString(QUrl::FullyEncoded).toUtf8());
+
+        connect(reply, &QNetworkReply::finished, [reply, callback{ std::move(callback) }] {
+            if (reply->error() != QNetworkReply::NoError)
+            {
+                qCWarning(TeveclubServiceLog) << "Cannot play because of a network error:" << reply->errorString();
+                callback(PlayResult::NetworkError);
+                return;
+            }
+
+            callback(PlayResult::Ok);
         });
     });
 }

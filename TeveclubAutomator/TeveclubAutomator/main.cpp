@@ -68,10 +68,11 @@ void run(TeveclubService& teveclubService, Actions& actions)
 
         if (actions.isRequired(Actions::Kind::Play))
         {
-            // TODO implement
-            qDebug() << "Playing finished";
+            teveclubService.play([&actions](ITeveclubService::PlayResult) {
+                qDebug() << "Playing finished";
 
-            actions.complete(Actions::Kind::Play);
+                actions.complete(Actions::Kind::Play);
+            });
         }
     });
 }
