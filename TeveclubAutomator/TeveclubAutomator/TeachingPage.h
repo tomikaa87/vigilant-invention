@@ -9,17 +9,19 @@ class TeachingPage
 public:
     explicit TeachingPage(QString content);
 
-    bool hasForm() const;
-    bool hasFormWithSelector();
+    bool hasForm();
+    bool hasFormWithSkillSelector();
 
-    QStringView findFormWithSkillSelector();
+    QString findForm();
+    QString findFormWithSkillSelector();
 
     std::pair<QString, QString> selectRandomSkill();
 
 private:
     const QString m_content;
 
-    QStringView m_teachingFormWithSelector;
+    QString m_teachingForm;
+    QString m_teachingFormWithSelector;
 
     static QRegularExpression::PatternOptions defaultPatternOptions();
 };

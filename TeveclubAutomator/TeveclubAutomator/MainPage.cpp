@@ -13,7 +13,7 @@ bool MainPage::hasFeedingForm()
     return !findFeedingForm().isNull();
 }
 
-QStringView MainPage::findFeedingForm()
+QString MainPage::findFeedingForm()
 {
     if (!m_feedingForm.isNull())
         return m_feedingForm;
@@ -32,7 +32,7 @@ QStringView MainPage::findFeedingForm()
         return{};
     }
 
-    m_feedingForm = match.capturedView(1);
+    m_feedingForm = match.captured(1);
 
     return m_feedingForm;
 }
@@ -61,14 +61,14 @@ int MainPage::countEmptyFeedingSlots(const QString& formName)
 
     QRegularExpression re{ pattern, defaultPatternOptions() };
 
-    auto&& match = re.match(form.toString());
+    auto&& match = re.match(form);
 
     if (!match.hasMatch())
     {
         return{};
     }
 
-    return countSelectOptions(match.capturedView(1));
+    return countSelectOptions(match.captured(1));
 }
 
 QRegularExpression::PatternOptions MainPage::defaultPatternOptions()
@@ -80,7 +80,7 @@ QRegularExpression::PatternOptions MainPage::defaultPatternOptions()
     };
 }
 
-int MainPage::countSelectOptions(QStringView s)
+int MainPage::countSelectOptions(const QString& s)
 {
     if (s.isNull())
         return{};

@@ -5,45 +5,63 @@ TeachingPage::TeachingPage(QString content)
 {
 }
 
-bool TeachingPage::hasForm() const
+bool TeachingPage::hasForm()
 {
-    auto&& pattern =
-        QRegularExpression::escape(R"(<form action="" method="post" name="tanitb">)") +
-        ".*" +
-        QRegularExpression::escape("</form>");
-
-    QRegularExpression re{ pattern, defaultPatternOptions() };
-
-    auto&& match = re.match(m_content);
-
-    return match.hasMatch();
+    return !findForm().isEmpty();
 }
 
-bool TeachingPage::hasFormWithSelector()
+bool TeachingPage::hasFormWithSkillSelector()
 {
-    return !findFormWithSkillSelector().isNull();
+    return !findFormWithSkillSelector().isEmpty();
 }
 
-QStringView TeachingPage::findFormWithSkillSelector()
+QString TeachingPage::findForm()
 {
-    if (!m_teachingFormWithSelector.isNull())
-        return m_teachingFormWithSelector;
+    if (!m_teachingForm.isEmpty())
+        return m_teachingForm;
 
-    auto&& pattern =
+    const auto pattern =
         QRegularExpression::escape(R"(<form action="" method="post" name="tanitb">)") +
         "(.*)" +
         QRegularExpression::escape("</form>");
 
     QRegularExpression re{ pattern, defaultPatternOptions() };
 
-    auto&& match = re.match(m_content);
+    auto match = re.match(m_content);
 
     if (!match.hasMatch())
     {
         return{};
     }
 
-    m_teachingFormWithSelector = match.capturedView(1);
+    m_teachingForm = match.captured(1);
+
+    return m_teachingForm;
+}
+
+QString TeachingPage::findFormWithSkillSelector()
+{
+    if (!m_teachingFormWithSelector.isEmpty())
+        return m_teachingFormWithSelector;
+
+    if (!hasForm())
+        return{};
+
+    auto&& pattern =
+        QRegularExpression::escape(R"(<select name="tudomany">)") +
+        "(.*)" +
+        QRegularExpression::escape("</select>");
+
+    QRegularExpression re{ pattern, defaultPatternOptions() };
+
+    auto&& match = re.match(findForm());
+
+    if (!match.hasMatch())
+    {
+        return {};
+    }
+
+    m_teachingFormWithSelector = match.captured(1);
 
     return m_teachingFormWithSelector;
 }
@@ -53,39 +71,23 @@ std::pair<QString, QString> TeachingPage::selectRandomSkill()
     if (findFormWithSkillSelector().isEmpty())
         return{};
 
-    auto pattern =
-        QRegularExpression::escape(R"(<select name="tudomany">)") +
-        "(.*)" +
-        QRegularExpression::escape("</select>");
-
-    QRegularExpression re{ pattern, defaultPatternOptions() };
-
-    auto&& match = re.match(findFormWithSkillSelector().toString());
-
-    if (!match.hasMatch())
-    {
-        return {};
-    }
-
-    const auto options = match.capturedRef(1);
-
-    pattern =
+    auto&& pattern =
         QRegularExpression::escape(R"(<option value=")") +
         R"((\d+))" +
         QRegularExpression::escape(R"(">)") +
         "(.*)" +
         QRegularExpression::escape("</option>");
 
-    re.setPattern(pattern);
+    QRegularExpression re{ pattern, defaultPatternOptions() };
 
-    auto&& optionsMatch = re.globalMatch(options);
+    auto&& optionsMatch = re.globalMatch(m_teachingFormWithSelector);
 
-    std::vector<std::pair<QStringView, QStringView>> skills;
+    std::vector<std::pair<QString, QString>> skills;
 
     while (optionsMatch.hasNext())
     {
         auto&& option = optionsMatch.next();
-        skills.emplace_back(option.capturedView(1), option.capturedView(2));
+        skills.emplace_back(option.captured(1), option.captured(2));
     }
 
     if (skills.empty())
@@ -93,7 +95,7 @@ std::pair<QString, QString> TeachingPage::selectRandomSkill()
 
     auto&& skill = skills[qrand() % skills.size()];
 
-    return std::make_pair(skill.first.toString(), skill.second.toString());
+    return std::make_pair(skill.first, skill.second);
 }
 
 QRegularExpression::PatternOptions TeachingPage::defaultPatternOptions()

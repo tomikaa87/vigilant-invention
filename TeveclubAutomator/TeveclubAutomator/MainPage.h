@@ -10,18 +10,18 @@ public:
     explicit MainPage(QString content);
 
     bool hasFeedingForm();
-    QStringView findFeedingForm();
+    QString findFeedingForm();
     int countEmptyFoodSlots();
     int countEmptyDrinkSlots();
 
 private:
     const QString m_content;
 
-    QStringView m_feedingForm;
+    QString m_feedingForm;
 
     int countEmptyFeedingSlots(const QString& formName);
 
     static QRegularExpression::PatternOptions defaultPatternOptions();
-    static int countSelectOptions(QStringView s);
+    static int countSelectOptions(const QString& s);
 };
 

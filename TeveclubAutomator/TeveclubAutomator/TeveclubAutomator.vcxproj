@@ -99,6 +99,7 @@
     </QtMoc>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Actions.cpp" />
     <ClCompile Include="Configuration.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainPage.cpp" />
@@ -109,6 +110,7 @@
     <QtMoc Include="TeveclubService.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Actions.h" />
     <ClInclude Include="Configuration.h" />
     <ClInclude Include="IConfiguration.h" />
     <ClInclude Include="ITeveclubService.h" />

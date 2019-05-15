@@ -32,7 +32,7 @@ void TeveclubService::login(std::function<void(LoginResult)>&& callback)
     connect(reply, &QNetworkReply::finished, [reply, callback{ std::move(callback) }] {
         if (reply->error() != QNetworkReply::NoError)
         {
-            qCWarning(TeveclubServiceLog) << "Login failed, network error:" << reply->errorString();
+            qCWarning(TeveclubServiceLog) << "Cannot login because of a network error:" << reply->errorString();
             callback(LoginResult::NetworkError);
             return;
         }
@@ -66,7 +66,7 @@ void TeveclubService::feed(std::function<void(FeedResult)>&& callback)
     getPage("/myteve.pet", [this, callback{ std::move(callback) }](const bool succeeded, QByteArray&& content) {
         if (!succeeded)
         {
-            qCWarning(TeveclubServiceLog) << "Feeding failed, main page couldn't be loaded";
+            qCWarning(TeveclubServiceLog) << "Cannot feed because main page couldn't be loaded";
             callback(FeedResult::NetworkError);
             return;
         }
@@ -75,7 +75,7 @@ void TeveclubService::feed(std::function<void(FeedResult)>&& callback)
 
         if (!mainPage.hasFeedingForm())
         {
-            qCWarning(TeveclubServiceLog) << "Feeding is unnecessary";
+            qCWarning(TeveclubServiceLog) << "Camel is already fed";
             callback(FeedResult::AlreadyFed);
             return;
         }
@@ -89,7 +89,7 @@ void TeveclubService::feed(std::function<void(FeedResult)>&& callback)
 
         if (drinkAmount == 0 || foodAmount == 0)
         {
-            qCWarning(TeveclubServiceLog) << "Feeding is unnecessary";
+            qCWarning(TeveclubServiceLog) << "Camel is already fed";
             callback(FeedResult::AlreadyFed);
             return;
         }
@@ -104,7 +104,7 @@ void TeveclubService::feed(std::function<void(FeedResult)>&& callback)
         connect(reply, &QNetworkReply::finished, [reply, callback{ std::move(callback) }] {
             if (reply->error() != QNetworkReply::NoError)
             {
-                qCWarning(TeveclubServiceLog) << "Feeding failed, network error:" << reply->errorString();
+                qCWarning(TeveclubServiceLog) << "Cannot feed because of a network error:" << reply->errorString();
                 callback(FeedResult::NetworkError);
                 return;
             }
@@ -119,7 +119,7 @@ void TeveclubService::teach(std::function<void(TeachResult)>&& callback)
     getPage("/tanit.pet", [this, callback{ std::move(callback) }](const bool succeeded, QByteArray&& content) {
         if (!succeeded)
         {
-            qCWarning(TeveclubServiceLog) << "Teaching failed, main page couldn't be loaded";
+            qCWarning(TeveclubServiceLog) << "Cannot teach because main page couldn't be loaded";
             callback(TeachResult::NetworkError);
             return;
         }
@@ -129,12 +129,12 @@ void TeveclubService::teach(std::function<void(TeachResult)>&& callback)
 
         QUrlQuery query;
 
-        if (teachingPage.hasFormWithSelector())
+        if (teachingPage.hasFormWithSkillSelector())
         {
             auto skill = teachingPage.selectRandomSkill();
             if (skill.first.isEmpty())
             {
-                qCWarning(TeveclubServiceLog) << "Teaching failed, skill could not be selected";
+                qCWarning(TeveclubServiceLog) << "Cannot teach because skill could not be selected";
                 callback(TeachResult::SkillSelectionFailed);
                 return;
             }
@@ -152,7 +152,7 @@ void TeveclubService::teach(std::function<void(TeachResult)>&& callback)
         }
         else
         {
-            qCWarning(TeveclubServiceLog) << "Teaching is unnecessary";
+            qCWarning(TeveclubServiceLog) << "Camel is already taught";
             callback(TeachResult::AlreadyTaught);
             return;
         }
@@ -162,7 +162,7 @@ void TeveclubService::teach(std::function<void(TeachResult)>&& callback)
         connect(reply, &QNetworkReply::finished, [reply, callback{ std::move(callback) }] {
             if (reply->error() != QNetworkReply::NoError)
             {
-                qCWarning(TeveclubServiceLog) << "Teaching failed, network error:" << reply->errorString();
+                qCWarning(TeveclubServiceLog) << "Cannot teach because of a network error:" << reply->errorString();
                 callback(TeachResult::NetworkError);
                 return;
             }

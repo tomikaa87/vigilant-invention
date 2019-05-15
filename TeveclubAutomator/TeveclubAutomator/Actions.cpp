@@ -9,12 +9,12 @@ Actions::Actions(std::initializer_list<Kind> l)
         m_completed[kind] = false;
 }
 
-void Actions::require(Actions::Kind kind)
+void Actions::require(const Kind kind)
 {
     m_completed[kind] = false;
 }
 
-void Actions::complete(Actions::Kind kind)
+void Actions::complete(const Kind kind)
 {
     m_completed[kind] = true;
 
@@ -22,7 +22,7 @@ void Actions::complete(Actions::Kind kind)
         m_completionCallback();
 }
 
-bool Actions::isRequired(Actions::Kind kind) const
+bool Actions::isRequired(const Kind kind) const
 {
     return m_completed.find(kind) != std::cend(m_completed);
 }
