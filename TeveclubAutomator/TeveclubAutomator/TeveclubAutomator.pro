@@ -5,7 +5,7 @@
 TEMPLATE = app
 TARGET = TeveclubAutomator
 QT += core network
-CONFIG += console
+CONFIG += console c++1z
 DEFINES += _ENABLE_EXTENDED_ALIGNED_STORAGE QT_NETWORK_LIB
 INCLUDEPATH += . \
     ./GeneratedFiles/$(ConfigurationName)

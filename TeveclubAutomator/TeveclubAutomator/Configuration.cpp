@@ -7,6 +7,7 @@ Q_LOGGING_CATEGORY(ConfigurationLog, "Configuration")
 Configuration::Configuration(const QString& filePath)
     : m_settings{ filePath, QSettings::Format::IniFormat }
 {
+    qCInfo(ConfigurationLog) << "Using configuration file:" << filePath;
 }
 
 QVariant Configuration::readValue(const QString& key) const

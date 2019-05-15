@@ -5,6 +5,7 @@
 
 #include <iostream>
 
+#include "Actions.h"
 #include "Configuration.h"
 #include "TeveclubService.h"
 
@@ -33,43 +34,11 @@ void messageHandler(const QtMsgType type, const QMessageLogContext& context, con
     std::cout << entry.toUtf8().constData() << std::endl;
 }
 
-void run(TeveclubService& teveclubService, bool feedEnabled, bool teachEnabled)
+void run(TeveclubService& teveclubService, Actions& actions)
 {
-    struct State
-    {
-        State(const bool feed, const bool teach)
-            : feed{ feed }
-            , teach{ teach }
-        {}
-
-        void fed()
-        {
-            alreadyFed = true;
-
-            if (!teach || (teach && alreadyTaught))
-                QCoreApplication::exit();
-        }
-
-        void taught()
-        {
-            alreadyTaught = true;
-
-            if (!feed || (feed && alreadyFed))
-                QCoreApplication::exit();
-        }
-
-    private:
-        const bool feed;
-        const bool teach;
-        bool alreadyFed = false;
-        bool alreadyTaught = false;
-    };
-
-    auto state = std::make_shared<State>(feedEnabled, teachEnabled);
-
     qDebug() << "Logging in";
 
-    teveclubService.login([&teveclubService, feedEnabled, teachEnabled, state](ITeveclubService::LoginResult result) {
+    teveclubService.login([&teveclubService, &actions](ITeveclubService::LoginResult result) {
         if (result != ITeveclubService::LoginResult::Ok)
         {
             qCritical() << "Login failed";
@@ -79,22 +48,30 @@ void run(TeveclubService& teveclubService, bool feedEnabled, bool teachEnabled)
 
         qDebug() << "Login finished";
 
-        if (feedEnabled)
+        if (actions.isRequired(Actions::Kind::Feed))
         {
-            teveclubService.feed([state](ITeveclubService::FeedResult) {
+            teveclubService.feed([&actions](ITeveclubService::FeedResult) {
                 qDebug() << "Feeding finished";
 
-                state->fed();
+                actions.complete(Actions::Kind::Feed);
             });
         }
 
-        if (teachEnabled)
+        if (actions.isRequired(Actions::Kind::Teach))
         {
-            teveclubService.teach([state](ITeveclubService::TeachResult) {
+            teveclubService.teach([&actions](ITeveclubService::TeachResult) {
                 qDebug() << "Teaching finished";
 
-                state->taught();
+                actions.complete(Actions::Kind::Teach);
             });
+        }
+
+        if (actions.isRequired(Actions::Kind::Play))
+        {
+            // TODO implement
+            qDebug() << "Playing finished";
+
+            actions.complete(Actions::Kind::Play);
         }
     });
 }
@@ -108,7 +85,7 @@ int main(int argc, char *argv[])
     qsrand(static_cast<uint>(QDateTime::currentMSecsSinceEpoch()));
 
     QCoreApplication::setApplicationName("Teveclub Automator");
-    QCoreApplication::setApplicationVersion("1.1.1");
+    QCoreApplication::setApplicationVersion("1.2.0");
 
     Configuration configuration{ QCoreApplication::applicationDirPath() + "/TeveclubAutomator.ini" };
 
@@ -129,20 +106,38 @@ int main(int argc, char *argv[])
         "Teaches a lesson of the current skill"
     });
 
+    commandLineParser.addOption(QCommandLineOption{
+        QStringList{ "p", "play" },
+        "Plays the Wonderful One Number game"
+    });
+
     commandLineParser.process(application);
 
-    const auto feedEnabled = commandLineParser.isSet("feed");
-    const auto teachEnabled = commandLineParser.isSet("teach");
+    Actions actions;
 
-    if (!feedEnabled && !teachEnabled)
+    if (commandLineParser.isSet("feed"))
+        actions.require(Actions::Kind::Feed);
+
+    if (commandLineParser.isSet("teach"))
+        actions.require(Actions::Kind::Teach);
+
+    if (commandLineParser.isSet("play"))
+        actions.require(Actions::Kind::Play);
+
+    if (actions.isEmpty())
     {
         std::cout << "No action defined." << std::endl << std::endl;
         commandLineParser.showHelp(1);
     }
 
+    actions.setCompletionCallback([] {
+        qInfo() << "Completed";
+        QCoreApplication::exit();
+    });
+
     qInfo().noquote() << "Version:" << QCoreApplication::applicationVersion();
 
-    run(teveclubService, feedEnabled, teachEnabled);
+    run(teveclubService, actions);
 
     return application.exec();
 }

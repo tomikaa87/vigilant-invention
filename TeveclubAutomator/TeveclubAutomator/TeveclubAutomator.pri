@@ -8,12 +8,14 @@ message("You are running qmake on a generated .pro file. This may not work!")
 
 
 HEADERS += ./Configuration.h \
+    ./Actions.h \
     ./IConfiguration.h \
     ./ITeveclubService.h \
     ./MainPage.h \
     ./TeachingPage.h \
     ./TeveclubService.h
 SOURCES += ./Configuration.cpp \
+    ./Actions.cpp \
     ./main.cpp \
     ./MainPage.cpp \
     ./TeachingPage.cpp \
