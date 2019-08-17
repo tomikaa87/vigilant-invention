@@ -40,6 +40,8 @@
 #define LED_BLINK_ON_TIME       (40u)
 #define LED_BLINK_WAIT_TIME     (125u)
 
+#define ENABLE_TEST_MODE        (0)
+
 volatile uint8_t timer2_cnt = 0;
 volatile uint32_t elapsed_secs = 0;
 
@@ -48,7 +50,7 @@ volatile bit led_on = 0;
 struct {
         uint8_t pressed : 1;
         uint8_t long_pressed : 1;
-        uint8_t check_timer : 6;
+        uint8_t debounce_counter : 6;
         uint8_t press_time;
 } button = { 0, };
 
@@ -72,8 +74,6 @@ struct {
         uint8_t checksum;
         uint8_t on_hours;
 } settings;
-
-//#define TEST
 
 void led_blink_task();
 
@@ -206,7 +206,7 @@ void led_blink_stop()
 
 void timer_task()
 {
-#ifdef TEST
+#if ENABLE_TEST_MODE
         static const uint32_t multiplier = 1u;
 #else
         static const uint32_t multiplier = 3600u;
@@ -342,10 +342,10 @@ void handle_long_button_press()
 
 void check_button()
 {
-        if (--button.check_timer > 0)
+        if (--button.debounce_counter > 0)
                 return;
 
-        button.check_timer = 10;
+        button.debounce_counter = 10;
 
         if (PIN_BUTTON == 0) {
                 if (!button.pressed) {
