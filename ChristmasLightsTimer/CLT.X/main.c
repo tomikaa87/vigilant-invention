@@ -42,6 +42,7 @@
 
 #define ENABLE_TEST_MODE        (0)
 
+
 volatile uint8_t timer2_cnt = 0;
 volatile uint32_t elapsed_secs = 0;
 
@@ -52,7 +53,7 @@ struct {
         uint8_t long_pressed : 1;
         uint8_t debounce_counter : 6;
         uint8_t press_time;
-} button = { 0, };
+} button = { 0 };
 
 struct {
         uint16_t run_task : 1;
@@ -62,8 +63,8 @@ struct {
         uint16_t count : 5;
         uint16_t current_count : 5;
         uint16_t : 0;
-        uint16_t timer; // TODO this can be uint8_t
-} led_blink = { 0, };
+        uint8_t timer;
+} led_blink = { 0 };
 
 enum {
         S_TIMER,
@@ -74,6 +75,7 @@ struct {
         uint8_t checksum;
         uint8_t on_hours;
 } settings;
+
 
 void led_blink_task();
 
@@ -176,8 +178,9 @@ void settings_save()
         settings.checksum = settings_calc_checksum();
 
         for (uint8_t i = 0; i < sizeof(settings); ++i) {
-                if (eeprom_read(CONFIG_ADDR +1) != *p)
+                if (eeprom_read(CONFIG_ADDR + i) != *p) {
                         eeprom_write(CONFIG_ADDR + i, *p++);
+		}
         }
 }
 
