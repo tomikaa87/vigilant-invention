@@ -22,17 +22,17 @@
 #pragma config FCMEN = ON       // Fail-Safe Clock Monitor Enabled bit (Fail-Safe Clock Monitor is enabled)
 
 
-#define _XTAL_FREQ	        31000
+#define _XTAL_FREQ              31000
 
 
-#define PIN_BUTTON	        (GP5)
-#define TRIS_BUTTON	        (TRISIO5)
-#define WPU_BUTTON	        (WPU5)
+#define PIN_BUTTON              (GP5)
+#define TRIS_BUTTON             (TRISIO5)
+#define WPU_BUTTON              (WPU5)
 
-#define PIN_LED		        (GP2)
-#define TRIS_LED	        (TRISIO2)
+#define PIN_LED                 (GP2)
+#define TRIS_LED                (TRISIO2)
 
-#define TIMER2_PERIOD	        (125)
+#define TIMER2_PERIOD           (125)
 
 #define CONFIG_ADDR             (0u)
 
@@ -44,9 +44,12 @@ volatile uint8_t timer2_cnt = 0;
 volatile uint32_t elapsed_secs = 0;
 
 volatile bit led_on = 0;
+
+// TODO move these into a struct
 bit button_pressed = 0;
 bit button_long_pressed = 0;
-uint32_t button_pressed_time = 0;
+uint32_t button_pressed_time = 0; // TODO this can be uint8_t
+uint8_t button_check_timer = 0;
 
 struct {
         uint16_t enabled : 1;
@@ -55,65 +58,65 @@ struct {
         uint16_t count : 5;
         uint16_t current_count : 5;
         uint16_t : 0;
-        uint16_t timer;
+        uint16_t timer; // TODO this can be uint8_t
 } led_blink;
 
 enum {
-        S_NORMAL,
-        S_SETTING_ON_PERIOD
-} state = S_NORMAL;
+        S_TIMER,
+        S_SET_ON_HOURS
+} state = S_TIMER;
 
 struct {
         uint8_t checksum;
         uint8_t on_hours;
 } settings;
 
-#define TEST
+//#define TEST
 
 void led_blink_task();
 
 void interrupt isr()
 {
-	if (TMR2IF) {
-		TMR2IF = 0;
-		++timer2_cnt;
-		if (timer2_cnt >= TIMER2_PERIOD) {
-			timer2_cnt = 0;
-			++elapsed_secs;
-		}
+        if (TMR2IF) {
+                TMR2IF = 0;
+                ++timer2_cnt;
+                if (timer2_cnt >= TIMER2_PERIOD) {
+                        timer2_cnt = 0;
+                        ++elapsed_secs;
+                }
 
                 led_blink_task();
-	}
+        }
 }
 
 void setup()
 {
         // 125 kHz HFINTOSC, FOSC defined clock source
-	OSCCON = 0b00010000;
+        OSCCON = 0b00010000;
 
-	// Shutdown the comparator to save energy
-	CMCON0 = 0b111;
+        // Shutdown the comparator to save energy
+        CMCON0 = 0b111;
 
-	// Setup input pin for the button
-	TRIS_BUTTON = 1;
-	OPTION_REGbits.nGPPU = 0;
-	WPU_BUTTON = 1;
+        // Setup input pin for the button
+        TRIS_BUTTON = 1;
+        OPTION_REGbits.nGPPU = 0;
+        WPU_BUTTON = 1;
 
-	// Setup output pin for the LED
-	PIN_LED = 0;
-	TRIS_LED = 0;
+        // Setup output pin for the LED
+        PIN_LED = 0;
+        TRIS_LED = 0;
 
-	// Setup TMR2, 8 ms period, Post-scaler 1:1, Enabled, Pre-scaler 1:1
-	T2CON = 0b00000100;
-	PR2 = 249;
+        // Setup TMR2, 8 ms period, Post-scaler 1:1, Enabled, Pre-scaler 1:1
+        T2CON = 0b00000100;
+        PR2 = 249;
 
-	// Setup interrupts
-	GIE = 1;
-	PEIE = 1;
-	TMR2IE = 1;
+        // Setup interrupts
+        GIE = 1;
+        PEIE = 1;
+        TMR2IE = 1;
 
-	led_on = 1;
-	PIN_LED = 1;
+        led_on = 1;
+        PIN_LED = 1;
 }
 
 uint8_t eeprom_read(const uint8_t address)
@@ -137,7 +140,7 @@ void eeprom_write(const uint8_t address, const uint8_t data)
         GIE = 1;
 }
 
-uint8_t settings_calc_cksum()
+uint8_t settings_calc_checksum()
 {
         const uint8_t* p = (const uint8_t*)&settings;
         uint8_t checksum = 0x10;
@@ -145,7 +148,7 @@ uint8_t settings_calc_cksum()
         // Skip 'checksum' field
         p += sizeof(settings.checksum);
 
-        for (uint8_t i = 1; i < sizeof(settings); ++i) {
+        for (uint8_t i = sizeof(settings.checksum); i < sizeof(settings); ++i) {
                 checksum += *p++;
         }
 
@@ -160,14 +163,14 @@ int8_t settings_load()
                 *p++ = eeprom_read(CONFIG_ADDR + i);
         }
 
-        return settings_calc_cksum() == settings.checksum;
+        return settings_calc_checksum() == settings.checksum;
 }
 
 void settings_save()
 {
         const uint8_t* p = (const uint8_t*)&settings;
 
-        settings.checksum = settings_calc_cksum();
+        settings.checksum = settings_calc_checksum();
 
         for (uint8_t i = 0; i < sizeof(settings); ++i) {
                 if (eeprom_read(CONFIG_ADDR +1) != *p)
@@ -178,7 +181,7 @@ void settings_save()
 void settings_load_defaults()
 {
         settings.on_hours = 6u;
-        settings.checksum = settings_calc_cksum();
+        settings.checksum = settings_calc_checksum();
 }
 
 void led_blink_start(uint8_t count)
@@ -198,13 +201,22 @@ void led_blink_stop()
         led_on = 0;
 }
 
-void normal_task()
+void timer_task()
 {
 #ifdef TEST
         static const uint32_t multiplier = 1u;
 #else
         static const uint32_t multiplier = 3600u;
 #endif
+
+        if (settings.on_hours == 24) {
+                if (!led_on) {
+                        led_on = 1;
+                        PIN_LED = 1;
+                }
+
+                return;
+        }
 
         if (led_on) {
                 if (elapsed_secs >= settings.on_hours * multiplier) {
@@ -221,14 +233,15 @@ void normal_task()
         }
 }
 
-void set_on_period_task()
+void enter_on_hours_setting()
 {
-        if (!led_blink.enabled) {
+        if (state == S_TIMER) {
+                state = S_SET_ON_HOURS;
                 led_blink_start(settings.on_hours);
         }
 }
 
-void increment_on_period()
+void increment_on_hours_setting()
 {
         ++settings.on_hours;
 
@@ -239,12 +252,12 @@ void increment_on_period()
         led_blink_start(settings.on_hours);
 }
 
-void leave_on_period_setting()
+void leave_on_hours_setting()
 {
         led_blink_stop();
         settings_save();
 
-        state = S_NORMAL;
+        state = S_TIMER;
 }
 
 void led_blink_task()
@@ -288,23 +301,23 @@ void led_blink_task()
         }
 }
 
-void toggle_output()
+void switch_led()
 {
         timer2_cnt = 0;
-	elapsed_secs = 0;
-	led_on = !led_on;
-	PIN_LED = led_on;
+        elapsed_secs = 0;
+        led_on = !led_on;
+        PIN_LED = led_on;
 }
 
 void handle_short_button_press()
 {
         switch (state) {
-        case S_NORMAL:
-                toggle_output();
+        case S_TIMER:
+                switch_led();
                 break;
 
-        case S_SETTING_ON_PERIOD:
-                increment_on_period();
+        case S_SET_ON_HOURS:
+                increment_on_hours_setting();
                 break;
         }
 }
@@ -312,23 +325,31 @@ void handle_short_button_press()
 void handle_long_button_press()
 {
         switch (state) {
-        case S_NORMAL:
-                state = S_SETTING_ON_PERIOD;
+        case S_TIMER:
+                enter_on_hours_setting();
                 break;
 
-        case S_SETTING_ON_PERIOD:
-                leave_on_period_setting();
+        case S_SET_ON_HOURS:
+                leave_on_hours_setting();
                 break;
         }
 }
 
 void check_button()
 {
+        if (button_check_timer-- > 0)
+                return;
+
+        button_check_timer = 10;
+
         if (PIN_BUTTON == 0) {
                 if (!button_pressed) {
                         button_pressed = 1;
                         button_pressed_time = elapsed_secs;
                 } else {
+                        if (button_long_pressed)
+                                return;
+
                         uint32_t elapsed = button_pressed_time - elapsed_secs;
 
                         if (elapsed >= 5u) {
@@ -346,6 +367,17 @@ void check_button()
         }
 }
 
+void run()
+{
+        while (1) {
+                if (state == S_TIMER) {
+                        timer_task();
+                }
+
+                check_button();
+        }
+}
+
 void main()
 {
         setup();
@@ -354,17 +386,5 @@ void main()
                 settings_load_defaults();
         }
 
-	while (1) {
-                switch (state) {
-                case S_NORMAL:
-                        normal_task();
-                        break;
-
-                case S_SETTING_ON_PERIOD:
-                        set_on_period_task();
-                        break;
-                }
-
-                check_button();
-	}
+        run();
 }
