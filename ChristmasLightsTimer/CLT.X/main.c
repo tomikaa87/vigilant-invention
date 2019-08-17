@@ -45,13 +45,15 @@ volatile uint32_t elapsed_secs = 0;
 
 volatile bit led_on = 0;
 
-// TODO move these into a struct
-bit button_pressed = 0;
-bit button_long_pressed = 0;
-uint32_t button_pressed_time = 0; // TODO this can be uint8_t
-uint8_t button_check_timer = 0;
+struct {
+        uint8_t pressed : 1;
+        uint8_t long_pressed : 1;
+        uint8_t check_timer : 6;
+        uint8_t press_time;
+} button = { 0, };
 
 struct {
+        uint16_t run_task : 1;
         uint16_t enabled : 1;
         uint16_t on : 1;
         uint16_t changed : 1;
@@ -59,7 +61,7 @@ struct {
         uint16_t current_count : 5;
         uint16_t : 0;
         uint16_t timer; // TODO this can be uint8_t
-} led_blink;
+} led_blink = { 0, };
 
 enum {
         S_TIMER,
@@ -83,9 +85,10 @@ void interrupt isr()
                 if (timer2_cnt >= TIMER2_PERIOD) {
                         timer2_cnt = 0;
                         ++elapsed_secs;
+                        ++button.press_time;
                 }
 
-                led_blink_task();
+                led_blink.run_task = 1;
         }
 }
 
@@ -262,6 +265,8 @@ void leave_on_hours_setting()
 
 void led_blink_task()
 {
+        led_blink.run_task = 0;
+
         if (!led_blink.enabled)
                 return;
 
@@ -337,32 +342,30 @@ void handle_long_button_press()
 
 void check_button()
 {
-        if (button_check_timer-- > 0)
+        if (--button.check_timer > 0)
                 return;
 
-        button_check_timer = 10;
+        button.check_timer = 10;
 
         if (PIN_BUTTON == 0) {
-                if (!button_pressed) {
-                        button_pressed = 1;
-                        button_pressed_time = elapsed_secs;
+                if (!button.pressed) {
+                        button.pressed = 1;
+                        button.press_time = 0;
                 } else {
-                        if (button_long_pressed)
+                        if (button.long_pressed)
                                 return;
 
-                        uint32_t elapsed = button_pressed_time - elapsed_secs;
-
-                        if (elapsed >= 5u) {
-                                button_long_pressed = 1;
+                        if (button.press_time >= 5u) {
+                                button.long_pressed = 1;
                                 handle_long_button_press();
                         }
                 }
         } else {
-                if (button_pressed) {
-                        button_pressed = 0;
-                        if (!button_long_pressed)
+                if (button.pressed) {
+                        button.pressed = 0;
+                        if (!button.long_pressed)
                                 handle_short_button_press();
-                        button_long_pressed = 0;
+                        button.long_pressed = 0;
                 }
         }
 }
@@ -372,6 +375,10 @@ void run()
         while (1) {
                 if (state == S_TIMER) {
                         timer_task();
+                }
+
+                if (led_blink.run_task) {
+                        led_blink_task();
                 }
 
                 check_button();
