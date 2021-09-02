@@ -5,12 +5,31 @@
  * Created on December 13, 2018, 6:36 PM
  */
 
+/*
+ * Menu representation with a single LED
+ *
+ * Normal state: LED switched by the main timer
+ *  |--> Long press: enter, leave
+ *     |--> LED blink (1x 1000 ms + 1x 500 ms + 1000 ms off): 1st option - ON time
+ *     |  |--> Long press: enter, leave; Short press: increment value
+ *     |  |--> LED blink (Nx 500 ms + 1000 ms off): N hours ON
+ *     |--> LED blink (1x 1000 ms + 2x 500 ms + 1000 ms off): 2nd option - LED brightness
+ *        |--> Long press: enter, leave; Short press: increment value
+ *        |--> Change LED brightness in 10% steps
+ *
+ */
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <xc.h>
 
+#ifndef _12F683
+#include "mcc_generated_files/mcc.h"
+#endif
+
 
 // CONFIG
+#ifdef _12F683
 #pragma config FOSC = INTOSCCLK // Oscillator Selection bits (INTOSC oscillator: CLKOUT function on RA4/OSC2/CLKOUT pin, I/O function on RA5/OSC1/CLKIN)
 #pragma config WDTE = OFF       // Watchdog Timer Enable bit (WDT disabled)
 #pragma config PWRTE = ON       // Power-up Timer Enable bit (PWRT enabled)
@@ -21,10 +40,10 @@
 #pragma config IESO = ON        // Internal External Switchover bit (Internal External Switchover mode is enabled)
 #pragma config FCMEN = ON       // Fail-Safe Clock Monitor Enabled bit (Fail-Safe Clock Monitor is enabled)
 
+#define _XTAL_FREQ              1000000
+#endif
 
-#define _XTAL_FREQ              31000
-
-
+#ifdef _12F683
 #define PIN_BUTTON              (GP5)
 #define TRIS_BUTTON             (TRISIO5)
 #define WPU_BUTTON              (WPU5)
@@ -34,19 +53,44 @@
 
 #define TIMER2_PERIOD           (125)
 
-#define CONFIG_ADDR             (0u)
+#define LED_BLINK_OFF_TIME      (40u)
+#define LED_BLINK_ON_TIME       (40u)
+#define LED_BLINK_WAIT_TIME     (125u)
+
+#define TIMER_TICKS_PER_SEC     (100)
+#else
+#define PIN_BUTTON              (IO_BUTTON_GetValue())
+#define TIMER_TICKS_PER_SEC     (100)
 
 #define LED_BLINK_OFF_TIME      (40u)
 #define LED_BLINK_ON_TIME       (40u)
 #define LED_BLINK_WAIT_TIME     (125u)
 
+#endif
+
+#define CONFIG_ADDR             (0u)
+#define TIMER_PR2_ADDR          (0xFD)
+#define OSCTUNE_ADDR            (0xFE)
+#define OSCTUNE_STORED_ADDR     (0xFF)
+
+// For my 12F683, these tuning values are needed:
+//  PR2 = 250
+//  OSCTUNE = 0
+//
+//  EEPROM bytes [0xFD..0xFF] = 0xFA 0x00 0xAB
+
+
 #define ENABLE_TEST_MODE        (0)
 
 
-volatile uint8_t timer2_cnt = 0;
+#define WRITE_OSCTUNE_TO_EEPROM (0)
+#define OSCTUNE_VALUE           (0b11111)
+
+
+volatile uint8_t timer_cnt = 0;
 volatile uint32_t elapsed_secs = 0;
 
-volatile bit led_on = 0;
+volatile bool led_on = 0;
 
 struct {
         uint8_t pressed : 1;
@@ -56,36 +100,42 @@ struct {
 } button = { 0 };
 
 struct {
-        uint16_t run_task : 1;
-        uint16_t enabled : 1;
-        uint16_t on : 1;
-        uint16_t changed : 1;
-        uint16_t count : 5;
-        uint16_t current_count : 5;
-        uint16_t : 0;
+        uint8_t run_task : 1;
+        uint8_t enabled : 1;
+        uint8_t on : 1;
+        uint8_t changed : 1;
+        uint8_t count : 5;
+        uint8_t current_count : 5;
+        uint8_t: 0;
         uint8_t timer;
 } led_blink = { 0 };
 
 enum {
         S_TIMER,
-        S_SET_ON_HOURS
+        S_MENU,
+        S_SET_ON_HOURS,
+        S_SET_BRIGHTNESS
 } state = S_TIMER;
 
 struct {
         uint8_t checksum;
         uint8_t on_hours;
+        uint8_t brightness_pct;
 } settings;
 
 
 void led_blink_task();
 
-void interrupt isr()
+#ifdef _12F683
+
+
+void __interrupt() isr()
 {
         if (TMR2IF) {
                 TMR2IF = 0;
-                ++timer2_cnt;
-                if (timer2_cnt >= TIMER2_PERIOD) {
-                        timer2_cnt = 0;
+                ++timer_cnt;
+                if (timer_cnt >= TIMER2_PERIOD) {
+                        timer_cnt = 0;
                         ++elapsed_secs;
                         ++button.press_time;
                 }
@@ -93,11 +143,14 @@ void interrupt isr()
                 led_blink.run_task = 1;
         }
 }
+#endif
+
 
 void setup()
 {
-        // 125 kHz HFINTOSC, FOSC defined clock source
-        OSCCON = 0b00010000;
+#ifdef _12F683
+        // 1 Mhz HFINTOSC, FOSC defined clock source
+        OSCCON = 0b01000000;
 
         // Shutdown the comparator to save energy
         CMCON0 = 0b111;
@@ -111,8 +164,8 @@ void setup()
         PIN_LED = 0;
         TRIS_LED = 0;
 
-        // Setup TMR2, 8 ms period, Post-scaler 1:1, Enabled, Pre-scaler 1:1
-        T2CON = 0b00000100;
+        // Setup TMR2, 8 ms period, Post-scaler 1:8, Enabled, Pre-scaler 1:1
+        T2CON = 0x3C;
         PR2 = 249;
 
         // Setup interrupts
@@ -122,17 +175,40 @@ void setup()
 
         led_on = 1;
         PIN_LED = 1;
+#endif
+
+#if WRITE_OSCTUNE_TO_EEPROM
+        eeprom_write(OSCTUNE_STORED_ADDR, 0xAB);
+        eeprom_write(OSCTUNE_ADDR, OSCTUNE_VALUE);
+#endif
+
+        // Apply custom oscillator tuning value if needed
+        if (eeprom_read(OSCTUNE_STORED_ADDR) == 0xAB) {
+                uint8_t stored_osctune = eeprom_read(OSCTUNE_ADDR);
+                if (stored_osctune <= 0b11111) {
+                        OSCTUNE = stored_osctune;
+                }
+
+                PR2 = eeprom_read(TIMER_PR2_ADDR);
+        }
 }
+
 
 uint8_t eeprom_read(const uint8_t address)
 {
+#ifdef _12F683
         EEADR = address;
         EECON1bits.RD = 1;
         return EEDAT;
+#else
+        return EEPROM_READ(address);
+#endif
 }
+
 
 void eeprom_write(const uint8_t address, const uint8_t data)
 {
+#ifdef _12F683
         EECON1bits.WREN = 1;
         EEADR = address;
         EEDAT = data;
@@ -143,7 +219,11 @@ void eeprom_write(const uint8_t address, const uint8_t data)
         while (EECON1bits.WR);
         EECON1bits.WREN = 0;
         GIE = 1;
+#else
+        EEPROM_WRITE(address, data);
+#endif
 }
+
 
 uint8_t settings_calc_checksum()
 {
@@ -151,25 +231,27 @@ uint8_t settings_calc_checksum()
         uint8_t checksum = 0x10;
 
         // Skip 'checksum' field
-        p += sizeof(settings.checksum);
+        p += sizeof (settings.checksum);
 
-        for (uint8_t i = sizeof(settings.checksum); i < sizeof(settings); ++i) {
+        for (uint8_t i = sizeof (settings.checksum); i < sizeof (settings); ++i) {
                 checksum += *p++;
         }
 
         return checksum;
 }
 
+
 int8_t settings_load()
 {
         uint8_t* p = (uint8_t*)&settings;
 
-        for (uint8_t i = 0; i < sizeof(settings); ++i) {
+        for (uint8_t i = 0; i < sizeof (settings); ++i) {
                 *p++ = eeprom_read(CONFIG_ADDR + i);
         }
 
         return settings_calc_checksum() == settings.checksum;
 }
+
 
 void settings_save()
 {
@@ -177,18 +259,41 @@ void settings_save()
 
         settings.checksum = settings_calc_checksum();
 
-        for (uint8_t i = 0; i < sizeof(settings); ++i) {
+        for (uint8_t i = 0; i < sizeof (settings); ++i) {
                 if (eeprom_read(CONFIG_ADDR + i) != *p) {
                         eeprom_write(CONFIG_ADDR + i, *p++);
-		}
+                }
         }
 }
+
 
 void settings_load_defaults()
 {
         settings.on_hours = 6u;
+        settings.brightness_pct = 100u;
         settings.checksum = settings_calc_checksum();
 }
+
+
+void led_set_on()
+{
+#ifdef _12F683
+        PIN_LED = 1;
+#else
+        EPWM_LoadDutyValue(1023);
+#endif
+}
+
+
+void led_set_off()
+{
+#ifdef _12F683
+        PIN_LED = 0;
+#else
+        EPWM_LoadDutyValue(0);
+#endif
+}
+
 
 void led_blink_start(uint8_t count)
 {
@@ -200,12 +305,14 @@ void led_blink_start(uint8_t count)
         led_blink.enabled = 1;
 }
 
+
 void led_blink_stop()
 {
         led_blink.enabled = 0;
-        PIN_LED = 0;
+        led_set_off();
         led_on = 0;
 }
+
 
 void timer_task()
 {
@@ -218,7 +325,7 @@ void timer_task()
         if (settings.on_hours == 24) {
                 if (!led_on) {
                         led_on = 1;
-                        PIN_LED = 1;
+                        led_set_on();
                 }
 
                 return;
@@ -228,16 +335,17 @@ void timer_task()
                 if (elapsed_secs >= settings.on_hours * multiplier) {
                         elapsed_secs = 0;
                         led_on = 0;
-                        PIN_LED = 0;
+                        led_set_off();
                 }
         } else {
                 if (elapsed_secs >= (24u - settings.on_hours) * multiplier) {
                         elapsed_secs = 0;
                         led_on = 1;
-                        PIN_LED = 1;
+                        led_set_on();
                 }
         }
 }
+
 
 void enter_on_hours_setting()
 {
@@ -246,6 +354,7 @@ void enter_on_hours_setting()
                 led_blink_start(settings.on_hours);
         }
 }
+
 
 void increment_on_hours_setting()
 {
@@ -258,6 +367,7 @@ void increment_on_hours_setting()
         led_blink_start(settings.on_hours);
 }
 
+
 void leave_on_hours_setting()
 {
         led_blink_stop();
@@ -265,6 +375,7 @@ void leave_on_hours_setting()
 
         state = S_TIMER;
 }
+
 
 void led_blink_task()
 {
@@ -282,7 +393,11 @@ void led_blink_task()
         // Change the state of the LED if needed
         if (led_blink.changed) {
                 led_blink.changed = 0;
-                PIN_LED = led_blink.on;
+                if (led_blink.on) {
+                        led_set_on();
+                } else {
+                        led_set_off();
+                }
                 led_on = led_blink.on;
         }
 
@@ -304,18 +419,25 @@ void led_blink_task()
                 led_blink.current_count = led_blink.count;
                 led_blink.on = 1;
                 led_blink.changed = 1;
-                PIN_LED = 0;
+                led_set_off();
                 led_on = 0;
         }
 }
 
+
 void switch_led()
 {
-        timer2_cnt = 0;
+        timer_cnt = 0;
         elapsed_secs = 0;
-        led_on = !led_on;
-        PIN_LED = led_on;
+        led_on = (bool)!led_on;
+
+        if (led_on) {
+                led_set_on();
+        } else {
+                led_set_off();
+        }
 }
+
 
 void handle_short_button_press()
 {
@@ -330,6 +452,7 @@ void handle_short_button_press()
         }
 }
 
+
 void handle_long_button_press()
 {
         switch (state) {
@@ -342,6 +465,7 @@ void handle_long_button_press()
                 break;
         }
 }
+
 
 void check_button()
 {
@@ -373,6 +497,22 @@ void check_button()
         }
 }
 
+#ifndef _12F683
+
+
+void timer0_isr()
+{
+        if (++timer_cnt >= TIMER_TICKS_PER_SEC) {
+                timer_cnt = 0;
+                ++elapsed_secs;
+                ++button.press_time;
+        }
+
+        led_blink.run_task = 1;
+}
+#endif
+
+
 void run()
 {
         while (1) {
@@ -388,8 +528,19 @@ void run()
         }
 }
 
+
 void main()
 {
+#ifndef _12F683
+        SYSTEM_Initialize();
+        TMR2_StartTimer();
+        TMR0_SetInterruptHandler(timer0_isr);
+        INTERRUPT_GlobalInterruptEnable();
+        INTERRUPT_PeripheralInterruptEnable();
+#endif
+
+        led_set_on();
+
         setup();
 
         if (!settings_load()) {
