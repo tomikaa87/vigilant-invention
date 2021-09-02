@@ -1,0 +1,243 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L MCU_Microchip_PIC12:PIC12F1840-ISN U1
+U 1 1 5FC419FB
+P 5500 3600
+F 0 "U1" H 5500 4381 50  0000 C CNN
+F 1 "PIC12F1840-ISN" H 5500 4290 50  0000 C CNN
+F 2 "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm" H 6100 4250 50  0001 C CNN
+F 3 "http://ww1.microchip.com/downloads/en/DeviceDoc/41441B.pdf" H 5500 3600 50  0001 C CNN
+	1    5500 3600
+	1    0    0    -1  
+$EndComp
+$Comp
+L SamacSys_Parts:AO3480 Q1
+U 1 1 5FC42432
+P 7450 3700
+F 0 "Q1" H 7880 3846 50  0000 L CNN
+F 1 "AO3480" H 7880 3755 50  0000 L CNN
+F 2 "SamacSys_Parts:SOT95P280X125-3N" H 7900 3650 50  0001 L CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1907081730_Alpha-Omega-Semicon-AOS-AO3480_C350817.pdf" H 7900 3550 50  0001 L CNN
+F 4 "MOSFET N Trench 30V 5.7A 1.45V @ 250uA 26.5 m @ 5.7A,10V SOT-23 RoHS" H 7900 3450 50  0001 L CNN "Description"
+F 5 "1.25" H 7900 3350 50  0001 L CNN "Height"
+F 6 "" H 7900 3250 50  0001 L CNN "LCSC Part Number"
+F 7 "" H 7900 3150 50  0001 L CNN "LCSC Price/Stock"
+F 8 "Alpha & Omega Semiconductors" H 7900 3050 50  0001 L CNN "Manufacturer_Name"
+F 9 "AO3480" H 7900 2950 50  0001 L CNN "Manufacturer_Part_Number"
+	1    7450 3700
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R1
+U 1 1 5FC46B58
+P 7150 3700
+F 0 "R1" V 6943 3700 50  0000 C CNN
+F 1 "1k" V 7034 3700 50  0000 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 7080 3700 50  0001 C CNN
+F 3 "~" H 7150 3700 50  0001 C CNN
+	1    7150 3700
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	7300 3700 7450 3700
+$Comp
+L power:+3V0 #PWR0101
+U 1 1 5FC47FEC
+P 5500 2500
+F 0 "#PWR0101" H 5500 2350 50  0001 C CNN
+F 1 "+3V0" H 5515 2673 50  0000 C CNN
+F 2 "" H 5500 2500 50  0001 C CNN
+F 3 "" H 5500 2500 50  0001 C CNN
+	1    5500 2500
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3V0 #PWR0102
+U 1 1 5FC48C60
+P 7750 2500
+F 0 "#PWR0102" H 7750 2350 50  0001 C CNN
+F 1 "+3V0" H 7765 2673 50  0000 C CNN
+F 2 "" H 7750 2500 50  0001 C CNN
+F 3 "" H 7750 2500 50  0001 C CNN
+	1    7750 2500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5500 3000 5500 2600
+$Comp
+L power:GND #PWR0103
+U 1 1 5FC49F1E
+P 5500 4500
+F 0 "#PWR0103" H 5500 4250 50  0001 C CNN
+F 1 "GND" H 5505 4327 50  0000 C CNN
+F 2 "" H 5500 4500 50  0001 C CNN
+F 3 "" H 5500 4500 50  0001 C CNN
+	1    5500 4500
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0104
+U 1 1 5FC4A809
+P 7750 4500
+F 0 "#PWR0104" H 7750 4250 50  0001 C CNN
+F 1 "GND" H 7755 4327 50  0000 C CNN
+F 2 "" H 7750 4500 50  0001 C CNN
+F 3 "" H 7750 4500 50  0001 C CNN
+	1    7750 4500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5500 4200 5500 4250
+Wire Wire Line
+	7750 3900 7750 4500
+$Comp
+L w_connectors:HEADER_2 J1
+U 1 1 5FC4B410
+P 7850 2900
+F 0 "J1" H 7978 2953 60  0000 L CNN
+F 1 "LED" H 7978 2847 60  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 7850 2900 60  0001 C CNN
+F 3 "" H 7850 2900 60  0000 C CNN
+	1    7850 2900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7750 2500 7750 2850
+Wire Wire Line
+	7750 2950 7750 3300
+$Comp
+L Device:C C1
+U 1 1 5FC4C884
+P 6050 2800
+F 0 "C1" H 6165 2846 50  0000 L CNN
+F 1 "100n" H 6165 2755 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 6088 2650 50  0001 C CNN
+F 3 "~" H 6050 2800 50  0001 C CNN
+	1    6050 2800
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0105
+U 1 1 5FC4D9BB
+P 6050 3000
+F 0 "#PWR0105" H 6050 2750 50  0001 C CNN
+F 1 "GND" H 6055 2827 50  0000 C CNN
+F 2 "" H 6050 3000 50  0001 C CNN
+F 3 "" H 6050 3000 50  0001 C CNN
+	1    6050 3000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6050 2650 6050 2600
+Wire Wire Line
+	6050 2600 5500 2600
+Connection ~ 5500 2600
+Wire Wire Line
+	5500 2600 5500 2500
+Wire Wire Line
+	6050 3000 6050 2950
+$Comp
+L w_connectors:HEADER_5 J3
+U 1 1 5FC53D96
+P 3800 3550
+F 0 "J3" H 3792 3987 60  0000 C CNN
+F 1 "ICSP/PWR" H 3792 3881 60  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical" H 3800 3550 60  0001 C CNN
+F 3 "" H 3800 3550 60  0000 C CNN
+	1    3800 3550
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	4350 4300 6500 4300
+Wire Wire Line
+	6500 4300 6500 3500
+Wire Wire Line
+	6500 3500 6100 3500
+Wire Wire Line
+	4400 4250 5500 4250
+Connection ~ 5500 4250
+Wire Wire Line
+	5500 4250 5500 4500
+Wire Wire Line
+	4300 2600 5500 2600
+Wire Wire Line
+	3900 3650 4450 3650
+Wire Wire Line
+	4450 3650 4450 3500
+Wire Wire Line
+	4450 3500 4900 3500
+Wire Wire Line
+	3900 3750 4500 3750
+Wire Wire Line
+	4500 3750 4500 3600
+Wire Wire Line
+	4500 3600 4900 3600
+$Comp
+L Switch:SW_Push SW1
+U 1 1 5FC6308D
+P 6950 2950
+F 0 "SW1" H 6950 3195 50  0000 C CNN
+F 1 "SW_PUSH" H 6950 3104 50  0000 C CNN
+F 2 "Button_Switch_SMD:SW_Push_1P1T_NO_6x6mm_FSM2JSMA" H 6950 2950 60  0001 C CNN
+F 3 "" H 6950 2950 60  0000 C CNN
+	1    6950 2950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4900 3700 4600 3700
+Wire Wire Line
+	4600 3700 4600 4350
+Wire Wire Line
+	4600 4350 6750 4350
+Wire Wire Line
+	6750 4350 6750 3700
+Wire Wire Line
+	6750 3700 7000 3700
+Wire Wire Line
+	6100 3700 6600 3700
+Wire Wire Line
+	6600 3700 6600 2950
+Wire Wire Line
+	6600 2950 6750 2950
+$Comp
+L power:GND #PWR0106
+U 1 1 5FC7799B
+P 7250 3100
+F 0 "#PWR0106" H 7250 2850 50  0001 C CNN
+F 1 "GND" H 7255 2927 50  0000 C CNN
+F 2 "" H 7250 3100 50  0001 C CNN
+F 3 "" H 7250 3100 50  0001 C CNN
+	1    7250 3100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7150 2950 7250 2950
+Wire Wire Line
+	7250 2950 7250 3100
+Wire Wire Line
+	3900 3350 4300 3350
+Wire Wire Line
+	3900 3450 4350 3450
+Wire Wire Line
+	4350 3450 4350 4300
+Wire Wire Line
+	3900 3550 4400 3550
+Wire Wire Line
+	4400 3550 4400 4250
+Wire Wire Line
+	4300 2600 4300 3350
+$EndSCHEMATC
