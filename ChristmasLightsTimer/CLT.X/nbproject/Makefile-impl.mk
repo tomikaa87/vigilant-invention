@@ -31,7 +31,7 @@ DEFAULTCONF=default
 CONF=${DEFAULTCONF}
 
 # All Configurations
-ALLCONFS=default debug simulator 
+ALLCONFS=default debug simulator Debug_12F1840 Release_12F1840 
 
 
 # build
@@ -48,6 +48,8 @@ ALLCONFS=default debug simulator
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=default clean
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=debug clean
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=simulator clean
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Debug_12F1840 clean
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Release_12F1840 clean
 
 
 
@@ -56,6 +58,8 @@ ALLCONFS=default debug simulator
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=default build
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=debug build
 	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=simulator build
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Debug_12F1840 build
+	    ${MAKE} SUBPROJECTS=${SUBPROJECTS} CONF=Release_12F1840 build
 
 
 
