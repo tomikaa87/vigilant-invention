@@ -12,3 +12,6 @@
 [submodule "ShutterMotorRemoteReceiver/Firmware.X/nrf24l01plus"]
 	path = ShutterMotorRemoteReceiver/Firmware.X/nrf24l01plus
 	url = https://github.com/tomikaa87/nrf24L01_plus.git
+[submodule "pico-snowfall/pico-sdk"]
+	path = pico-snowfall/pico-sdk
+	url = https://github.com/raspberrypi/pico-sdk.git
