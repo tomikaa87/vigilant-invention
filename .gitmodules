@@ -15,3 +15,6 @@
 [submodule "pico-snowfall/pico-sdk"]
 	path = pico-snowfall/pico-sdk
 	url = https://github.com/raspberrypi/pico-sdk.git
+[submodule "pico-oled-widgets/pico-sdk"]
+	path = pico-oled-widgets/pico-sdk
+	url = https://github.com/raspberrypi/pico-sdk.git
