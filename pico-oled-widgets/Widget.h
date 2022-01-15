@@ -26,6 +26,15 @@ struct Rect
 {
     Point pos;
     Size size;
+
+    bool contains(const Point& p) const
+    {
+        return
+            p.x >= pos.x
+            && p.x < pos.x + size.w
+            && p.y >= pos.y
+            && p.y < pos.y + size.h;
+    }
 };
 
 class Widget

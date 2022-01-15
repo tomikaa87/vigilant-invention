@@ -108,7 +108,8 @@ int main()
     textWidget.setPos(Point{ 0, 0 });
     textWidget.setSize(Size{ 128, 64 });
     Painter painter;
-    painter.drawText(Rect{ Point{ 2, 2 }, Size{} }, "Hello, 12345! @Almafa {[456]}");
+    painter.drawText(Rect{ Point{ 2, 2 }, Size{ 126, 10 } }, "Hello, 12345! @Almafa {[456]}");
+    painter.drawText(Rect{ Point{ 2, 12 }, Size{ 50, 8 } }, "Some clipped text");
     painter.paint(&textWidget);
     painter.updateDisplay();
 

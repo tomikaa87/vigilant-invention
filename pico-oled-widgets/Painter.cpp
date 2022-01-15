@@ -532,6 +532,11 @@ void Painter::drawText(const Rect& r, const std::string& s, int color)
                 const auto charData = fontData[charDataAddr];
                 printf(",cd=%02Xh", charData);
                 for (auto k = 0u; k < 8; ++k) {
+                    // Don't draw pixels outside of our rect
+                    if (!r.contains(Point{ x + k, y })) {
+                        continue;
+                    }
+
                     // Test if the pixel is set
                     if ((charData & (1 << (7 - k))) > 0) {
                         printf(",{k=%u,x=%d,y=%d}", k, x + k, y);
