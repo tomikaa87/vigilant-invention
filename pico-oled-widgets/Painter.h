@@ -3,6 +3,8 @@
 #include "Display.h"
 
 #include <bitset>
+#include <cstddef>
+#include <cstdint>
 #include <string>
 
 struct Rect;
@@ -42,13 +44,14 @@ private:
         uint8_t bitmapBytesPerLine;
         uint8_t bitmapHeight;
         uint8_t wideCharCount;
-        uint8_t* wideCharIndices;
+        uint8_t wideCharIndices[];
     } __attribute__((packed));
     static_assert(
-        sizeof(FontAttributes) == 
-            FontAttributes::CharacterCount
-            + sizeof(uint8_t) * 3
-            + sizeof(uint8_t *)
+        sizeof(FontAttributes::characterWidths) == FontAttributes::CharacterCount
+        && offsetof(FontAttributes, bitmapBytesPerLine) == FontAttributes::CharacterCount
+        && offsetof(FontAttributes, bitmapHeight) == offsetof(FontAttributes, bitmapBytesPerLine) + 1
+        && offsetof(FontAttributes, wideCharCount) == offsetof(FontAttributes, bitmapHeight) + 1
+        && offsetof(FontAttributes, wideCharIndices) == offsetof(FontAttributes, wideCharCount) + 1
     );
 
     std::bitset<Display::Width * Display::Height> _screenBuf;

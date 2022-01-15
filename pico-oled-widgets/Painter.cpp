@@ -447,6 +447,15 @@ void Painter::drawText(const Rect& r, const std::string& s, int color)
         attributes->bitmapHeight,
         attributes->wideCharCount
     );
+
+    printf("  wideChars=");
+    for (auto i = 0u; i < attributes->wideCharCount; ++i) {
+        printf("%u", attributes->wideCharIndices[i]);
+        if (i > 0) {
+            printf(",");
+        }
+    }
+    printf("\r\n");
     
     // const auto invert = false;
     const auto rightJustified = false;
@@ -497,7 +506,7 @@ void Painter::drawText(const Rect& r, const std::string& s, int color)
 
         auto charDataIdx = 0u;
         // Handle zero-width characters
-        for (auto i = 0u; i <= charIdx; ++i) {
+        for (auto i = 0u; i < charIdx; ++i) {
             if (attributes->characterWidths[i] > 0) {
                 ++charDataIdx;
             }
@@ -505,6 +514,7 @@ void Painter::drawText(const Rect& r, const std::string& s, int color)
         // Count how many wide characters we passed
         for (auto i = 0u; i < attributes->wideCharCount; ++i) {
             if (charIdx > attributes->wideCharIndices[i]) {
+                printf(",++cdi");
                 ++charDataIdx;
             }
         }

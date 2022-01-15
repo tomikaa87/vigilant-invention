@@ -104,6 +104,15 @@ int main()
     Display::init();
     Display::setContrast(10);
 
+    Widget textWidget{ "textWidget" };
+    textWidget.setPos(Point{ 0, 0 });
+    textWidget.setSize(Size{ 128, 64 });
+    Painter painter;
+    painter.drawText(Rect{ Point{ 2, 2 }, Size{} }, "Hello, 12345! @Almafa {[456]}");
+    painter.paint(&textWidget);
+    painter.updateDisplay();
+
+#if 0
     printf("Sending some test data to the display\r\n");
     for (auto line = 0u; line < 8; ++line) {
         Display::setColumn(0);
@@ -158,6 +167,7 @@ int main()
         true, 
         rotaryEncoderIrq
     );
+#endif
 
 #if 0
     auto bitShift = 0u;
@@ -180,6 +190,7 @@ int main()
         
         // reDir = RotaryEncoderDirection::None;
 
+#if 0
         while (reTurnsOut != reTurnsIn) {
             const auto dir = reTurns[reTurnsOut];
             if (dir != RotaryEncoderDirection::None) {
@@ -194,6 +205,7 @@ int main()
             }
             reTurnsOut = (reTurnsOut + 1) % reTurns.size();
         }
+#endif
 
         // tight_loop_contents();
 
