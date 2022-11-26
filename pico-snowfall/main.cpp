@@ -1,5 +1,9 @@
+#include "pico/multicore.h"
 #include "pico/stdlib.h"
+#include "pico/time.h"
+
 #include "hardware/gpio.h"
+#include "hardware/adc.h"
 #include "hardware/i2c.h"
 
 #define CONFIG_USE_OLED_SH1106
@@ -9,25 +13,38 @@
 #include <array>
 #include <cstdio>
 #include <cstdlib>
+#include <initializer_list>
+#include <memory>
 #include <tuple>
 
 extern const uint8_t Bitmap1[20 * 3];
 
-enum
+namespace Pins
 {
-    I2CSDA = 4,
-    I2CSCL = 5
-};
+    namespace I2C
+    {
+        static constexpr auto SCL = 5;
+        static constexpr auto SDA = 4;
+    }
+
+    namespace ADC
+    {
+        namespace Input
+        {
+            static constexpr auto VbatSense = 3;
+        }
+
+        static constexpr auto VbatSense = 29;
+    }
+}
 
 void oled_i2c_init()
 {
-    gpio_init(I2CSDA);
-    gpio_set_function(I2CSDA, GPIO_FUNC_I2C);
-    gpio_pull_up(I2CSDA);
-
-    gpio_init(I2CSCL);
-    gpio_set_function(I2CSCL, GPIO_FUNC_I2C);
-    gpio_pull_up(I2CSCL);
+    for (const auto pin : { Pins::I2C::SCL, Pins::I2C::SDA }) {
+        gpio_init(pin);
+        gpio_set_function(pin, GPIO_FUNC_I2C);
+        gpio_pull_up(pin);
+    }
 
     i2c_init(i2c0, 1000 * 1000);
 }
@@ -114,7 +131,9 @@ namespace Logic
 
     struct State
     {
-        Canvas canvas{};
+        // Allocate the canvas on the heap otherwise it can overlap
+        // with the stack of Core1
+        std::unique_ptr<Canvas> canvas = std::make_unique<Canvas>();
         Snowflakes snowflakes{};
         Clouds clouds{};
         unsigned ticks = 0;
@@ -147,31 +166,31 @@ namespace Logic
             {
                 falling = false;
                 tallestHeight = CanvasHeight - y;
-                state.canvas[x + y * CanvasWidth] = true;
+                (*state.canvas)[x + y * CanvasWidth] = true;
                 continue;
             }
 
-            if (getCanvasPixel(state.canvas, x, y + 1) && getCanvasPixel(state.canvas, x - 1, y + 1) && getCanvasPixel(state.canvas, x + 1, y + 1))
+            if (getCanvasPixel((*state.canvas), x, y + 1) && getCanvasPixel((*state.canvas), x - 1, y + 1) && getCanvasPixel((*state.canvas), x + 1, y + 1))
             {
                 falling = false;
                 tallestHeight = CanvasHeight - y;
-                state.canvas[x + y * CanvasWidth] = true;
+                (*state.canvas)[x + y * CanvasWidth] = true;
                 continue;
             }
 
-            if (x == 0 && getCanvasPixel(state.canvas, 0, y + 1) && getCanvasPixel(state.canvas, 1, y + 1))
+            if (x == 0 && getCanvasPixel((*state.canvas), 0, y + 1) && getCanvasPixel((*state.canvas), 1, y + 1))
             {
                 falling = false;
                 tallestHeight = CanvasHeight - y;
-                state.canvas[y * CanvasWidth] = true;
+                (*state.canvas)[y * CanvasWidth] = true;
                 continue;
             }
 
-            if (x == CanvasWidth - 1 && getCanvasPixel(state.canvas, CanvasWidth - 1, y + 1) && getCanvasPixel(state.canvas, CanvasWidth - 2, y + 1))
+            if (x == CanvasWidth - 1 && getCanvasPixel((*state.canvas), CanvasWidth - 1, y + 1) && getCanvasPixel((*state.canvas), CanvasWidth - 2, y + 1))
             {
                 falling = false;
                 tallestHeight = CanvasHeight - y;
-                state.canvas[CanvasWidth - 1 + y * CanvasWidth] = true;
+                (*state.canvas)[CanvasWidth - 1 + y * CanvasWidth] = true;
                 continue;
             }
 
@@ -211,7 +230,7 @@ namespace Logic
             {
                 for (auto y = CanvasHeight - 2; y > 0; --y)
                 {
-                    state.canvas[x + (y + 1) * CanvasWidth] = state.canvas[x + y * CanvasWidth];
+                    (*state.canvas)[x + (y + 1) * CanvasWidth] = (*state.canvas)[x + y * CanvasWidth];
                 }
             }
         }
@@ -294,7 +313,7 @@ namespace Graphics
         // Draw the canvas
         for (auto col = 0u; col < Logic::CanvasWidth; ++col) {
             for (auto row = 0u; row < Logic::CanvasHeight; ++row) {
-                if (state.canvas[col + row * Logic::CanvasWidth]) {
+                if ((*state.canvas)[col + row * Logic::CanvasWidth]) {
                     fb[col + (row >> 3) * Display::Width] |= 1 << (row & 0b111);
                 }
             }
@@ -314,9 +333,33 @@ namespace Graphics
     }
 }
 
+class BatteryManager
+{
+public:
+    BatteryManager()
+    {
+        adc_gpio_init(Pins::ADC::VbatSense);
+    }
+
+    [[nodiscard]] double getVoltage() const
+    {
+        static constexpr auto ADCVref = 3.3;
+        static constexpr auto ConversionFactor = ADCVref / (1 << 12) * (4.2 / 1.43);
+
+        adc_select_input(Pins::ADC::Input::VbatSense);
+        const auto result = adc_read();
+
+        return result * ConversionFactor;
+    }
+};
+
+void core1_main();
+
 int main()
 {
     stdio_init_all();
+
+    multicore_launch_core1(core1_main);
 
     gpio_init(PICO_DEFAULT_LED_PIN);
     gpio_set_dir(PICO_DEFAULT_LED_PIN, true);
@@ -351,10 +394,68 @@ int main()
     }
 
     while (true) {
+        // if (multicore_fifo_rvalid()) {
+        //     const auto value = multicore_fifo_pop_blocking();
+        //     const auto vbat = *reinterpret_cast<const float*>(&value);
+
+        //     printf("Vbat=%4.2f V\r\n", vbat);
+        // }
+
         Logic::advance(logicState);
         Graphics::drawScene(logicState);
         sleep_ms(15);
     }
 
     return 0;
+}
+
+void core1_main()
+{
+    adc_init();
+
+    BatteryManager battMan;
+
+    static constexpr uint32_t VbatUpdateInterval = 1000;
+    uint32_t vbatUpdateTime = 0;
+
+    while (true) {
+        // const auto millis = to_ms_since_boot(get_absolute_time());
+
+        // if (millis - vbatUpdateTime >= VbatUpdateInterval) {
+            // vbatUpdateTime = millis;
+
+            const auto vbat = battMan.getVoltage();
+
+            printf("Vbat=%4.2f V\r\n", vbat);
+
+            const auto integral = static_cast<int>(vbat);
+            const auto fractional = static_cast<int>((vbat - integral) * 10);
+
+            printf("i=%d, f=%d\r\n", integral, fractional);
+
+            for (auto i = 0; i < integral; ++i) {
+                gpio_put(PICO_DEFAULT_LED_PIN, true);
+                sleep_ms(100);
+                gpio_put(PICO_DEFAULT_LED_PIN, false);
+                sleep_ms(100);
+            }
+
+            sleep_ms(500);
+
+            for (auto i = 0; i < fractional; ++i) {
+                gpio_put(PICO_DEFAULT_LED_PIN, true);
+                sleep_ms(100);
+                gpio_put(PICO_DEFAULT_LED_PIN, false);
+                sleep_ms(100);
+            }
+
+            // multicore_fifo_push_blocking(
+            //     *reinterpret_cast<const uint32_t*>(&vbat)
+            // );
+        // }
+
+        // tight_loop_contents();
+
+        sleep_ms(1000);
+    }
 }

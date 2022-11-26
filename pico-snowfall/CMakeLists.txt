@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 # initialize pico-sdk from submodule
 # note: this must happen before project()
-include(pico-sdk/pico_sdk_init.cmake)
+include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 
 project(pico-snowfall)
 
@@ -18,7 +18,9 @@ add_executable(pico-snowfall
 
 target_link_libraries(pico-snowfall
     PRIVATE
+        pico_multicore
         pico_stdlib
+        hardware_adc
         hardware_i2c
 )
 
@@ -34,6 +36,7 @@ target_compile_options(pico-snowfall
         -Wall
         $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>
         $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
+        -Wno-strict-aliasing
 )
 
 # target_compile_options(pico-snowfall PRIVATE -Wall -Wextra -Wno-type-limits)
