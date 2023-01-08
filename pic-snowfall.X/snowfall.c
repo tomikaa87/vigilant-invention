@@ -9,7 +9,7 @@
 #include <xc.h>
 
 #define SNOWFLAKE_COUNT                 100u
-#define SNOW_PILE_MAX_HEIGHT_PAGES      3u
+#define SNOW_PILE_MAX_HEIGHT            15u
 #define SNOW_PILE_REDUCE_MIN_HEIGH      5u
 #define CLOUD_COUNT                     5u
 
@@ -45,6 +45,12 @@
  * ooo -> ooo -> ooo
  */
 
+typedef struct
+{
+    uint8_t even : 4;
+    uint8_t odd : 4;
+} SnowPileHeight;
+
 static struct Context
 {
     uint8_t canvas[SH1106_WIDTH * SH1106_HEIGHT / 8];
@@ -63,7 +69,8 @@ static struct Context
         uint8_t y;
     } clouds[CLOUD_COUNT];
 
-    uint8_t snowPileHeights[SH1106_WIDTH]; // TODO optimize the memory usage of this
+    // Height of a single pile can be stored in 4 bits
+    SnowPileHeight snowPileHeights[SH1106_WIDTH / 2];
 
     volatile bool updateClouds;
 } context = {
@@ -300,15 +307,16 @@ static bool advanceLogic()
 {
     bool reducePileHeights = false;
     for (uint8_t i = 0; i < SH1106_WIDTH; ++i) {
-        if (context.snowPileHeights[i] >= SNOW_PILE_MAX_HEIGHT_PAGES * 8) {
+        if (getSnowPileHeight(i) >= SNOW_PILE_MAX_HEIGHT) {
             reducePileHeights = true;
             break;
         }
     }
     if (reducePileHeights) {
         for (uint8_t i = 0; i < SH1106_WIDTH; ++i) {
-            if (context.snowPileHeights[i] > SNOW_PILE_REDUCE_MIN_HEIGH) {
-                --context.snowPileHeights[i];
+            uint8_t height = getSnowPileHeight(i);
+            if (height > SNOW_PILE_REDUCE_MIN_HEIGH) {
+                setSnowPileHeight(i, height - 1);
             }
         }
     }
@@ -362,7 +370,7 @@ static bool addSnowflakeToPile(const uint8_t x, const uint8_t y)
 {
     if (
         x >= SH1106_WIDTH
-        || y < (SH1106_HEIGHT - SNOW_PILE_MAX_HEIGHT_PAGES * 8)
+        || y < (SH1106_HEIGHT - SNOW_PILE_MAX_HEIGHT)
     ) {
         return false;
     }
@@ -459,12 +467,17 @@ static bool addSnowflakeToPile(const uint8_t x, const uint8_t y)
 
 static uint8_t getSnowPileHeight(const uint8_t x)
 {
-    return context.snowPileHeights[x];
+    SnowPileHeight h = context.snowPileHeights[x >> 1];
+    return x & 0b1 ? h.odd : h.even;
 }
 
 static void setSnowPileHeight(const uint8_t x, const uint8_t height)
 {
-    context.snowPileHeights[x] = height;
+    if (x & 0b1) {
+        context.snowPileHeights[x >> 1].odd = height;
+    } else {
+        context.snowPileHeights[x >> 1].even = height;
+    }
 }
 
 static void timer0InterruptHandler()
