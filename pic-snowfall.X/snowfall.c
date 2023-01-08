@@ -9,6 +9,7 @@
 #include <string.h>
 #include <xc.h>
 
+#define USE_FRAME_BUFFER                1
 #define SNOWFLAKE_COUNT                 100u
 #define SNOW_PILE_MAX_HEIGHT            15u
 #define SNOW_PILE_REDUCE_MIN_HEIGH      5u
@@ -22,7 +23,9 @@ typedef struct
 
 static struct Context
 {
-    uint8_t canvas[SH1106_WIDTH * SH1106_HEIGHT / 8];
+#if USE_FRAME_BUFFER
+    uint8_t frameBuffer[SH1106_WIDTH * SH1106_HEIGHT / 8];
+#endif
 
     struct Snowflake
     {
@@ -42,17 +45,6 @@ static struct Context
     volatile bool updateClouds;
 } context = {
 };
-
-uint8_t pattern = 0;
-
-static void drawBitmap(
-    const uint8_t x,
-    const uint8_t y,
-    const uint8_t width,
-    const uint8_t height,
-    const uint8_t* const bitmap,
-    const bool mask
-);
 
 static inline uint8_t umin(const uint8_t a, const uint8_t b)
 {
@@ -74,8 +66,7 @@ static inline uint8_t smax(const int8_t a, const int8_t b)
     return a > b ? a : b;
 }
 
-static bool advanceLogic(void);
-static bool getCanvasPixel(const uint8_t x, const uint8_t y);
+static void advanceLogic(void);
 static bool addSnowflakeToPile(const uint8_t x, const uint8_t y);
 static uint8_t getSnowPileHeight(const uint8_t x);
 static void setSnowPileHeight(const uint8_t x, const uint8_t height);
@@ -107,122 +98,87 @@ void Snowfall_init()
 
 void Snowfall_task()
 {
-    memset(context.canvas, 0, sizeof(context.canvas));
+    advanceLogic();
 
-    bool update = advanceLogic();
+#if USE_FRAME_BUFFER
+    memset(context.frameBuffer, 0, sizeof(context.frameBuffer));
 
-    if (update) {
-        // Draw the clouds
-        for (uint8_t i = 0; i < CLOUD_COUNT; ++i) {
-            drawBitmap(
-                context.clouds[i].x,
-                context.clouds[i].y,
-                BITMAP_CLOUD1_WIDTH,
-                BITMAP_CLOUD1_HEIGHT,
-                Bitmap_cloud1,
-                false
-            );
-        }
-
-        // Draw the snow piles
-        for (uint8_t x = 0; x < SH1106_WIDTH; ++x) {
-            uint8_t height = getSnowPileHeight(x);
-
-            if (height == 0) {
-                continue;
-            }
-
-            uint8_t page = 7;
-
-            while (height >> 3 > 0) {
-                context.canvas[x + page * SH1106_WIDTH] = 0xFF;
-                height -= 8;
-                page -= 1;
-            }
-
-            context.canvas[x + page * SH1106_WIDTH] = 0xFF << (8 - height);
-        }
-
-        // Draw the snowflakes on the canvas
-        for (uint8_t i = 0; i < SNOWFLAKE_COUNT; ++i) {
-            struct Snowflake s = context.snowflakes[i];
-                context.canvas[s.x + (s.y >> 3) * SH1106_WIDTH] |= 1 << (s.y & 0b111);
-        }
-
-        // Draw the snowman and its mask
-        uint8_t snowmanX = 20u, snowmanY = SH1106_HEIGHT - 25;
-        drawBitmap(
-            snowmanX - 1,
-            snowmanY - 1,
-            BITMAP_SNOWMAN1_MASK_WIDTH,
-            BITMAP_SNOWMAN1_MASK_HEIGHT,
-            Bitmap_snowman1Mask,
-            true
-        );
-        drawBitmap(
-            snowmanX,
-            snowmanY,
-            BITMAP_SNOWMAN1_WIDTH,
-            BITMAP_SNOWMAN1_HEIGHT,
-            Bitmap_snowman1,
+    // Draw the clouds
+    for (uint8_t i = 0; i < CLOUD_COUNT; ++i) {
+        Graphics_drawBitmap(
+            context.frameBuffer,
+            context.clouds[i].x,
+            context.clouds[i].y,
+            BITMAP_CLOUD1_WIDTH,
+            BITMAP_CLOUD1_HEIGHT,
+            Bitmap_cloud1,
             false
         );
-
-        // Draw the canvas on the display
-        for (uint8_t page = 0; page < SH1106_PAGES; ++page) {
-            SH1106_setColumn(0);
-            SH1106_setLine(page);
-            SH1106_sendDataArray(
-                context.canvas + (page * SH1106_WIDTH),
-                SH1106_WIDTH,
-                0,
-                false
-            );
-        }
     }
+
+    // Draw the snow piles
+    for (uint8_t x = 0; x < SH1106_WIDTH; ++x) {
+        uint8_t height = getSnowPileHeight(x);
+
+        if (height == 0) {
+            continue;
+        }
+
+        uint8_t page = 7;
+
+        while (height >> 3 > 0) {
+            context.frameBuffer[x + page * SH1106_WIDTH] = 0xFF;
+            height -= 8;
+            page -= 1;
+        }
+
+        context.frameBuffer[x + page * SH1106_WIDTH] = 0xFF << (8 - height);
+    }
+
+    // Draw the snowflakes on the canvas
+    for (uint8_t i = 0; i < SNOWFLAKE_COUNT; ++i) {
+        struct Snowflake s = context.snowflakes[i];
+            context.frameBuffer[s.x + (s.y >> 3) * SH1106_WIDTH] |= 1 << (s.y & 0b111);
+    }
+
+    // Draw the snowman and its mask
+    uint8_t snowmanX = 20u, snowmanY = SH1106_HEIGHT - 25;
+    Graphics_drawBitmap(
+        context.frameBuffer,
+        snowmanX - 1,
+        snowmanY - 1,
+        BITMAP_SNOWMAN1_MASK_WIDTH,
+        BITMAP_SNOWMAN1_MASK_HEIGHT,
+        Bitmap_snowman1Mask,
+        true
+    );
+    Graphics_drawBitmap(
+        context.frameBuffer,
+        snowmanX,
+        snowmanY,
+        BITMAP_SNOWMAN1_WIDTH,
+        BITMAP_SNOWMAN1_HEIGHT,
+        Bitmap_snowman1,
+        false
+    );
+
+    // Send the frame buffer to the display
+    for (uint8_t page = 0; page < SH1106_PAGES; ++page) {
+        SH1106_setColumn(0);
+        SH1106_setLine(page);
+        SH1106_sendDataArray(
+            context.frameBuffer + (page * SH1106_WIDTH),
+            SH1106_WIDTH,
+            0,
+            false
+        );
+    }
+#else
+
+#endif
 }
 
-static void drawBitmap(
-    const uint8_t x,
-    const uint8_t y,
-    const uint8_t width,
-    const uint8_t height,
-    const uint8_t* const bitmap,
-    const bool mask
-) {
-    uint8_t alignmentOffset = y & 0b111;
-    uint8_t startPage = y >> 3;
-    uint8_t pageCount = height / 8 + (height % 8 > 0 ? 1 : 0);
-    uint8_t extraPages = alignmentOffset > 0 ? 1 : 0;
-
-    for (uint8_t page = 0u; page < pageCount + extraPages && page < SH1106_PAGES; ++page) {
-        for (uint8_t col = x; col < x + width && col < SH1106_WIDTH; ++col) {
-            uint8_t* fbByte = &context.canvas[col + (startPage + page) * SH1106_WIDTH];
-
-            if (page < pageCount) {
-                uint8_t b = (uint8_t)(bitmap[page * width + col - x] << alignmentOffset);
-                if (!mask) {
-                    *fbByte |= b;
-                } else {
-                    *fbByte &= b | ~(0xff << alignmentOffset);
-                }
-            }
-
-            if (page > 0 && alignmentOffset > 0) {
-                uint8_t b = (uint8_t)(bitmap[(page - 1) * width + col - x] >> (8 - alignmentOffset));
-                if (!mask) {
-                    *fbByte |= b;
-                } else {
-                    *fbByte &= b | ~(0xff >> (8 - alignmentOffset));
-                }
-            }
-        }
-    }
-}
-
-
-
-static bool advanceLogic()
+static void advanceLogic()
 {
     bool reducePileHeights = false;
     for (uint8_t i = 0; i < SH1106_WIDTH; ++i) {
@@ -273,13 +229,6 @@ static bool advanceLogic()
             context.clouds[i].y = rand() % 3;
         }
     }
-
-    return true;
-}
-
-static bool getCanvasPixel(const uint8_t x, const uint8_t y)
-{
-    return context.canvas[x + (y >> 3) * SH1106_WIDTH] & 1 << (y & 0b111);
 }
 
 static bool addSnowflakeToPile(const uint8_t x, const uint8_t y)

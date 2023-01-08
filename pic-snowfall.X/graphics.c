@@ -1,4 +1,5 @@
 #include "graphics.h"
+#include "sh1106.h"
 
 const uint8_t Bitmap_cloud1[BITMAP_CLOUD1_WIDTH * BITMAP_CLOUD1_PAGES] = {
     0b10000000, 0b11100000, 0b11100000, 0b11110000, 0b11110000, 0b11111000, 0b11111110, 0b11111110,
@@ -31,3 +32,42 @@ const uint8_t Bitmap_snowman1Mask[BITMAP_SNOWMAN1_MASK_WIDTH * BITMAP_SNOWMAN1_M
     0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b11000000, 0b11100000, 0b11110000, 0b11111111,
     0b11111111
 };
+
+void Graphics_drawBitmap(
+    uint8_t* const frameBuffer,
+    const uint8_t x,
+    const uint8_t y,
+    const uint8_t width,
+    const uint8_t height,
+    const uint8_t* const bitmap,
+    const bool mask
+) {
+    uint8_t alignmentOffset = y & 0b111;
+    uint8_t startPage = y >> 3;
+    uint8_t pageCount = height / 8 + (height % 8 > 0 ? 1 : 0);
+    uint8_t extraPages = alignmentOffset > 0 ? 1 : 0;
+
+    for (uint8_t page = 0u; page < pageCount + extraPages && page < SH1106_PAGES; ++page) {
+        for (uint8_t col = x; col < x + width && col < SH1106_WIDTH; ++col) {
+            uint8_t* fbByte = &frameBuffer[col + (startPage + page) * SH1106_WIDTH];
+
+            if (page < pageCount) {
+                uint8_t b = (uint8_t)(bitmap[page * width + col - x] << alignmentOffset);
+                if (!mask) {
+                    *fbByte |= b;
+                } else {
+                    *fbByte &= b | ~(0xff << alignmentOffset);
+                }
+            }
+
+            if (page > 0 && alignmentOffset > 0) {
+                uint8_t b = (uint8_t)(bitmap[(page - 1) * width + col - x] >> (8 - alignmentOffset));
+                if (!mask) {
+                    *fbByte |= b;
+                } else {
+                    *fbByte &= b | ~(0xff >> (8 - alignmentOffset));
+                }
+            }
+        }
+    }
+}
