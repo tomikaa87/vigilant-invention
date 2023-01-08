@@ -1,3 +1,4 @@
+#include "graphics.h"
 #include "sh1106.h"
 #include "snowfall.h"
 
@@ -13,38 +14,6 @@
 #define SNOW_PILE_REDUCE_MIN_HEIGH      5u
 #define CLOUD_COUNT                     5u
 
-// Snowflake:
-// | 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0 |
-// |  R  R  F  Y  Y  Y  Y  Y  Y  X  X  X  X  X  X  X |
-// X: X-coordinate
-// Y: Y-coordinate
-// R: reserved
-// F: "falling" bit
-
-// Snow pile
-/*
- *      x
- * o -> o -> ?o?
- *
- *       x
- * oo -> oo -> ooo
- *
- *        x
- * oo -> oo -> ooo
- *
- *       x
- * o     o      o
- * oo -> oo -> ooo
- *
- *        x
- *  o     o     o
- * oo -> oo -> ooo
- *
- *         x
- *  o      o     ?o?
- * ooo -> ooo -> ooo
- */
-
 typedef struct
 {
     uint8_t even : 4;
@@ -57,10 +26,8 @@ static struct Context
 
     struct Snowflake
     {
-        uint8_t x: 7;
-        uint8_t y: 6;
-        uint8_t falling: 1;
-        uint8_t reserved: 2;
+        uint8_t x;
+        uint8_t y;
     } snowflakes[SNOWFLAKE_COUNT];
 
     struct Cloud
@@ -114,22 +81,6 @@ static uint8_t getSnowPileHeight(const uint8_t x);
 static void setSnowPileHeight(const uint8_t x, const uint8_t height);
 static void timer0InterruptHandler(void);
 
-#define BITMAP_CLOUD1_WIDTH     25
-#define BITMAP_CLOUD1_HEIGHT    14
-#define BITMAP_CLOUD1_PAGES     2
-extern const uint8_t Bitmap_cloud1[];
-
-#define BITMAP_SNOWMAN1_WIDTH   15
-#define BITMAP_SNOWMAN1_HEIGHT  21
-#define BITMAP_SNOWMAN1_PAGES   3
-extern const uint8_t Bitmap_snowman1[];
-
-#define BITMAP_SNOWMAN1_MASK_WIDTH  17
-#define BITMAP_SNOWMAN1_MASK_HEIGHT 23
-#define BITMAP_SNOWMAN1_MASK_PAGES  3
-extern const uint8_t Bitmap_snowman1Mask[];
-
-
 void Snowfall_init()
 {
     SH1106_init();
@@ -157,36 +108,6 @@ void Snowfall_init()
 void Snowfall_task()
 {
     memset(context.canvas, 0, sizeof(context.canvas));
-
-#if 0
-    static uint8_t x = 0;
-    static uint8_t x2 = 20;
-
-    drawBitmap(
-        x, 0,
-        BITMAP_CLOUD1_WIDTH,
-        BITMAP_CLOUD1_HEIGHT,
-        Bitmap_cloud1,
-        false
-    );
-
-        drawBitmap(
-        x2, 10,
-        BITMAP_CLOUD1_WIDTH,
-        BITMAP_CLOUD1_HEIGHT,
-        Bitmap_cloud1,
-        false
-    );
-
-
-    if (++x >= SH1106_WIDTH - BITMAP_CLOUD1_WIDTH) {
-        x = 0;
-    }
-
-    if (++x2 >= SH1106_WIDTH - BITMAP_CLOUD1_WIDTH) {
-        x2 = 0;
-    }
-#endif
 
     bool update = advanceLogic();
 
@@ -225,9 +146,7 @@ void Snowfall_task()
         // Draw the snowflakes on the canvas
         for (uint8_t i = 0; i < SNOWFLAKE_COUNT; ++i) {
             struct Snowflake s = context.snowflakes[i];
-//            if (s.falling) {
                 context.canvas[s.x + (s.y >> 3) * SH1106_WIDTH] |= 1 << (s.y & 0b111);
-//            }
         }
 
         // Draw the snowman and its mask
@@ -350,9 +269,6 @@ static bool advanceLogic()
             int8_t rangeMax = (i + 1) * (SH1106_WIDTH / CLOUD_COUNT);
             int8_t rangeCenter = rangeMin + (rangeMax - rangeMin) / 2;
 
-//            context.canvas[rangeMin] = 0xff;
-//            context.canvas[rangeCenter] = 0x55;
-
             context.clouds[i].x = smax(0, smin(SH1106_WIDTH - BITMAP_CLOUD1_WIDTH, rangeCenter + rand() % 5 - 2 - BITMAP_CLOUD1_WIDTH / 2));
             context.clouds[i].y = rand() % 3;
         }
@@ -398,70 +314,6 @@ static bool addSnowflakeToPile(const uint8_t x, const uint8_t y)
         return true;
     }
 
-    //
-//    if (leftHeight == rightHeight && leftHeight == )
-#if 0
-    uint8_t radius = 1;
-//    bool checkLeftSide = rand() % 2;
-//    bool leftSideChecked = false;
-//    bool rightSideChecked = false;
-
-    while (true) {
-        uint8_t leftHeight = 255;
-        uint8_t leftColumn = 255;
-        if (radius <= x) {
-            leftColumn = x - radius;
-            leftHeight = getSnowPileHeight(leftColumn);
-        }
-
-        uint8_t rightHeight = 255;
-        uint8_t rightColumn = 255;
-        if (radius + x < SH1106_WIDTH) {
-            rightColumn = radius + x;
-            rightHeight = getSnowPileHeight(rightColumn);
-        }
-
-        if (leftHeight == 0 && rightHeight == 0) {
-            bool left = rand() % 2 == 0;
-            setSnowPileHeight(
-                left ? leftColumn : rightColumn,
-                left ? leftHeight + 1 : rightHeight + 1
-            );
-            return true;
-        }
-
-        if (leftHeight == 0) {
-            setSnowPileHeight(leftColumn, leftHeight + 1);
-            return true;
-        }
-
-        if (rightHeight == 0) {
-            setSnowPileHeight(rightColumn, rightHeight + 1);
-            return true;
-        }
-
-        // Can be placed on the top of the center pile without making a tower?
-        if (leftHeight == rightHeight && leftHeight < (height + 1) && (height + 1) - leftHeight < 2) {
-            setSnowPileHeight(x, height + 1);
-            return true;
-        }
-
-        if (leftHeight < (height + 1) && (height + 1) - leftHeight < 2)
-
-        break;
-
-//        if (checkLeftSide && !leftSideChecked) {
-//            leftSideChecked = true;
-//            checkLeftSide = false;
-//        } else if (!checkLeftSide && !rightSideChecked) {
-//            rightSideChecked = true;
-//            checkLeftSide = true;
-//        } else {
-//            // end
-//        }
-    }
-#endif
-
     return false;
 }
 
@@ -484,35 +336,3 @@ static void timer0InterruptHandler()
 {
     context.updateClouds = true;
 }
-
-const uint8_t Bitmap_cloud1[BITMAP_CLOUD1_WIDTH * BITMAP_CLOUD1_PAGES] = {
-    0b10000000, 0b11100000, 0b11100000, 0b11110000, 0b11110000, 0b11111000, 0b11111110, 0b11111110,
-    0b11111111, 0b11111111, 0b11111111, 0b11111110, 0b11111110, 0b11111000, 0b11111110, 0b11111110,
-    0b11111111, 0b11111111, 0b11111110, 0b11111110, 0b11111100, 0b11111000, 0b11111000, 0b11110000,
-    0b11000000,
-    0b00000011, 0b00001111, 0b00001111, 0b00011111, 0b00011111, 0b00011111, 0b00001111, 0b00001111,
-    0b00011111, 0b00011111, 0b00111111, 0b00111111, 0b00111111, 0b00011111, 0b00011111, 0b00000111,
-    0b00001111, 0b00001111, 0b00011111, 0b00011111, 0b00011111, 0b00001111, 0b00001111, 0b00000111,
-    0b00000001
-};
-
-const uint8_t Bitmap_snowman1[BITMAP_SNOWMAN1_WIDTH * BITMAP_SNOWMAN1_PAGES] = {
-    0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b11100100, 0b11110111, 0b11011101, 0b01111101,
-    0b11011101, 0b11110111, 0b11100100, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
-    0b00000001, 0b00000010, 0b11000100, 0b11101011, 0b10011100, 0b00111001, 0b01111011, 0b01010011,
-    0b01111011, 0b00111001, 0b10011100, 0b11101011, 0b11000100, 0b00000010, 0b00000001,
-    0b00000000, 0b00000000, 0b00000011, 0b00000111, 0b00001111, 0b00011111, 0b00011111, 0b00011101,
-    0b00011111, 0b00011111, 0b00001111, 0b00000111, 0b00000011, 0b00000000, 0b00000000
-};
-
-const uint8_t Bitmap_snowman1Mask[BITMAP_SNOWMAN1_MASK_WIDTH * BITMAP_SNOWMAN1_MASK_PAGES] = {
-    0b11111111, 0b11111111, 0b11111111, 0b11111111, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
-    0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b11111111, 0b11111111, 0b11111111,
-    0b11111111,
-    0b11111000, 0b11110000, 0b00100000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
-    0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00100000, 0b11110000,
-    0b11111000,
-    0b11111111, 0b11111111, 0b11110000, 0b11100000, 0b11000000, 0b10000000, 0b10000000, 0b10000000,
-    0b10000000, 0b10000000, 0b10000000, 0b10000000, 0b11000000, 0b11100000, 0b11110000, 0b11111111,
-    0b11111111
-};

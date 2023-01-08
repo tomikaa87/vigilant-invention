@@ -19,6 +19,7 @@
       </logicalFolder>
       <itemPath>sh1106.h</itemPath>
       <itemPath>snowfall.h</itemPath>
+      <itemPath>graphics.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -43,6 +44,7 @@
       <itemPath>main.c</itemPath>
       <itemPath>sh1106.c</itemPath>
       <itemPath>snowfall.c</itemPath>
+      <itemPath>graphics.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
