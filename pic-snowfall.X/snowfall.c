@@ -25,6 +25,8 @@ static struct Context
 {
 #if USE_FRAME_BUFFER
     uint8_t frameBuffer[SH1106_WIDTH * SH1106_HEIGHT / 8];
+#else
+    uint8_t snowflakeColIndicators[SH1106_WIDTH / 8];
 #endif
 
     struct Snowflake
@@ -214,12 +216,19 @@ void Snowfall_task()
 
             // Draw the snowflakes
             // FIXME this slows down things significantly
-            for (uint8_t i = 0; i < SNOWFLAKE_COUNT; ++i) {
-                struct Snowflake s = context.snowflakes[i];
-                if (s.x != col || (s.y >> 3 != page)) {
-                    continue;
+            // Check for snowflakes only if the indicator bit for the column is set
+            if (context.snowflakeColIndicators[col >> 3] & (1 << (col & 0b111))) {
+                for (uint8_t i = 0; i < SNOWFLAKE_COUNT; ++i) {
+                    struct Snowflake s = context.snowflakes[i];
+                    if (s.x != col) {
+                        continue;
+                    }
+                    // Do this slow check later
+                    if (s.y >> 3 != page) {
+                        continue;
+                    }
+                    block |= 1 << (s.y & 0b111);
                 }
-                block |= 1 << (s.y & 0b111);
             }
 
             // Draw the snowman and its mask
@@ -271,6 +280,10 @@ static void advanceLogic()
         }
     }
 
+#if !USE_FRAME_BUFFER
+    memset(context.snowflakeColIndicators, 0, sizeof(context.snowflakeColIndicators));
+#endif
+
     for (uint8_t i = 0; i < SNOWFLAKE_COUNT; ++i) {
         struct Snowflake* s = &context.snowflakes[i];
 
@@ -291,6 +304,8 @@ static void advanceLogic()
                 }
             }
         }
+
+        context.snowflakeColIndicators[s->x >> 3] |= 1 << (s->x & 0b111);
     }
 
     if (context.updateClouds) {
