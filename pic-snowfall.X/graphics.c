@@ -71,3 +71,52 @@ void Graphics_drawBitmap(
         }
     }
 }
+
+uint8_t Graphics_drawBitmapBufferless(
+    uint8_t block,
+    const uint8_t page,
+    const uint8_t col,
+    const uint8_t x,
+    const uint8_t y,
+    const uint8_t w,
+    const uint8_t h,
+    const uint8_t* const bitmap,
+    const bool mask
+) {
+    uint8_t startPage = y >> 3;
+    uint8_t alignmentOffset = y & 0b111;
+    uint8_t pageCount = h / 8 + (h % 8 > 0 ? 1 : 0);
+    uint8_t endPage = startPage + pageCount + (alignmentOffset > 0 ? 1 : 0);
+    uint8_t extraPages = alignmentOffset > 0 ? 1 : 0;
+
+    if (
+        col < x
+        || col >= x + w
+        || page < startPage
+        || page >= endPage
+    ) {
+        return block;
+    }
+
+    uint8_t relativePage = page - startPage;
+
+    if (relativePage < pageCount) {
+        uint8_t b = (uint8_t)(bitmap[relativePage * w + col - x] << alignmentOffset);
+        if (!mask) {
+            block |= b;
+        } else {
+            block &= b | ~(0xff << alignmentOffset);
+        }
+    }
+
+    if (relativePage > 0 && alignmentOffset > 0) {
+        uint8_t b = (uint8_t)(bitmap[(relativePage - 1) * w + col - x] >> (8 - alignmentOffset));
+        if (!mask) {
+            block |= b;
+        } else {
+            block &= b | ~(0xff >> (8 - alignmentOffset));
+        }
+    }
+
+    return block;
+}

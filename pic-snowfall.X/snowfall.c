@@ -9,8 +9,8 @@
 #include <string.h>
 #include <xc.h>
 
-#define USE_FRAME_BUFFER                1
-#define SNOWFLAKE_COUNT                 100u
+#define USE_FRAME_BUFFER                0
+#define SNOWFLAKE_COUNT                 25u
 #define SNOW_PILE_MAX_HEIGHT            15u
 #define SNOW_PILE_REDUCE_MIN_HEIGH      5u
 #define CLOUD_COUNT                     5u
@@ -174,7 +174,82 @@ void Snowfall_task()
         );
     }
 #else
+    for (uint8_t page = 0; page < SH1106_PAGES; ++page) {
+        SH1106_setLine(page);
+        SH1106_setColumn(0);
 
+        for (uint8_t col = 0; col < SH1106_WIDTH; ++col) {
+
+            uint8_t block = 0;
+
+            // Draw the clouds
+            for (uint8_t i = 0; i < CLOUD_COUNT; ++i) {
+                block = Graphics_drawBitmapBufferless(
+                    block,
+                    page,
+                    col,
+                    context.clouds[i].x,
+                    context.clouds[i].y,
+                    BITMAP_CLOUD1_WIDTH,
+                    BITMAP_CLOUD1_HEIGHT,
+                    Bitmap_cloud1,
+                    false
+                );
+            }
+
+            // Draw the snow piles
+            uint8_t pileHeight = getSnowPileHeight(col);
+            if (pileHeight > 0) {
+                // FIXME: only 2-page tall piles are supported
+                if (pileHeight > 8) {
+                    if (page == 6) {
+                        block |= 0xFF << (8 - pileHeight);
+                    } else if (page == 7) {
+                        block |= 0xFF;
+                    }
+                } else if (page == 7) {
+                    block |= 0xFF << (8 - pileHeight);
+                }
+            }
+
+            // Draw the snowflakes
+            // FIXME this slows down things significantly
+            for (uint8_t i = 0; i < SNOWFLAKE_COUNT; ++i) {
+                struct Snowflake s = context.snowflakes[i];
+                if (s.x != col || (s.y >> 3 != page)) {
+                    continue;
+                }
+                block |= 1 << (s.y & 0b111);
+            }
+
+            // Draw the snowman and its mask
+            const uint8_t snowmanX = 20u, snowmanY = SH1106_HEIGHT - 25;
+            block = Graphics_drawBitmapBufferless(
+                block,
+                page,
+                col,
+                snowmanX - 1,
+                snowmanY - 1,
+                BITMAP_SNOWMAN1_MASK_WIDTH,
+                BITMAP_SNOWMAN1_MASK_HEIGHT,
+                Bitmap_snowman1Mask,
+                true
+            );
+            block = Graphics_drawBitmapBufferless(
+                block,
+                page,
+                col,
+                snowmanX,
+                snowmanY,
+                BITMAP_SNOWMAN1_WIDTH,
+                BITMAP_SNOWMAN1_HEIGHT,
+                Bitmap_snowman1,
+                false
+            );
+
+            SH1106_sendData(block, 0, false);
+        }
+    }
 #endif
 }
 

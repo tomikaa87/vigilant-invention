@@ -34,3 +34,15 @@ void Graphics_drawBitmap(
     const uint8_t* const bitmap,
     const bool mask
 );
+
+uint8_t Graphics_drawBitmapBufferless(
+    uint8_t block,
+    uint8_t page,
+    uint8_t col,
+    uint8_t x,
+    uint8_t y,
+    uint8_t w,
+    uint8_t h,
+    const uint8_t* bitmap,
+    bool mask
+);
