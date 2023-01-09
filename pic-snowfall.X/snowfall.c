@@ -10,7 +10,7 @@
 #include <xc.h>
 
 #define USE_FRAME_BUFFER                0
-#define SNOWFLAKE_COUNT                 25u
+#define SNOWFLAKE_COUNT                 50u
 #define SNOW_PILE_MAX_HEIGHT            15u
 #define SNOW_PILE_REDUCE_MIN_HEIGH      5u
 #define CLOUD_COUNT                     5u
@@ -28,6 +28,9 @@ static struct Context
 #else
     uint8_t snowflakeColIndicators[SH1106_WIDTH / 8];
 #endif
+    
+//    uint8_t snowflakeXBits[128 / 8];
+//    uint8_t snowflakeYBits[64 / 8];
 
     struct Snowflake
     {
@@ -35,18 +38,24 @@ static struct Context
         uint8_t y;
     } snowflakes[SNOWFLAKE_COUNT];
 
+#if USE_FRAME_BUFFER
     struct Cloud
     {
         uint8_t x;
         uint8_t y;
     } clouds[CLOUD_COUNT];
+#else
+    BufferlessBitmapInfo clouds[CLOUD_COUNT];
+#endif
 
     // Height of a single pile can be stored in 4 bits
     SnowPileHeight snowPileHeights[SH1106_WIDTH / 2];
 
     volatile bool updateClouds;
-} context = {
-};
+    
+    BufferlessBitmapInfo snowman;
+    BufferlessBitmapInfo snowmanMask;
+} context;
 
 static inline uint8_t umin(const uint8_t a, const uint8_t b)
 {
@@ -84,6 +93,24 @@ void Snowfall_init()
     SH1106_fill(0);
 
     memset(&context, 0, sizeof(context));
+    
+    context.updateClouds = true;
+    
+    context.snowman = Graphics_precalculateBufferlessBitmap(
+        20,
+        SH1106_HEIGHT - 25,
+        BITMAP_SNOWMAN1_WIDTH,
+        BITMAP_SNOWMAN1_HEIGHT,
+        false
+    );
+    
+    context.snowmanMask = Graphics_precalculateBufferlessBitmap(
+        20 - 1,
+        SH1106_HEIGHT - 25 - 1,
+        BITMAP_SNOWMAN1_MASK_WIDTH,
+        BITMAP_SNOWMAN1_MASK_HEIGHT,
+        true
+    );
 
     TMR0_SetInterruptHandler(timer0InterruptHandler);
 
@@ -92,10 +119,10 @@ void Snowfall_init()
         context.snowflakes[i].y = rand() % 64;
     }
 
-    for (uint8_t i = 0; i < CLOUD_COUNT; ++i) {
-        context.clouds[i].x = i * (SH1106_WIDTH / CLOUD_COUNT);
-        context.clouds[i].y = rand() % 3;
-    }
+//    for (uint8_t i = 0; i < CLOUD_COUNT; ++i) {
+//        context.clouds[i].x = i * (SH1106_WIDTH / CLOUD_COUNT);
+//        context.clouds[i].y = rand() % 3;
+//    }
 }
 
 void Snowfall_task()
@@ -185,33 +212,33 @@ void Snowfall_task()
             uint8_t block = 0;
 
             // Draw the clouds
-            for (uint8_t i = 0; i < CLOUD_COUNT; ++i) {
-                block = Graphics_drawBitmapBufferless(
-                    block,
-                    page,
-                    col,
-                    context.clouds[i].x,
-                    context.clouds[i].y,
-                    BITMAP_CLOUD1_WIDTH,
-                    BITMAP_CLOUD1_HEIGHT,
-                    Bitmap_cloud1,
-                    false
-                );
+            if (page < 3){
+                for (uint8_t i = 0; i < CLOUD_COUNT; ++i) {
+                    block = Graphics_drawPrecalculatedBufferlessBitmap(
+                        block,
+                        page,
+                        col,
+                        &context.clouds[i],
+                        Bitmap_cloud1
+                    );
+                }
             }
 
             // Draw the snow piles
-            uint8_t pileHeight = getSnowPileHeight(col);
-            if (pileHeight > 0) {
-                // FIXME: only 2-page tall piles are supported
-                if (pileHeight > 8) {
-                    if (page == 6) {
-                        block |= 0xFF << (8 - pileHeight);
+            if (page >= 6) {
+                uint8_t pileHeight = getSnowPileHeight(col);
+                if (pileHeight > 0) {
+                    // FIXME: only 2-page tall piles are supported
+                    if (pileHeight > 8) {
+                        if (page == 6) {
+                            block |= 0xFF << (8 - pileHeight);
+                        } else if (page == 7) {
+                            block |= 0xFF;
+                        }
                     } else if (page == 7) {
-                        block |= 0xFF;
+                        block |= 0xFF << (8 - pileHeight);
                     }
-                } else if (page == 7) {
-                    block |= 0xFF << (8 - pileHeight);
-                }
+                }                
             }
 
             // Draw the snowflakes
@@ -232,28 +259,19 @@ void Snowfall_task()
             }
 
             // Draw the snowman and its mask
-            const uint8_t snowmanX = 20u, snowmanY = SH1106_HEIGHT - 25;
-            block = Graphics_drawBitmapBufferless(
-                block,
-                page,
-                col,
-                snowmanX - 1,
-                snowmanY - 1,
-                BITMAP_SNOWMAN1_MASK_WIDTH,
-                BITMAP_SNOWMAN1_MASK_HEIGHT,
-                Bitmap_snowman1Mask,
-                true
+            block = Graphics_drawPrecalculatedBufferlessBitmap(
+                block, 
+                page, 
+                col, 
+                &context.snowmanMask,
+                Bitmap_snowman1Mask
             );
-            block = Graphics_drawBitmapBufferless(
-                block,
-                page,
-                col,
-                snowmanX,
-                snowmanY,
-                BITMAP_SNOWMAN1_WIDTH,
-                BITMAP_SNOWMAN1_HEIGHT,
-                Bitmap_snowman1,
-                false
+            block = Graphics_drawPrecalculatedBufferlessBitmap(
+                block, 
+                page, 
+                col, 
+                &context.snowman,
+                Bitmap_snowman1
             );
 
             SH1106_sendData(block, 0, false);
@@ -286,17 +304,19 @@ static void advanceLogic()
 
     for (uint8_t i = 0; i < SNOWFLAKE_COUNT; ++i) {
         struct Snowflake* s = &context.snowflakes[i];
+        
+        int rnd = rand();
 
         if (addSnowflakeToPile(s->x, s->y)) {
-            s->x = rand() % 128;
-            s->y = rand() % 5 + 8;
+            s->x = rnd % 128;
+            s->y = rnd % 5 + 8;
         } else {
             if (s->y == SH1106_HEIGHT - 1) {
-                s->x = rand() % 128;
-                s->y = rand() % 5 + 8;
+                s->x = rnd % 128;
+                s->y = rnd % 5 + 8;
             } else {
                 ++s->y;
-                uint8_t r = rand() % 2;
+                uint8_t r = rnd % 2;
                 if (r == 0) {
                     s->x = s->x == 0 ? 127 : s->x - 1;
                 } else {
@@ -311,12 +331,23 @@ static void advanceLogic()
     if (context.updateClouds) {
         context.updateClouds = false;
         for (uint8_t i = 0; i < CLOUD_COUNT; ++i) {
+            int rnd = rand();
             int8_t rangeMin = i * (SH1106_WIDTH / CLOUD_COUNT);
             int8_t rangeMax = (i + 1) * (SH1106_WIDTH / CLOUD_COUNT);
             int8_t rangeCenter = rangeMin + (rangeMax - rangeMin) / 2;
-
-            context.clouds[i].x = smax(0, smin(SH1106_WIDTH - BITMAP_CLOUD1_WIDTH, rangeCenter + rand() % 5 - 2 - BITMAP_CLOUD1_WIDTH / 2));
-            context.clouds[i].y = rand() % 3;
+            
+#if USE_FRAME_BUFFER
+            context.clouds[i].x = smax(0, smin(SH1106_WIDTH - BITMAP_CLOUD1_WIDTH, rangeCenter + rnd % 5 - 2 - BITMAP_CLOUD1_WIDTH / 2));
+            context.clouds[i].y = rnd % 3;
+#else
+            context.clouds[i] = Graphics_precalculateBufferlessBitmap(
+                smax(0, smin(SH1106_WIDTH - BITMAP_CLOUD1_WIDTH, rangeCenter + rnd % 5 - 2 - BITMAP_CLOUD1_WIDTH / 2)),
+                rnd % 3,
+                BITMAP_CLOUD1_WIDTH,
+                BITMAP_CLOUD1_HEIGHT,
+                false
+            );            
+#endif
         }
     }
 }

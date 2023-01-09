@@ -35,6 +35,35 @@ void Graphics_drawBitmap(
     const bool mask
 );
 
+typedef struct
+{
+    uint8_t x;
+    uint8_t w;
+    uint8_t startPage : 3;
+    uint8_t endPage : 3;
+    uint8_t reserved1 : 2;
+    uint8_t pageCount : 3;
+    uint8_t alignmentOffset : 3;
+    uint8_t mask : 1;
+    uint8_t reserved2 : 1;
+} BufferlessBitmapInfo;
+
+BufferlessBitmapInfo Graphics_precalculateBufferlessBitmap(
+    uint8_t x,
+    uint8_t y,
+    uint8_t w,
+    uint8_t h,
+    bool mask
+);
+
+uint8_t Graphics_drawPrecalculatedBufferlessBitmap(
+    uint8_t block,
+    uint8_t page,
+    uint8_t col,
+    const BufferlessBitmapInfo* info,
+    const uint8_t* data
+);
+
 uint8_t Graphics_drawBitmapBufferless(
     uint8_t block,
     uint8_t page,
